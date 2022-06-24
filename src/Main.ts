@@ -1,5 +1,9 @@
 import { Matrix } from "@classes/Matrix";
-import { S_Tetromino, T_Tetromino } from "@classes/Piece/Tetromino";
+import {
+  L_Tetromino,
+  S_Tetromino,
+  T_Tetromino,
+} from "@classes/Piece/Tetromino";
 import {
   S_Twist_AC_1,
   S_Twist_C_1_R1,
@@ -25,15 +29,15 @@ piece.rotateClockwise();
 matrix.printMatrix(); */
 
 // Test 3 x 3 bounding box minos
-/* const matrix = new Matrix(3, 3);
-const piece = new T_Tetromino([1, 1], matrix);
+const matrix = new Matrix(3, 3);
+const piece = new L_Tetromino([1, 1], matrix);
 matrix.setActivePiece(piece);
 
 console.log(`
 Clockwise
 =================
 `);
-for (let i = 0; i < 9; i++) {
+for (let i = 0; i < 3; i++) {
   piece.rotateClockwise();
   matrix.printMatrix();
 }
@@ -46,4 +50,3 @@ for (let i = 0; i < 3; i++) {
   piece.rotateAntiClockwise();
   matrix.printMatrix();
 }
- */
