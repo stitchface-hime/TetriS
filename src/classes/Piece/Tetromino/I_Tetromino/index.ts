@@ -1,0 +1,1 @@
+export { I_Tetromino } from "./I_Tetromino";

@@ -3,6 +3,10 @@ import {
   L_Tetromino,
   S_Tetromino,
   T_Tetromino,
+  J_Tetromino,
+  Z_Tetromino,
+  I_Tetromino,
+  O_Tetromino,
 } from "@classes/Piece/Tetromino";
 import {
   S_Twist_AC_1,
@@ -29,15 +33,15 @@ piece.rotateClockwise();
 matrix.printMatrix(); */
 
 // Test 3 x 3 bounding box minos
-const matrix = new Matrix(3, 3);
-const piece = new L_Tetromino([1, 1], matrix);
+const matrix = new Matrix(6, 6);
+const piece = new I_Tetromino([1, 1], matrix);
 matrix.setActivePiece(piece);
 
 console.log(`
 Clockwise
 =================
 `);
-for (let i = 0; i < 3; i++) {
+for (let i = 0; i < 4; i++) {
   piece.rotateClockwise();
   matrix.printMatrix();
 }
@@ -46,7 +50,7 @@ console.log(`
 Anticlockwise
 =================
 `);
-for (let i = 0; i < 3; i++) {
+for (let i = 0; i < 4; i++) {
   piece.rotateAntiClockwise();
   matrix.printMatrix();
 }
