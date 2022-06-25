@@ -55,65 +55,129 @@ export abstract class Piece {
 
   // Movement methods
 
+  /**
+   * Checks if the piece can move down all blocks together a specified number of units.
+   */
+  private canMoveDownTogether(units = 1) {
+    return this.blocks.reduce(
+      (canMove, block) =>
+        canMove && block.canMoveDown(units).unitsMoved === units,
+      true
+    );
+  }
+
+  /**
+   * Checks if the piece can move down all blocks together a specified number of units.
+   */
+  private canMoveLeftTogether(units = 1) {
+    return this.blocks.reduce(
+      (canMove, block) =>
+        canMove && block.canMoveLeft(units).unitsMoved === units,
+      true
+    );
+  }
+
+  /**
+   * Checks if the piece can move down all blocks together a specified number of units.
+   */
+  private canMoveRightTogether(units = 1) {
+    return this.blocks.reduce(
+      (canMove, block) =>
+        canMove && block.canMoveRight(units).unitsMoved === units,
+      true
+    );
+  }
+
+  /**
+   * Gets the number of units to move piece down if a hard drop was initiated.
+   */
+  getHardDropUnits() {
+    let units = 0;
+
+    while (this.canMoveDownTogether(units + 1)) {
+      units += 1;
+    }
+
+    return units;
+  }
+
+  /**
+   * Moves down a piece a certain number of units. If the number of units supplied
+   * is greater than maximum possible movement it will move the maximum possible of units.
+   * It returns whether the movement was successful or not, movement of 0 is counted as unsuccessful.
+   */
   moveDown(units = 1) {
-    // check if all blocks can move down required units
-    const canMove = this.blocks.reduce(
-      (canMove, block) => canMove && block.canMoveDown(units).canMove,
-      true
-    );
+    let unitsToMove = 0;
 
-    // then move it if they can
-    if (canMove) {
+    for (let i = 1; i < 1 + units; i++) {
+      if (this.canMoveDownTogether(i)) {
+        unitsToMove = i;
+      }
+    }
+
+    if (unitsToMove > 0) {
       this.blocks.forEach((block) => {
-        block.moveDown(units);
+        block.moveDown(unitsToMove);
       });
     }
 
-    return canMove;
+    return unitsToMove > 0;
   }
 
-  moveLeft(units = 1): boolean {
-    // check if all blocks can move left required units
-    const canMove = this.blocks.reduce(
-      (canMove, block) => canMove && block.canMoveLeft(units).canMove,
-      true
-    );
+  /**
+   * Moves left a piece a certain number of units. If the number of units supplied
+   * is greater than maximum possible movement it will move the maximum possible of units.
+   * It returns whether the movement was successful or not, movement of 0 is counted as unsuccessful.
+   */
+  moveLeft(units = 1) {
+    let unitsToMove = 0;
 
-    // then move it if they can
-    if (canMove) {
+    for (let i = 1; i < 1 + units; i++) {
+      if (this.canMoveLeftTogether(i)) {
+        unitsToMove = i;
+      }
+    }
+
+    if (unitsToMove > 0) {
       this.blocks.forEach((block) => {
-        block.moveLeft(units);
+        block.moveLeft(unitsToMove);
       });
     }
 
-    return canMove;
+    return unitsToMove > 0;
   }
 
+  /**
+   * Moves right a piece a certain number of units. If the number of units supplied
+   * is greater than maximum possible movement it will move the maximum possible of units.
+   * It returns whether the movement was successful or not, movement of 0 is counted as unsuccessful.
+   */
   moveRight(units = 1): boolean {
-    // check if all blocks can move right required units
-    const canMove = this.blocks.reduce(
-      (canMove, block) => canMove && block.canMoveRight(units).canMove,
-      true
-    );
+    let unitsToMove = 0;
 
-    // then move it if they can
-    if (canMove) {
+    for (let i = 1; i < 1 + units; i++) {
+      if (this.canMoveRightTogether(i)) {
+        unitsToMove = i;
+      }
+    }
+
+    if (unitsToMove > 0) {
       this.blocks.forEach((block) => {
-        block.moveRight(units);
+        block.moveRight(unitsToMove);
       });
     }
 
-    return canMove;
+    return unitsToMove > 0;
   }
 
   // Rotation methods
   /**
    * Determines which wall kick will be used for the rotation and
-   * whether or not the rotation was successful
+   * whether or not the rotation was successful.
    * @param rotationStateAdjust the array containing the position adjustment for each block in the piece
    * @param wallKickOffsetTestData the array containing the different wall kick position offset tests
    * @returns an object containing the wall kick test to use if successful
-   * and whether or not the rotation was successful
+   * and whether or not the rotation was successful.
    */
   private determineWallKick(
     rotationStateAdjust: RotationBlockPositionAdjust[],
@@ -147,7 +211,6 @@ export abstract class Piece {
               return false;
             }
           }, true);
-          console.log("All blocks can rotate?", canRotate);
           // when a rotation is successful, store the successful wall kick offset
           if (canRotate) {
             return wallKickOffset;
@@ -272,5 +335,12 @@ export abstract class Piece {
     });
 
     return this.blocks;
+  }
+
+  /**
+   * Get coordinates of all blocks in the piece.
+   */
+  getBlocksCoordinates() {
+    return this.blocks.map((block) => block.getGlobalCoordinates());
   }
 }

@@ -15,25 +15,27 @@ import {
   TST,
 } from "matrixPatterns";
 
-/* const matrix = new Matrix(22, 10);
-const piece = new S_Tetromino([4, 18], matrix);
+const matrix = new Matrix(22, 10);
+const piece = new I_Tetromino([4, 18], matrix);
 matrix.setActivePiece(piece);
-// TST set up
-// matrix.fillMatrix(S_Twist_AC_1);
 
-piece.rotateClockwise();
-piece.rotateClockwise();
-piece.rotateClockwise();
+matrix.fillMatrix([
+  [1, 0],
+  [5, 1],
+]);
+console.log(piece.getHardDropUnits());
 
-matrix.fillMatrix(S_Twist_C_1_R3);
-piece.rotateClockwise();
-piece.rotateClockwise();
+piece.moveRight(20);
+piece.moveLeft(20);
+piece.rotateAntiClockwise();
+piece.moveDown(20);
+console.log(piece.getHardDropUnits());
 
 // piece.rotateAntiClockwise();
-matrix.printMatrix(); */
+matrix.printMatrix();
 
 // Test 3 x 3 bounding box minos
-const matrix = new Matrix(6, 6);
+/* const matrix = new Matrix(6, 6);
 const piece = new I_Tetromino([1, 1], matrix);
 matrix.setActivePiece(piece);
 
@@ -53,4 +55,4 @@ Anticlockwise
 for (let i = 0; i < 4; i++) {
   piece.rotateAntiClockwise();
   matrix.printMatrix();
-}
+} */

@@ -65,12 +65,19 @@ export class Block {
   }
 
   /**
-   * Determines if the block can move down a specified number of units. (Default: 1 unit)
-   * @returns a tuple containing the y-coordinate after movement
-   * and whether or not the move would be successful.
+   * Determines if the block can move down a specified number of units (default: 1 unit).
+   * If the block cannot move the specified number of units, it will move as many units down
+   * possible.
+   * @returns a tuple containing number of units moved, the y-coordinate after movement
+   * and whether or not the move would be successful. Movement of 0 is unsuccessful.
    */
-  canMoveDown(units = 1): { newY: number; canMove: boolean } {
+  canMoveDown(units = 1): {
+    unitsMoved: number;
+    newY: number;
+    canMove: boolean;
+  } {
     let newY = this.globalCoordinates[1];
+    let unitsMoved = 0;
 
     for (
       let i = this.globalCoordinates[1] - 1;
@@ -79,6 +86,8 @@ export class Block {
     ) {
       if (!this.matrix.hasBlockAt([this.globalCoordinates[0], i])) {
         newY = i;
+        unitsMoved += 1;
+      } else {
         break;
       }
     }
@@ -87,7 +96,7 @@ export class Block {
     if new y-coordinate doesn't differ from current y-coordinate,
     it means the piece didn't move and the move has failed.
     */
-    return { newY, canMove: !(newY === this.globalCoordinates[1]) };
+    return { unitsMoved, newY, canMove: !(newY === this.globalCoordinates[1]) };
   }
 
   /**
@@ -102,12 +111,19 @@ export class Block {
   }
 
   /**
-   * Determines if the block can move left a specified number of units. (Default: 1 unit)
-   * @returns a tuple containing the x-coordinate after potential movement
-   * and whether or not the move would be successful.
+   * Determines if the block can move left a specified number of units (default: 1 unit).
+   * If the block cannot move the specified number of units, it will move as many units left
+   * possible.
+   * @returns a tuple containing number of units moved, the x-coordinate after potential movement
+   * and whether or not the move would be successful. Movement of 0 is unsuccessful.
    */
-  canMoveLeft(units = 1): { newX: number; canMove: boolean } {
+  canMoveLeft(units = 1): {
+    unitsMoved: number;
+    newX: number;
+    canMove: boolean;
+  } {
     let newX = this.globalCoordinates[0];
+    let unitsMoved = 0;
 
     for (
       let i = this.globalCoordinates[0] - 1;
@@ -116,6 +132,8 @@ export class Block {
     ) {
       if (!this.matrix.hasBlockAt([i, this.globalCoordinates[1]])) {
         newX = i;
+        unitsMoved += 1;
+      } else {
         break;
       }
     }
@@ -124,7 +142,7 @@ export class Block {
     if new x-coordinate doesn't differ from current x-coordinate,
     it means the piece didn't move and the move has failed.
     */
-    return { newX, canMove: !(newX === this.globalCoordinates[0]) };
+    return { unitsMoved, newX, canMove: !(newX === this.globalCoordinates[0]) };
   }
 
   /**
@@ -139,10 +157,19 @@ export class Block {
   }
 
   /**
-   * Determines if the block can move right a specified number of units. (Default: 1 unit)
+   * Determines if the block can move right a specified number of units (default: 1 unit).
+   * If the block cannot move the specified number of units, it will move as many units right
+   * possible.
+   * @returns a tuple containing number of units moved, the x-coordinate after potential movement
+   * and whether or not the move would be successful. Movement of 0 is unsuccessful.
    */
-  canMoveRight(units = 1): { newX: number; canMove: boolean } {
+  canMoveRight(units = 1): {
+    unitsMoved: number;
+    newX: number;
+    canMove: boolean;
+  } {
     let newX = this.globalCoordinates[0];
+    let unitsMoved = 0;
 
     for (
       let i = this.globalCoordinates[0] + 1;
@@ -151,6 +178,8 @@ export class Block {
     ) {
       if (!this.matrix.hasBlockAt([i, this.globalCoordinates[1]])) {
         newX = i;
+        unitsMoved += 1;
+      } else {
         break;
       }
     }
@@ -159,7 +188,7 @@ export class Block {
     if new x-coordinate doesn't differ from current x-coordinate,
     it means the piece didn't move and the move has failed.
     */
-    return { newX, canMove: !(newX === this.globalCoordinates[0]) };
+    return { unitsMoved, newX, canMove: !(newX === this.globalCoordinates[0]) };
   }
 
   /**

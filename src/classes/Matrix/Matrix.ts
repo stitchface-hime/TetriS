@@ -37,10 +37,12 @@ export class Matrix {
 
     const gridRow = this.grid[row];
 
-    if (gridRow) {
+    // only perform the check if the row and columns are in bounds
+    if (gridRow && column >= 0 && column < this.numColumns) {
       return !!gridRow[column];
     }
 
+    // if out of bounds consider it to be occupied
     return true;
   }
 
@@ -74,7 +76,6 @@ export class Matrix {
             .map((block) => block.getGlobalCoordinates())
         : []),
     ];
-    console.log(activePieceCoordinates);
     this.grid.reverse().forEach((row, rowIdx) => {
       let rowString = "";
       row.forEach((cell, columnIdx) => {
