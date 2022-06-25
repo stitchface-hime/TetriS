@@ -327,14 +327,13 @@ export abstract class Piece {
 
   /**
    * Locks the piece into the matrix, taking it out of the player's control.
-   * @returns array of blocks locked.
+   * The blocks will form part of the matrix and will no longer be registered to a piece.
+   * (Do not call this from anywhere else except from within a `Matrix` object!)
    */
   lockPiece() {
     this.blocks.forEach((block) => {
       block.unregisterPiece();
     });
-
-    return this.blocks;
   }
 
   /**

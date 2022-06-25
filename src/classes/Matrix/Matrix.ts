@@ -22,6 +22,12 @@ export class Matrix {
     this.activePiece = null;
   }
 
+  private translateToRowsColumns(
+    coordinates: [x: number, y: number]
+  ): [row: number, column: number] {
+    return [coordinates[1], coordinates[0]];
+  }
+
   /**
    * Sets the active piece within the matrix.
    */
@@ -30,10 +36,71 @@ export class Matrix {
   }
 
   /**
+   * Unsets the active piece within the matrix.
+   */
+  unsetActivePiece() {
+    this.activePiece = null;
+  }
+
+  /**
+   * Shifts all rows above a starting row down a specified number of rows.
+   * Used when clearing lines to bubble up the blank rows to the top of the matrix.
+   */
+  shiftRowsDown(startingRow: number, numRows: number) {
+    const rows = this.grid.splice(startingRow, numRows);
+    this.grid.push(...rows);
+  }
+
+  /**
+   * Clears a block in the matrix at specified coordinates.
+   * Blocks that are coupled to this block will be decoupled.
+   */
+  clearBlock(coordinates: [x: number, y: number]) {
+    const [row, column] = this.translateToRowsColumns(coordinates);
+    const gridRow = this.grid[row];
+
+    if (gridRow) {
+      const block = gridRow[column];
+      if (block) {
+        block
+          .getCoupledBlocks()
+          .forEach((coupledBlock) => coupledBlock.unsetCoupledBlock(block));
+      }
+      gridRow[column] = null;
+    }
+  }
+
+  /**
+   * Clears blocks in a range of rows. Will shift the blocks above
+   * down equal to number of rows cleared by default. Used for line clears.
+   * @param from clear rows starting from this row
+   * @param to Optional - clear up to this row (non-inclusive)
+   * @param shiftAboveDown Optional - set to `false` if you don't want rows
+   * above to shift downwards after clearing rows.
+   */
+  clearRows(from: number, to = from + 1, shiftAboveDown = true) {
+    for (let i = from; i < to; i++) {
+      const gridRow = this.grid[i];
+
+      if (gridRow) {
+        gridRow.forEach((block) => {
+          if (block) {
+            this.clearBlock(block.getGlobalCoordinates());
+          }
+        });
+      }
+    }
+
+    if (shiftAboveDown) {
+      this.shiftRowsDown(from, to - from);
+    }
+  }
+
+  /**
    * Checks whether a block is occupying a cell at a given coordinate.
    */
   hasBlockAt(coordinates: [x: number, y: number]) {
-    const [column, row] = coordinates;
+    const [row, column] = this.translateToRowsColumns(coordinates);
 
     const gridRow = this.grid[row];
 
@@ -47,26 +114,100 @@ export class Matrix {
   }
 
   /**
-   * Fills the matrix with some blocks at supplied coordinates.
+   * Adds a block to the matrix.
    */
-  fillMatrix(coordinates: [x: number, y: number][]) {
+  addBlock(block: Block) {
+    const [row, column] = this.translateToRowsColumns(
+      block.getGlobalCoordinates()
+    );
+
+    const gridRow = this.grid[row];
+
+    // only perform the check if the row and columns are in bounds
+    if (gridRow) {
+      gridRow[column] = block;
+    }
+  }
+
+  /**
+   * Locks the active piece and blocks will become part of the matrix.
+   */
+  lockActivePiece() {
+    if (this.activePiece) {
+      // blocks will no longer be tied to a piece
+      this.activePiece.lockPiece();
+      this.activePiece.getBlocks().forEach((block) => this.addBlock(block));
+    }
+
+    this.activePiece = null;
+  }
+  // Debug methods (do not use in production)
+
+  /**
+   * Adds some blocks to the matrix at supplied coordinates.
+   */
+  addBlocks(coordinates: [x: number, y: number][]) {
     coordinates.forEach((coordinate) => {
-      const gridRow = this.grid[coordinate[1]];
+      const [row, column] = this.translateToRowsColumns(coordinate);
+      const gridRow = this.grid[row];
 
       if (gridRow) {
-        gridRow[coordinate[0]] = new Block(coordinate, this);
+        gridRow[column] = new Block([column, row], this);
       }
     });
   }
 
   /**
+   * Removes some blocks in the matrix at supplied coordinates.
+   */
+  removeBlocks(matrixCoordinates: [x: number, y: number][]) {
+    matrixCoordinates.forEach((coordinate) => {
+      const [row, column] = this.translateToRowsColumns(coordinate);
+      const gridRow = this.grid[row];
+
+      if (gridRow) {
+        gridRow[column] = null;
+      }
+    });
+  }
+
+  /**
+   * Fills the rows of a matrix. Supply a number `n` to fill rows from 0 to `n - 1`, or supply an
+   * array of list numbers to fill rows individually
+   */
+  addBlockRows(rows: number | number[]) {
+    if (Array.isArray(rows)) {
+      rows.forEach((row) => {
+        const gridRow = this.grid[row];
+
+        if (gridRow) {
+          for (let i = 0; i < this.numColumns; i++) {
+            gridRow[i] = new Block([i, row], this);
+          }
+        }
+      });
+    } else {
+      for (let i = 0; i < rows; i++) {
+        const gridRow = this.grid[i];
+
+        if (gridRow) {
+          for (let j = 0; j < this.numColumns; j++) {
+            // j = columns, x; i = rows, y
+            gridRow[j] = new Block([j, i], this);
+          }
+        }
+      }
+    }
+  }
+
+  /**
    * Prints the matrix.
    *
-   * `[O]` = occupied cell
+   * `⬜` = occupied cell
    *
-   * `[_]` = free cell
+   * `⬛` = free cell
    *
-   * `[■]` = active piece
+   * `🟩` = active piece
    */
   printMatrix() {
     const activePieceCoordinates = [
@@ -76,11 +217,15 @@ export class Matrix {
             .map((block) => block.getGlobalCoordinates())
         : []),
     ];
-    this.grid.reverse().forEach((row, rowIdx) => {
+
+    // reverse() reverses in-place
+    const gridCopy = [...this.grid];
+
+    gridCopy.reverse().forEach((row, rowIdx) => {
       let rowString = "";
       row.forEach((cell, columnIdx) => {
         if (cell) {
-          rowString += "[O]";
+          rowString += "⬛";
         } else {
           const activePieceOccupied = activePieceCoordinates.find(
             (coordinates) =>
@@ -88,13 +233,14 @@ export class Matrix {
               coordinates[1] === this.numRows - rowIdx - 1
           );
           if (activePieceOccupied) {
-            rowString += "[■]";
+            rowString += "🟩";
           } else {
-            rowString += "[_]";
+            rowString += "⬜";
           }
         }
       });
       console.log(rowString);
     });
+    console.log("\n");
   }
 }

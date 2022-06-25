@@ -1,5 +1,5 @@
 import { Piece } from "@classes/Piece";
-import { randomizeArray } from "@utils/randomizeArray";
+import { randomizeArray } from "@utils/index";
 import { PieceQueue } from "./PieceQueue";
 
 /**

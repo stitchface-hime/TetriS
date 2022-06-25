@@ -6,6 +6,10 @@ import { Piece } from "./Piece";
  * It can be connected to one or more other blocks to form a piece.
  */
 export class Block {
+  /**
+   * The coordinates of the block in the matrix.
+   * NOTE: `x` refers to columns and `y` refers to the rows!
+   */
   private globalCoordinates: [x: number, y: number];
   private color: string;
   private matrix: Matrix;
@@ -37,6 +41,13 @@ export class Block {
   }
 
   /**
+   * Gets the blocks coupled to this block.
+   */
+  getCoupledBlocks() {
+    return this.coupledBlocks;
+  }
+
+  /**
    * Set the blocks that will be coupled with this block in cardinal directions.
    */
   setCoupledBlocks(blocks: Block[]) {
@@ -48,7 +59,8 @@ export class Block {
    *
    *
    * NOTE: This uses the reference of the coupled block to remove it.
-   * If you unset a coupled block, the decoupled block should also call this method.
+   * If a block is about to be cleared from the matrix, be sure to call this
+   * method on all its coupled blocks.
    */
   unsetCoupledBlock(blockToUnset: Block) {
     this.coupledBlocks = this.coupledBlocks.filter(
