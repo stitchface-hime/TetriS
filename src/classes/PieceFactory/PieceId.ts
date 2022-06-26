@@ -1,0 +1,9 @@
+export enum PieceId {
+  TETROMINO_I = 0,
+  TETROMINO_J = 1,
+  TETROMINO_L = 2,
+  TETROMINO_O = 3,
+  TETROMINO_S = 4,
+  TETROMINO_T = 5,
+  TETROMINO_Z = 6,
+}
