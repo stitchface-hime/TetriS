@@ -71,14 +71,12 @@ export class Matrix {
   }
 
   /**
-   * Clears blocks in a range of rows. Will shift the blocks above
-   * down equal to number of rows cleared by default. Used for line clears.
+   * Clears blocks in a range of rows.
+   * When clearing lines don't forget to shift rows down.
    * @param from clear rows starting from this row
    * @param to Optional - clear up to this row (non-inclusive)
-   * @param shiftAboveDown Optional - set to `false` if you don't want rows
-   * above to shift downwards after clearing rows.
    */
-  clearRows(from: number, to = from + 1, shiftAboveDown = true) {
+  clearRows(from: number, to = from + 1) {
     for (let i = from; i < to; i++) {
       const gridRow = this.grid[i];
 
@@ -89,10 +87,6 @@ export class Matrix {
           }
         });
       }
-    }
-
-    if (shiftAboveDown) {
-      this.shiftRowsDown(from, to - from);
     }
   }
 

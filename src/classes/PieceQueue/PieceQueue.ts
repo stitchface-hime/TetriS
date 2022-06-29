@@ -1,16 +1,19 @@
-import { Piece } from "@classes/Piece";
+import { PieceId } from "@classes/PieceFactory";
 
+/**
+ * A queue containing the ids of the pieces that will fall into the matrix next.
+ */
 export abstract class PieceQueue {
-  protected queue: Piece[];
-  protected readonly possiblePieces: Piece[];
+  protected queue: PieceId[];
+  protected readonly possiblePieceIds: PieceId[];
 
-  constructor(possiblePieces: Piece[], initialQueue: Piece[]) {
-    this.possiblePieces = possiblePieces;
+  constructor(possiblePieceIds: PieceId[], initialQueue: PieceId[]) {
+    this.possiblePieceIds = possiblePieceIds;
     this.queue = initialQueue;
   }
 
   /**
-   * Removes the next piece in the queue and returns it.
+   * Removes the next piece id in the queue and returns it.
    * Returns `undefined` if the queue is empty.
    */
   shiftNext() {
@@ -18,9 +21,9 @@ export abstract class PieceQueue {
   }
 
   /**
-   * Returns the next `numNext` pieces in the queue. Does not change the queue.
+   * Returns the piece ids of the next `numNext` pieces in the queue. Does not change the queue.
    */
-  getNext(numNext: number): Piece[] {
+  getNext(numNext: number): PieceId[] {
     let boundedNumNext = numNext;
     if (boundedNumNext < 1) {
       boundedNumNext = 1;
@@ -34,9 +37,9 @@ export abstract class PieceQueue {
   }
 
   /**
-   * Pushes a piece onto the queue.
+   * Pushes a piece id onto the queue.
    */
-  protected pushQueue(piece: Piece) {
+  protected pushQueue(piece: PieceId) {
     this.queue.push(piece);
   }
 }

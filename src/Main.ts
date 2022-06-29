@@ -8,12 +8,14 @@ import {
   I_Tetromino,
   O_Tetromino,
 } from "@classes/Piece/Tetromino";
+import { Bag, PieceQueue } from "@classes/PieceQueue";
 import {
   S_Twist_AC_1,
   S_Twist_C_1_R1,
   S_Twist_C_1_R3,
   TST,
 } from "matrixPatterns";
+import { randomizeArray } from "./utils";
 
 const matrix = new Matrix(22, 10);
 const piece = new T_Tetromino([4, 18], matrix);
@@ -45,7 +47,7 @@ matrix.removeBlocks([
   [3, 0],
 ]); */
 
-piece.moveDown(20);
+/* piece.moveDown(20);
 piece.moveRight(20);
 piece.rotateAntiClockwise();
 matrix.printMatrix();
@@ -53,7 +55,15 @@ matrix.lockActivePiece();
 
 matrix.printMatrix();
 matrix.clearRows(0, 3);
-matrix.printMatrix();
+matrix.printMatrix(); */
+
+const possiblePieces = [0, 1, 2, 3, 4, 5, 6];
+const queue = new Bag(possiblePieces);
+console.log(randomizeArray(possiblePieces));
+for (let i = 0; i < 20; i++) {
+  console.log(queue.shiftNext(), queue.getNext(4));
+}
+
 // Test 3 x 3 bounding box minos
 /* const matrix = new Matrix(6, 6);
 const piece = new I_Tetromino([1, 1], matrix);
