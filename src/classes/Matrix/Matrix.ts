@@ -22,6 +22,9 @@ export class Matrix {
     this.activePiece = null;
   }
 
+  /**
+   * Transforms x-y coordinates to rows and columns.
+   */
   private translateToRowsColumns(
     coordinates: [x: number, y: number]
   ): [row: number, column: number] {
@@ -46,9 +49,25 @@ export class Matrix {
    * Shifts all rows above a starting row down a specified number of rows.
    * Used when clearing lines to bubble up the blank rows to the top of the matrix.
    */
-  shiftRowsDown(startingRow: number, numRows: number) {
+  shiftRowsDown(startingRow: number, numRows = 1) {
     const rows = this.grid.splice(startingRow, numRows);
     this.grid.push(...rows);
+  }
+
+  /**
+   * Determines whether the given row forms a line.
+   */
+  rowFormsLine(row: number) {
+    const selectedRow = this.grid[row];
+
+    if (selectedRow) {
+      return selectedRow.reduce(
+        (isRowFilled, currentCell) => isRowFilled && currentCell !== null,
+        true
+      );
+    }
+
+    return false;
   }
 
   /**
@@ -67,6 +86,7 @@ export class Matrix {
           .forEach((coupledBlock) => coupledBlock.unsetCoupledBlock(block));
       }
       gridRow[column] = null;
+      this.numCellsOccupied -= 1;
     }
   }
 
@@ -120,6 +140,7 @@ export class Matrix {
     // only perform the check if the row and columns are in bounds
     if (gridRow) {
       gridRow[column] = block;
+      this.numCellsOccupied += 1;
     }
   }
 
@@ -147,6 +168,7 @@ export class Matrix {
 
       if (gridRow) {
         gridRow[column] = new Block([column, row], this);
+        this.numCellsOccupied += 1;
       }
     });
   }
@@ -161,6 +183,7 @@ export class Matrix {
 
       if (gridRow) {
         gridRow[column] = null;
+        this.numCellsOccupied -= 1;
       }
     });
   }
@@ -177,6 +200,7 @@ export class Matrix {
         if (gridRow) {
           for (let i = 0; i < this.numColumns; i++) {
             gridRow[i] = new Block([i, row], this);
+            this.numCellsOccupied += 1;
           }
         }
       });
@@ -188,6 +212,7 @@ export class Matrix {
           for (let j = 0; j < this.numColumns; j++) {
             // j = columns, x; i = rows, y
             gridRow[j] = new Block([j, i], this);
+            this.numCellsOccupied += 1;
           }
         }
       }
@@ -235,6 +260,7 @@ export class Matrix {
       });
       console.log(rowString);
     });
+    console.log("Occupied cells:", this.numCellsOccupied);
     console.log("\n");
   }
 }

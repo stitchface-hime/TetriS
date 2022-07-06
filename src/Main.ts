@@ -18,8 +18,47 @@ import {
 import { randomizeArray } from "./utils";
 
 const matrix = new Matrix(22, 10);
-const piece = new T_Tetromino([4, 18], matrix);
+const piece = new L_Tetromino([5, 19], matrix);
 matrix.setActivePiece(piece);
+
+matrix.addBlockRows(4);
+matrix.removeBlocks([
+  [5, 3],
+  [5, 2],
+  [4, 2],
+  [3, 2],
+  [3, 1],
+  [3, 0],
+  [4, 0],
+]);
+
+piece.rotateAntiClockwise();
+piece.moveDown(piece.getHardDropUnits());
+piece.rotateClockwise();
+piece.rotateClockwise();
+
+matrix.printMatrix();
+matrix.lockActivePiece();
+
+const rowsOccupiedByPiece = new Set(
+  piece.getBlocksCoordinates().map((coordinate) => coordinate[1])
+);
+const rowsContainingLines = [...rowsOccupiedByPiece]
+  .filter((row) => matrix.rowFormsLine(row))
+  .sort()
+  .reverse();
+
+rowsContainingLines.forEach((row) => {
+  matrix.clearRows(row);
+  matrix.shiftRowsDown(row, 1);
+});
+
+matrix.printMatrix();
+
+/*const piece = new T_Tetromino([4, 18], matrix);
+matrix.setActivePiece(piece);
+
+
 
 matrix.addBlockRows(3);
 matrix.addBlocks([
@@ -34,55 +73,29 @@ matrix.removeBlocks([
   [5, 1],
 ]);
 
-/* matrix.removeFromMatrix([
-  [6, 6],
-  [6, 5],
-  [6, 4],
-  [6, 3],
-  [5, 3],
-  [4, 3],
-  [3, 3],
-  [3, 2],
-  [3, 1],
-  [3, 0],
-]); */
-
-/* piece.moveDown(20);
+piece.moveDown(20);
 piece.moveRight(20);
 piece.rotateAntiClockwise();
 matrix.printMatrix();
 matrix.lockActivePiece();
 
 matrix.printMatrix();
-matrix.clearRows(0, 3);
+
+// identify rows to clear
+const rowsOccupiedByPiece = new Set(
+  piece.getBlocksCoordinates().map((coordinate) => coordinate[1])
+);
+const rowsContainingLines = [...rowsOccupiedByPiece]
+  .filter((row) => matrix.rowFormsLine(row))
+  .sort()
+  .reverse();
+
+console.log("Clear rows:", rowsContainingLines);
+rowsContainingLines.forEach((row) => {
+  matrix.clearRows(row);
+  matrix.shiftRowsDown(row, 1);
+  matrix.printMatrix();
+});
+
+// matrix.clearRows(0, 3);
 matrix.printMatrix(); */
-
-const possiblePieces = [0, 1, 2, 3, 4, 5, 6];
-const queue = new Bag(possiblePieces);
-console.log(randomizeArray(possiblePieces));
-for (let i = 0; i < 20; i++) {
-  console.log(queue.shiftNext(), queue.getNext(4));
-}
-
-// Test 3 x 3 bounding box minos
-/* const matrix = new Matrix(6, 6);
-const piece = new I_Tetromino([1, 1], matrix);
-matrix.setActivePiece(piece);
-
-console.log(`
-Clockwise
-=================
-`);
-for (let i = 0; i < 4; i++) {
-  piece.rotateClockwise();
-  matrix.printMatrix();
-}
-
-console.log(`
-Anticlockwise
-=================
-`);
-for (let i = 0; i < 4; i++) {
-  piece.rotateAntiClockwise();
-  matrix.printMatrix();
-} */
