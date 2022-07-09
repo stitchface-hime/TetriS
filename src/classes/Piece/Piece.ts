@@ -1,3 +1,4 @@
+import { PieceId } from "@classes/PieceFactory";
 import { Block } from "./Block";
 import {
   RotationBlockPositionAdjust,
@@ -14,6 +15,7 @@ export abstract class Piece {
    * 0 is the the initial rotation.
    */
   protected rotationState: 0 | 1 | 2 | 3;
+  protected readonly id: PieceId | null = null;
   protected readonly clockwiseRotationMap: RotationPositionAdjustMap;
   protected readonly antiClockwiseRotationMap: RotationPositionAdjustMap;
   protected readonly clockwiseWallKickOffsetData: WallKickPositionOffsetTestData;
@@ -53,6 +55,13 @@ export abstract class Piece {
    */
   protected abstract coupleBlocks(): void;
 
+  /**
+   * Gets the piece id.
+   */
+  getId() {
+    return this.id;
+  }
+
   // Movement methods
 
   /**
@@ -85,6 +94,15 @@ export abstract class Piece {
       (canMove, block) =>
         canMove && block.canMoveRight(units).unitsMoved === units,
       true
+    );
+  }
+
+  /**
+   * Gets the row that is occupied by the lowest block in the piece.
+   */
+  getBottomBoundRow() {
+    return Math.min(
+      ...this.blocks.map((block) => block.getGlobalCoordinates()[1])
     );
   }
 
