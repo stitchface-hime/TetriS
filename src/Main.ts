@@ -17,7 +17,7 @@ import {
 } from "matrixPatterns";
 import { randomizeArray } from "./utils";
 
-const matrix = new Matrix(22, 10);
+const matrix = new Matrix(20, 10);
 const piece = new L_Tetromino([5, 19], matrix);
 matrix.setActivePiece(piece);
 
@@ -53,7 +53,7 @@ rowsContainingLines.forEach((row) => {
   matrix.shiftRowsDown(row, 1);
 });
 
-matrix.printMatrix();
+matrix.printMatrix(true);
 
 /*const piece = new T_Tetromino([4, 18], matrix);
 matrix.setActivePiece(piece);

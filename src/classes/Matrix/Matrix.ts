@@ -3,20 +3,29 @@ import { Block, Piece } from "@classes/Piece";
 export class Matrix {
   private grid: (Block | null)[][];
   private numRows: number;
+  private numVisibleRows: number;
   private numColumns: number;
   private numCellsOccupied: number;
   private activePiece: Piece | null;
 
+  /**
+   * When constructing the matrix, the matrix will have twice the number of rows
+   * you specify to account for blocks above the visible part of the matrix.
+   */
   constructor(numRows: number, numColumns: number) {
-    this.numRows = numRows;
+    this.numRows = numRows * 2;
+    this.numVisibleRows = numRows;
     this.numColumns = numColumns;
     this.numCellsOccupied = 0;
 
-    // line directly below to satify type check
-    this.grid = new Array(numRows).fill(new Array(numColumns).fill(null));
+    // the assignment directly below is used to satisfy type check
+    this.grid = new Array(this.numRows).fill(
+      new Array(this.numColumns).fill(null)
+    );
+
     // we want each row to have a unique array
     this.grid.forEach((_, rowIdx) => {
-      this.grid[rowIdx] = new Array(numColumns).fill(null);
+      this.grid[rowIdx] = new Array(this.numColumns).fill(null);
     });
 
     this.activePiece = null;
@@ -220,7 +229,8 @@ export class Matrix {
   }
 
   /**
-   * Prints the matrix.
+   * Prints the matrix. You can also specify if you would like the
+   * non-visible part of the matrix to be printed as well.
    *
    * `⬜` = occupied cell
    *
@@ -228,7 +238,7 @@ export class Matrix {
    *
    * `🟩` = active piece
    */
-  printMatrix() {
+  printMatrix(showNonVisibleArea = false) {
     const activePieceCoordinates = [
       ...(this.activePiece
         ? this.activePiece
@@ -238,7 +248,12 @@ export class Matrix {
     ];
 
     // reverse() reverses in-place
-    const gridCopy = [...this.grid];
+    const gridCopy = [
+      ...this.grid.slice(
+        0,
+        showNonVisibleArea ? this.numRows : this.numVisibleRows
+      ),
+    ];
 
     gridCopy.reverse().forEach((row, rowIdx) => {
       let rowString = "";
