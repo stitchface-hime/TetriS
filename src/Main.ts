@@ -18,10 +18,10 @@ import {
 import { randomizeArray } from "./utils";
 
 const matrix = new Matrix(20, 10);
-const piece = new L_Tetromino([5, 19], matrix);
+const piece = new T_Tetromino([4, 19], matrix);
 matrix.setActivePiece(piece);
 
-matrix.addBlockRows(4);
+/* matrix.addBlockRows(4);
 matrix.removeBlocks([
   [5, 3],
   [5, 2],
@@ -37,7 +37,7 @@ piece.moveDown(piece.getHardDropUnits());
 piece.rotateClockwise();
 piece.rotateClockwise();
 
-matrix.printMatrix();
+matrix.printMatrix(false, true);
 matrix.lockActivePiece();
 
 const rowsOccupiedByPiece = new Set(
@@ -51,9 +51,9 @@ const rowsContainingLines = [...rowsOccupiedByPiece]
 rowsContainingLines.forEach((row) => {
   matrix.clearRows(row);
   matrix.shiftRowsDown(row, 1);
-});
+}); */
 
-matrix.printMatrix(true);
+matrix.printMatrix(true, true);
 
 /*const piece = new T_Tetromino([4, 18], matrix);
 matrix.setActivePiece(piece);

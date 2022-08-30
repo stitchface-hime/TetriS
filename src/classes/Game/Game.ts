@@ -8,6 +8,8 @@ class Game {
   private numColumns: number;
 
   private matrix: Matrix;
+  private spawnCoordinates: [x: number, y: number];
+
   private holdPieceId: PieceId | null = null;
   private activePiece: Piece | null = null;
   private pieceFactory: PieceFactory;
@@ -38,12 +40,18 @@ class Game {
 
   private gamePaused = false;
 
-  constructor(numRows: number, numColumns: number, pieceQueue: PieceQueue) {
+  constructor(
+    numRows: number,
+    numColumns: number,
+    pieceQueue: PieceQueue,
+    spawnCoordinates: [x: number, y: number]
+  ) {
     this.pieceFactory = new PieceFactory();
     this.numRows = numRows;
     this.numColumns = numColumns;
     this.matrix = new Matrix(numRows, numColumns);
     this.nextQueue = pieceQueue;
+    this.spawnCoordinates = spawnCoordinates;
   }
 
   /* Game flow methods */
@@ -106,7 +114,7 @@ class Game {
   private spawnPiece(pieceId?: PieceId) {
     this.activePiece = this.pieceFactory.makePiece(
       // TODO: create a spawn table for minos
-      [4, 19],
+      this.spawnCoordinates,
       this.matrix,
       pieceId
     );

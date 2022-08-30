@@ -230,7 +230,8 @@ export class Matrix {
 
   /**
    * Prints the matrix. You can also specify if you would like the
-   * non-visible part of the matrix to be printed as well.
+   * non-visible part of the matrix to be printed as well and if you
+   * would like the row numbers printed as well.
    *
    * `⬜` = occupied cell
    *
@@ -238,7 +239,7 @@ export class Matrix {
    *
    * `🟩` = active piece
    */
-  printMatrix(showNonVisibleArea = false) {
+  printMatrix(showNonVisibleArea = false, showRowNumbers = false) {
     const activePieceCoordinates = [
       ...(this.activePiece
         ? this.activePiece
@@ -273,6 +274,11 @@ export class Matrix {
           }
         }
       });
+
+      // add row number if specified
+      if (showRowNumbers) {
+        rowString += ` | ${gridCopy.length - 1 - rowIdx}`;
+      }
       console.log(rowString);
     });
     console.log("Occupied cells:", this.numCellsOccupied);
