@@ -25,9 +25,9 @@ export class O_Tetromino extends Tetromino {
 
     const blocks: [Block, Block, Block, Block] = [
       new Block([originX, originY], matrix, O_Tetromino.color), // 0
-      new Block([originX + 1, originY], matrix, O_Tetromino.color), // 1
-      new Block([originX + 1, originY - 1], matrix, O_Tetromino.color), // 2
-      new Block([originX, originY - 1], matrix, O_Tetromino.color), // 3
+      new Block([originX, originY + 1], matrix, O_Tetromino.color), // 1
+      new Block([originX + 1, originY + 1], matrix, O_Tetromino.color), // 2
+      new Block([originX + 1, originY], matrix, O_Tetromino.color), // 3
     ];
 
     super(

@@ -240,6 +240,10 @@ export class Matrix {
    * `🟩` = active piece
    */
   printMatrix(showNonVisibleArea = false, showRowNumbers = false) {
+    const numRowsToPrint = showNonVisibleArea
+      ? this.numRows
+      : this.numVisibleRows;
+
     const activePieceCoordinates = [
       ...(this.activePiece
         ? this.activePiece
@@ -249,12 +253,7 @@ export class Matrix {
     ];
 
     // reverse() reverses in-place
-    const gridCopy = [
-      ...this.grid.slice(
-        0,
-        showNonVisibleArea ? this.numRows : this.numVisibleRows
-      ),
-    ];
+    const gridCopy = [...this.grid.slice(0, numRowsToPrint)];
 
     gridCopy.reverse().forEach((row, rowIdx) => {
       let rowString = "";
@@ -265,7 +264,7 @@ export class Matrix {
           const activePieceOccupied = activePieceCoordinates.find(
             (coordinates) =>
               coordinates[0] === columnIdx &&
-              coordinates[1] === this.numRows - rowIdx - 1
+              coordinates[1] === numRowsToPrint - rowIdx - 1
           );
           if (activePieceOccupied) {
             rowString += "🟩";

@@ -113,7 +113,6 @@ class Game {
    */
   private spawnPiece(pieceId?: PieceId) {
     this.activePiece = this.pieceFactory.makePiece(
-      // TODO: create a spawn table for minos
       this.spawnCoordinates,
       this.matrix,
       pieceId
