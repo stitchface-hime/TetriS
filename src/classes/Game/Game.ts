@@ -3,7 +3,7 @@ import { Piece } from "@classes/Piece";
 import { PieceFactory, PieceId } from "@classes/PieceFactory";
 import { PieceQueue } from "@classes/PieceQueue";
 
-class Game {
+export class Game {
   private numRows: number;
   private numColumns: number;
 
@@ -24,6 +24,7 @@ class Game {
   /**
    *
    */
+  private spawnRetries = 2;
   private gravity = 1;
 
   private lockDelayFrameLimit = 30;
@@ -109,28 +110,58 @@ class Game {
   private initializeLockDelay() {}
 
   /**
-   * Spawn a piece with the given piece id.
+   * Spawn a piece with the given piece id at the spawn coordinates.
+   * If it is unable to spawn the piece at that location, it will try spawning it
+   * one block above the previous attempt up to `this.spawnRetries` times. If spawning the piece
+   * was successful, returns `true`, `false` otherwise.
    */
   private spawnPiece(pieceId?: PieceId) {
-    this.activePiece = this.pieceFactory.makePiece(
-      this.spawnCoordinates,
-      this.matrix,
-      pieceId
-    );
+    for (
+      let spawnAttempt = 0;
+      spawnAttempt <= this.spawnRetries;
+      spawnAttempt++
+    ) {
+      const spawnedPiece = this.pieceFactory.makePiece(
+        [this.spawnCoordinates[0], this.spawnCoordinates[1] + spawnAttempt],
+        this.matrix,
+        pieceId
+      );
+
+      // Does the spawned piece overlap with any blocks in the matrix?
+      if (spawnedPiece) {
+        const pieceDoesNotOverlap = spawnedPiece
+          .getBlocksCoordinates()
+          .reduce(
+            (noOverlap, blockCoordinates) =>
+              noOverlap && !this.matrix.hasBlockAt(blockCoordinates),
+            true
+          );
+
+        // if it doesn't overlap, spawn piece
+        if (pieceDoesNotOverlap) {
+          this.activePiece = spawnedPiece;
+          this.matrix.setActivePiece(spawnedPiece);
+          return true;
+        }
+      }
+    }
+
+    return false;
   }
 
   /**
-   * Spawn the next piece from the next queue.
+   * Spawn the next piece from the next queue. If spawning the piece
+   * was successful, returns `true`, `false` otherwise.
    */
   private spawnNextPiece() {
-    this.spawnPiece(this.nextQueue.shiftNext());
+    return this.spawnPiece(this.nextQueue.shiftNext());
   }
 
   /**
    * Get the next `numNext` piece ids from the next queue (Default: 4).
    */
   getNextQueue(numNext = 4) {
-    this.nextQueue.getNext(numNext);
+    return this.nextQueue.getNext(numNext);
   }
 
   /**
@@ -213,5 +244,12 @@ class Game {
 
   resumeGame() {
     this.gamePaused = false;
+  }
+
+  /**
+   * Debug methods, do NOT use in production
+   */
+  getMatrix() {
+    return this.matrix;
   }
 }

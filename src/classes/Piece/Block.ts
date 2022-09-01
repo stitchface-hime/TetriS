@@ -244,7 +244,7 @@ export class Block {
    */
   translate(xUnits = 0, yUnits = 0) {
     const { newCoordinates, canTranslate } = this.canTranslate(xUnits, yUnits);
-    console.log(newCoordinates);
+
     if (canTranslate) {
       this.globalCoordinates = [...newCoordinates];
     }
