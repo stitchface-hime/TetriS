@@ -29,7 +29,7 @@ export class PieceFactory {
     matrix: Matrix,
     id?: PieceId
   ) {
-    if (!id) {
+    if (id === undefined) {
       return null;
     }
 

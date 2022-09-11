@@ -2,6 +2,7 @@ import { Matrix } from "@classes/Matrix";
 import { Piece } from "@classes/Piece";
 import { PieceFactory, PieceId } from "@classes/PieceFactory";
 import { PieceQueue } from "@classes/PieceQueue";
+import { GameOverCode } from "./GameOverCode";
 
 export class Game {
   private numRows: number;
@@ -40,6 +41,7 @@ export class Game {
   private canHold = true;
 
   private gamePaused = false;
+  private gameOver = false;
 
   constructor(
     numRows: number,
@@ -60,12 +62,17 @@ export class Game {
   /**
    * Ticks the game and decides what happens in the given frame.
    */
-  private tick() {
-    if (!this.activePiece) {
-      this.resetLockDelay();
-      this.spawnNextPiece();
-    } else {
-      this.dropFlow();
+  tick() {
+    if (!this.gameOver) {
+      if (!this.activePiece) {
+        this.resetLockDelay();
+        const spawnSuccessful = this.spawnNextPiece();
+        if (!spawnSuccessful) {
+          this.triggerGameOver(GameOverCode.BLOCK_OUT);
+        }
+      } else {
+        this.dropFlow();
+      }
     }
   }
 
@@ -116,9 +123,11 @@ export class Game {
    * was successful, returns `true`, `false` otherwise.
    */
   private spawnPiece(pieceId?: PieceId) {
+    let spawnSuccessful = false;
+
     for (
       let spawnAttempt = 0;
-      spawnAttempt <= this.spawnRetries;
+      spawnAttempt < this.spawnRetries;
       spawnAttempt++
     ) {
       const spawnedPiece = this.pieceFactory.makePiece(
@@ -137,16 +146,19 @@ export class Game {
             true
           );
 
-        // if it doesn't overlap, spawn piece
+        // Set the active piece regardless of overlap
+        this.activePiece = spawnedPiece;
+        this.matrix.setActivePiece(spawnedPiece);
+
+        // if it doesn't overlap, spawn successful
         if (pieceDoesNotOverlap) {
-          this.activePiece = spawnedPiece;
-          this.matrix.setActivePiece(spawnedPiece);
-          return true;
+          spawnSuccessful = true;
+          break;
         }
       }
     }
 
-    return false;
+    return spawnSuccessful;
   }
 
   /**
@@ -188,6 +200,31 @@ export class Game {
    */
   private lockPiece() {
     this.matrix.lockActivePiece();
+    if (this.isLockOut()) {
+      this.triggerGameOver(GameOverCode.LOCK_OUT);
+    }
+    this.activePiece = null;
+  }
+
+  /**
+   * Checks for the lock out condition.
+   */
+  private isLockOut() {
+    return this.getActivePieceLowestRow() >= this.numRows;
+  }
+
+  /**
+   * Determine which row the lowest block in the piece is occupying.
+   */
+  private getActivePieceLowestRow() {
+    if (this.activePiece) {
+      return Math.min(
+        ...this.activePiece
+          .getBlocksCoordinates()
+          .map((coordinates) => coordinates[1])
+      );
+    }
+    throw new Error("No active piece");
   }
 
   /* Controller methods */
@@ -244,6 +281,12 @@ export class Game {
 
   resumeGame() {
     this.gamePaused = false;
+  }
+
+  triggerGameOver(code?: GameOverCode) {
+    this.gameOver = true;
+    // Debugging feature
+    console.log(code);
   }
 
   /**
