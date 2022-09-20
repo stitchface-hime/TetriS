@@ -196,13 +196,19 @@ export class Game {
   }
 
   /**
-   * Locks the active piece.
+   * Locks the active piece and takes it out of play. Also clears any lines.
    */
   private lockPiece() {
     this.matrix.lockActivePiece();
+
     if (this.isLockOut()) {
       this.triggerGameOver(GameOverCode.LOCK_OUT);
     }
+
+    // clear lines if any
+    this.clearLines();
+
+    // only nullify active piece once all logic above is completed
     this.activePiece = null;
   }
 
@@ -218,13 +224,47 @@ export class Game {
    */
   private getActivePieceLowestRow() {
     if (this.activePiece) {
-      return Math.min(
-        ...this.activePiece
-          .getBlocksCoordinates()
-          .map((coordinates) => coordinates[1])
-      );
+      return Math.min(...this.getRowsOccupiedByActivePiece());
     }
     throw new Error("No active piece");
+  }
+
+  /**
+   * Clears lines from the matrix if they are filled.
+   */
+  private clearLines() {
+    const filledLines = this.checkLineClears();
+    filledLines.forEach((row) => this.clearLine(row));
+  }
+
+  /**
+   * Clears a line from the matrix at a given row.
+   */
+  private clearLine(row: number) {
+    this.matrix.clearRows(row);
+    this.matrix.shiftRowsDown(row, 1);
+  }
+
+  /**
+   * Returns which rows have lines that can be cleared.
+   * The array of rows must be returned in descending order.
+   */
+  private checkLineClears() {
+    return Array.from(new Set(this.getRowsOccupiedByActivePiece()))
+      .filter((row) => this.matrix.rowFormsLine(row))
+      .sort((row1, row2) => row2 - row1);
+  }
+
+  /**
+   * Determines the rows which are occupied by the current piece.
+   */
+  private getRowsOccupiedByActivePiece() {
+    if (this.activePiece) {
+      return this.activePiece
+        .getBlocksCoordinates()
+        .map((coordinates) => coordinates[1]);
+    }
+    return [];
   }
 
   /* Controller methods */

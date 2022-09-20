@@ -168,7 +168,7 @@ export class Matrix {
   // Debug methods (do not use in production)
 
   /**
-   * Adds some blocks to the matrix at supplied coordinates.
+   * Adds some blocks to the matrix at supplied coordinates. (Debug only)
    */
   addBlocks(coordinates: [x: number, y: number][]) {
     coordinates.forEach((coordinate) => {
@@ -183,7 +183,7 @@ export class Matrix {
   }
 
   /**
-   * Removes some blocks in the matrix at supplied coordinates.
+   * Removes some blocks in the matrix at supplied coordinates. (Debug only)
    */
   removeBlocks(matrixCoordinates: [x: number, y: number][]) {
     matrixCoordinates.forEach((coordinate) => {
@@ -199,7 +199,7 @@ export class Matrix {
 
   /**
    * Fills the rows of a matrix. Supply a number `n` to fill rows from 0 to `n - 1`, or supply an
-   * array of list numbers to fill rows individually
+   * array of list numbers to fill rows individually. (Debug only)
    */
   addBlockRows(rows: number | number[]) {
     if (Array.isArray(rows)) {
@@ -231,7 +231,7 @@ export class Matrix {
   /**
    * Prints the matrix. You can also specify if you would like the
    * non-visible part of the matrix to be printed as well and if you
-   * would like the row numbers printed as well.
+   * would like the row numbers printed as well. (Debug only)
    *
    * `⬜` = occupied cell
    *
