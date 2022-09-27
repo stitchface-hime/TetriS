@@ -1,5 +1,6 @@
 import { Game } from "@classes/Game";
 import { Standard } from "@classes/Game";
+import { Block } from "@classes/Piece";
 import { PieceId } from "@classes/PieceFactory";
 import { Bag } from "@classes/PieceQueue";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -19,12 +20,39 @@ const App: React.FC = () => {
     }, []);
 
     useEffect(() => {
-        gameInstance.current = new Game(...Standard.getConfig());
+        const game = new Game(...Standard.getConfig());
+        gameInstance.current = game;
         requestAnimationFrameRef.current = requestAnimationFrame(tick);
         return () => cancelAnimationFrame(requestAnimationFrameRef.current);
     }, [tick]);
 
-    return <div>{`${ticker}`}</div>;
+    if (gameInstance.current) {
+        const game = gameInstance.current;
+        return (
+            <table>
+                {[
+                    ...game
+                        .getMatrixGrid()
+                        .slice(0, game.getNumVisibleRows() + 1),
+                ]
+                    .reverse()
+                    .map((row, rowIdx) => {
+                        const rowNo = game.getNumVisibleRows() + 1 - rowIdx;
+                        return (
+                            <tr key={`row-${rowNo}`}>
+                                {row.map((block, colIdx) => (
+                                    <td key={`cell-${rowNo}-${colIdx}`}>
+                                        {block ? "🔳" : "⬜"}
+                                    </td>
+                                ))}
+                            </tr>
+                        );
+                    })}
+            </table>
+        );
+    }
+
+    return <>Failed to load {`${ticker}`}</>;
 };
 
 export default App;

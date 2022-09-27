@@ -88,6 +88,7 @@ export class Game {
             this.resetLockDelay();
         } else {
             // check if there is a lock
+            this.lockPiece();
         }
     }
 
@@ -334,9 +335,23 @@ export class Game {
         console.log(code);
     }
 
+    // Matrix methods
+
     /**
-     * Should be used for rendering only
+     * Returns the grid of the matrix. (Readonly)
      */
+    getMatrixGrid() {
+        return this.matrix.getGrid();
+    }
+
+    /**
+     * Gets the number of visible rows in the matrix which does NOT include those above the normal field of play.
+     */
+    getNumVisibleRows() {
+        return this.matrix.getNumVisibleRows();
+    }
+
+    // ! Debug only
     getMatrix() {
         return this.matrix;
     }
