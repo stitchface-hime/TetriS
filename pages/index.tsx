@@ -27,6 +27,26 @@ const generateBlock = (
     return block ? "🔳" : "⬜";
 };
 
+/**
+ * Debug only
+ * @param game
+ */
+const gameSetup = (game: Game) => {
+    game.getMatrix().addBlockRows(6);
+    game.getMatrix().removeBlocks([
+        [9, 0],
+        [9, 1],
+        [9, 2],
+        [9, 3],
+        [9, 4],
+        [9, 5],
+        [8, 2],
+        [8, 3],
+        [8, 4],
+        [8, 5],
+    ]);
+};
+
 const App: React.FC = () => {
     const [ticker, setTicker] = useState(false);
     const requestAnimationFrameRef = useRef(0);
@@ -44,20 +64,16 @@ const App: React.FC = () => {
             requestAnimationFrameRef.current = requestAnimationFrame(tick);
 
             const key = (e: KeyboardEvent) => {
-                console.log(e.key);
                 if (gameInstance.current) {
                     if (e.key === "a") {
-                        console.log("Left");
                         gameInstance.current.moveLeft();
                         return;
                     }
                     if (e.key === "d") {
-                        console.log("Right");
                         gameInstance.current.moveRight();
                         return;
                     }
                     if (e.key === "w") {
-                        console.log("Space");
                         gameInstance.current.hardDrop();
                         return;
                     }
@@ -84,6 +100,7 @@ const App: React.FC = () => {
         if (gameInstance.current) {
         } else {
             gameInstance.current = game;
+            gameSetup(game);
             game.run();
         }
     }, []);
@@ -92,29 +109,31 @@ const App: React.FC = () => {
         const game = gameInstance.current;
         return (
             <table>
-                {[
-                    ...game
-                        .getMatrixGrid()
-                        .slice(0, game.getNumVisibleRows() + 1),
-                ]
-                    .reverse()
-                    .map((row, rowIdx) => {
-                        const rowNo = game.getNumVisibleRows() - rowIdx;
-                        return (
-                            <tr key={`row-${rowNo}`}>
-                                {row.map((block, colIdx) => (
-                                    <td key={`cell-${rowNo}-${colIdx}`}>
-                                        {generateBlock(
-                                            [colIdx, rowNo],
-                                            gameInstance.current,
-                                            block
-                                        )}
-                                    </td>
-                                ))}
-                                <td>{rowNo + 1}</td>
-                            </tr>
-                        );
-                    })}
+                <tbody>
+                    {[
+                        ...game
+                            .getMatrixGrid()
+                            .slice(0, game.getNumVisibleRows() + 1),
+                    ]
+                        .reverse()
+                        .map((row, rowIdx) => {
+                            const rowNo = game.getNumVisibleRows() - rowIdx;
+                            return (
+                                <tr key={`row-${rowNo}`}>
+                                    {row.map((block, colIdx) => (
+                                        <td key={`cell-${rowNo}-${colIdx}`}>
+                                            {generateBlock(
+                                                [colIdx, rowNo],
+                                                gameInstance.current,
+                                                block
+                                            )}
+                                        </td>
+                                    ))}
+                                    <td>{rowNo}</td>
+                                </tr>
+                            );
+                        })}
+                </tbody>
             </table>
         );
     }

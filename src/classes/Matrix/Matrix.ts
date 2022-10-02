@@ -139,13 +139,13 @@ export class Matrix {
      * @param to Optional - clear up to this row (non-inclusive)
      */
     clearRows(from: number, to = from + 1) {
-        for (let i = from; i < to; i++) {
-            const gridRow = this.grid[i];
+        for (let rowIdx = from; rowIdx < to; rowIdx++) {
+            const gridRow = this.grid[rowIdx];
 
             if (gridRow) {
-                gridRow.forEach((block) => {
+                gridRow.forEach((block, colIdx) => {
                     if (block) {
-                        this.clearBlock(block.getGlobalCoordinates());
+                        this.clearBlock([colIdx, rowIdx]);
                     }
                 });
             }
