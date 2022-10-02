@@ -3,7 +3,7 @@
  * You can also have the callback repeated a certain number of times too.
  */
 export class Interval {
-    protected intervalMs: number;
+    protected intervalMs = 0;
     protected repeatCount: number;
     protected callback: () => void;
 
@@ -13,7 +13,7 @@ export class Interval {
         undefined;
 
     constructor(intervalMs: number, callback: () => void, repeatCount = 0) {
-        this.intervalMs = intervalMs;
+        this.setIntervalMs(intervalMs);
         this.repeatCount = repeatCount < 0 ? 0 : repeatCount;
         this.callback = callback;
     }
@@ -29,12 +29,14 @@ export class Interval {
                     const timeDelta = newCurrentTime - this.currentTime;
 
                     this.rollingMsCount += timeDelta;
-
                     if (this.rollingMsCount >= this.intervalMs) {
                         if (this.repeatCount >= 0) {
                             this.callback();
                             this.repeatCount -= 1;
                             this.rollingMsCount -= this.intervalMs;
+                        } else {
+                            // TODO: Does this even work?
+                            this.pause();
                         }
                     }
 
@@ -62,6 +64,16 @@ export class Interval {
      */
     reset() {
         this.currentTime = null;
+        this.rollingMsCount = 0;
+    }
+
+    /**
+     * Set the duration before a callback is made.
+     * The next callback will be made after the number of milliseconds that was specified
+     * when calling this method.
+     */
+    setIntervalMs(intervalMs: number) {
+        this.intervalMs = intervalMs < 0 ? 0 : intervalMs;
         this.rollingMsCount = 0;
     }
 }

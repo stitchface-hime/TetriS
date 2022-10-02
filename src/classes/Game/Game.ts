@@ -2,6 +2,9 @@ import { Matrix } from "@classes/Matrix";
 import { Piece } from "@classes/Piece";
 import { PieceFactory, PieceId } from "@classes/PieceFactory";
 import { PieceQueue } from "@classes/PieceQueue";
+import { Interval } from "@classes/TimeMeasure";
+import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
+import { GameIntervalKeys } from "./GameIntervalKeys";
 import { GameOverCode } from "./GameOverCode";
 
 export class Game {
@@ -25,6 +28,9 @@ export class Game {
     /**
      *
      */
+
+    private intervalManager = new IntervalManager();
+
     private spawnRetries = 2;
     private gravity = 1;
 
@@ -58,6 +64,20 @@ export class Game {
     }
 
     /* Game flow methods */
+
+    run() {
+        // TODO: This is still testing
+        this.intervalManager.subscribe(
+            GameIntervalKeys.AUTO_DROP,
+            new Interval(
+                500,
+                () => {
+                    this.tick();
+                },
+                Infinity
+            )
+        );
+    }
 
     /**
      * Ticks the game and decides what happens in the given frame.
@@ -232,7 +252,9 @@ export class Game {
         if (this.activePiece) {
             return Math.min(...this.getRowsOccupiedByActivePiece());
         }
-        throw new Error("No active piece");
+        // TODO:
+        return -1;
+        // throw new Error("No active piece");
     }
 
     /**
@@ -240,6 +262,7 @@ export class Game {
      */
     private clearLines() {
         const filledLines = this.checkLineClears();
+        console.log("Line clears at:", filledLines);
         filledLines.forEach((row) => this.clearLine(row));
     }
 
@@ -331,8 +354,14 @@ export class Game {
 
     triggerGameOver(code?: GameOverCode) {
         this.gameOver = true;
+        this.intervalManager.unsubscribe(GameIntervalKeys.AUTO_DROP);
         // Debugging feature
-        console.log(code);
+        console.log("Game over:", code);
+    }
+
+    // Game methods
+    getActivePiece() {
+        return this.activePiece;
     }
 
     // Matrix methods
