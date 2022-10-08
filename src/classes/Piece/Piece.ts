@@ -1,4 +1,4 @@
-import { PieceId } from "@classes/PieceFactory";
+import { PieceId } from "../../data/PieceId";
 import { Block } from "./Block";
 import {
     RotationBlockPositionAdjust,
@@ -15,7 +15,7 @@ export abstract class Piece {
      * 0 is the the initial rotation.
      */
     protected rotationState: 0 | 1 | 2 | 3;
-    protected readonly id: PieceId | null = null;
+    protected static id: PieceId | null = null;
     protected readonly clockwiseRotationMap: RotationPositionAdjustMap;
     protected readonly antiClockwiseRotationMap: RotationPositionAdjustMap;
     protected readonly clockwiseWallKickOffsetData: WallKickPositionOffsetTestData;
@@ -59,7 +59,7 @@ export abstract class Piece {
      * Gets the piece id.
      */
     getId() {
-        return this.id;
+        return Piece.id;
     }
 
     // Movement methods

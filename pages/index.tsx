@@ -1,7 +1,7 @@
 import { Game } from "@classes/Game";
 import { Standard } from "@classes/Game";
 import { Block } from "@classes/Piece";
-import { PieceId } from "@classes/PieceFactory";
+
 import { Bag } from "@classes/PieceQueue";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -22,6 +22,17 @@ const generateBlock = (
             )
     ) {
         return "🟩";
+    }
+
+    if (
+        game
+            ?.getGhostPieceCoordinates()
+            ?.find(
+                (coordinates) =>
+                    coordinates[0] === cell[0] && coordinates[1] === cell[1]
+            )
+    ) {
+        return "🟪";
     }
 
     return block ? "🔳" : "⬜";
@@ -83,6 +94,9 @@ const App: React.FC = () => {
                     }
                     if (e.key === "j") {
                         gameInstance.current.rotateClockwise();
+                    }
+                    if (e.key === "q") {
+                        gameInstance.current.hold();
                     }
                 }
             };

@@ -1,5 +1,5 @@
-import { PieceId } from "@classes/PieceFactory";
 import { Bag } from "@classes/PieceQueue";
+import { PieceId } from "@data/PieceId";
 import { GameConfig } from "./types";
 
 export const getConfig = (): GameConfig => {

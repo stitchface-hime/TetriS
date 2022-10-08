@@ -1,9 +1,11 @@
 import { Matrix } from "@classes/Matrix";
 import { Piece } from "@classes/Piece";
-import { PieceFactory, PieceId } from "@classes/PieceFactory";
+
+import { PieceFactory } from "@classes/PieceFactory";
 import { PieceQueue } from "@classes/PieceQueue";
 import { Interval } from "@classes/TimeMeasure";
 import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
+import { PieceId } from "@data/index";
 import { GameIntervalKeys } from "./GameIntervalKeys";
 import { GameOverCode } from "./GameOverCode";
 
@@ -235,6 +237,7 @@ export class Game {
         this.clearLines();
 
         // only nullify active piece once all logic above is completed
+        this.canHold = true;
         this.activePiece = null;
     }
 
@@ -334,11 +337,14 @@ export class Game {
                 this.holdPieceId = this.activePiece.getId();
                 this.spawnNextPiece();
             } else {
+                const holdId = this.holdPieceId;
                 // otherwise swap active piece and hold piece
-                this.spawnPiece(this.holdPieceId);
                 this.holdPieceId = this.activePiece.getId();
+                this.spawnPiece(holdId);
             }
+
             this.canHold = false;
+
             return true;
         }
         return false;
