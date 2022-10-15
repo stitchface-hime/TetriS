@@ -173,16 +173,19 @@ export class Matrix {
      * Adds a block to the matrix.
      */
     addBlock(block: Block) {
-        const [row, column] = this.translateToRowsColumns(
-            block.getGlobalCoordinates()
-        );
+        const activeCoordinates = block.getActiveCoordinates();
 
-        const gridRow = this.grid[row];
+        if (activeCoordinates) {
+            const [row, column] =
+                this.translateToRowsColumns(activeCoordinates);
 
-        // only perform the check if the row and columns are in bounds
-        if (gridRow) {
-            gridRow[column] = block;
-            this.numCellsOccupied += 1;
+            const gridRow = this.grid[row];
+
+            // only perform the check if the row and columns are in bounds
+            if (gridRow) {
+                gridRow[column] = block;
+                this.numCellsOccupied += 1;
+            }
         }
     }
 
@@ -283,7 +286,7 @@ export class Matrix {
             ...(this.activePiece
                 ? this.activePiece
                       .getBlocks()
-                      .map((block) => block.getGlobalCoordinates())
+                      .map((block) => block.getActiveCoordinates())
                 : []),
         ];
 
@@ -298,6 +301,7 @@ export class Matrix {
                 } else {
                     const activePieceOccupied = activePieceCoordinates.find(
                         (coordinates) =>
+                            coordinates &&
                             coordinates[0] === columnIdx &&
                             coordinates[1] === numRowsToPrint - rowIdx - 1
                     );

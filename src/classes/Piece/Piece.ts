@@ -69,8 +69,7 @@ export abstract class Piece {
      */
     private canMoveDownTogether(units = 1) {
         return this.blocks.reduce(
-            (canMove, block) =>
-                canMove && block.canMoveDown(units).unitsMoved === units,
+            (canMove, block) => canMove && block.canMoveDown(units) === units,
             true
         );
     }
@@ -80,8 +79,7 @@ export abstract class Piece {
      */
     private canMoveLeftTogether(units = 1) {
         return this.blocks.reduce(
-            (canMove, block) =>
-                canMove && block.canMoveLeft(units).unitsMoved === units,
+            (canMove, block) => canMove && block.canMoveLeft(units) === units,
             true
         );
     }
@@ -91,18 +89,26 @@ export abstract class Piece {
      */
     private canMoveRightTogether(units = 1) {
         return this.blocks.reduce(
-            (canMove, block) =>
-                canMove && block.canMoveRight(units).unitsMoved === units,
+            (canMove, block) => canMove && block.canMoveRight(units) === units,
             true
         );
     }
 
     /**
      * Gets the row that is occupied by the lowest block in the piece.
+     * Only callable if piece is part of an active piece.
      */
     getBottomBoundRow() {
         return Math.min(
-            ...this.blocks.map((block) => block.getGlobalCoordinates()[1])
+            ...this.blocks.map((block) => {
+                const activeCoordinates = block.getActiveCoordinates();
+                if (activeCoordinates) {
+                    return activeCoordinates[1];
+                }
+                throw new Error(
+                    "This is only callable if the piece is active!"
+                );
+            })
         );
     }
 
@@ -364,6 +370,6 @@ export abstract class Piece {
      * Get coordinates of all blocks in the piece.
      */
     getBlocksCoordinates() {
-        return this.blocks.map((block) => block.getGlobalCoordinates());
+        return this.blocks.map((block) => block.getActiveCoordinates());
     }
 }
