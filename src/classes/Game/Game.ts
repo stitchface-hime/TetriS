@@ -36,10 +36,13 @@ export class Game {
     private spawnRetries = 2;
     private gravity = 1;
 
-    private lockDelayFrameLimit = 30;
+    private lockDelayFrameLimit = 10;
     private lockDelayFrames = 0;
 
     private highestGroundedRow = 0;
+
+    private autoDropFrameTarget = 60;
+    private autoDropFrames = 0;
 
     private groundedMoveLimit = 15;
     private groundedMoves = 0;
@@ -69,16 +72,18 @@ export class Game {
 
     run() {
         // TODO: This is still testing
-        this.intervalManager.subscribe(
-            GameIntervalKeys.AUTO_DROP,
-            new Interval(
-                500,
-                () => {
-                    this.tick();
-                },
-                Infinity
-            )
-        );
+        if (!this.intervalManager.getInterval(GameIntervalKeys.RUN)) {
+            this.intervalManager.subscribe(
+                GameIntervalKeys.RUN,
+                new Interval(
+                    1000 / 60,
+                    () => {
+                        this.tick();
+                    },
+                    Infinity
+                )
+            );
+        }
     }
 
     /**
@@ -87,12 +92,12 @@ export class Game {
     tick() {
         if (!this.gameOver) {
             if (!this.activePiece) {
-                this.resetLockDelay();
                 const spawnSuccessful = this.spawnNextPiece();
                 if (!spawnSuccessful) {
                     this.triggerGameOver(GameOverCode.BLOCK_OUT);
                 }
             } else {
+                this.highestGroundedRow = this.getActivePieceLowestRow();
                 this.dropFlow();
             }
         }
@@ -102,15 +107,21 @@ export class Game {
      * The flow for an active piece to drop automatically.
      */
     private dropFlow() {
-        const autoDropped = this.autoDropPiece();
-        // if piece was able to be moved down,
-        if (autoDropped) {
-            // if soft dropped, add score
-            // reset lock delay
-            this.resetLockDelay();
+        if (this.autoDropFrames >= this.autoDropFrameTarget) {
+            const autoDropped = this.autoDropPiece();
+            // if piece was able to be moved down,
+            if (autoDropped) {
+                this.autoDropFrames -= this.autoDropFrameTarget;
+                // if soft dropped, add score
+                // reset lock delay
+                this.resetLockDelay();
+            }
+            // Begin lock delay flow as soon as piece cannot move downwards
+            if (!this.activePiece?.canMoveDownTogether(1)) {
+                this.autoLockFlow();
+            }
         } else {
-            // check if there is a lock
-            this.lockPiece();
+            this.autoDropFrames++;
         }
     }
 
@@ -118,13 +129,9 @@ export class Game {
      * The flow for an active piece to auto lock.
      */
     private autoLockFlow() {
-        if (
-            this.activePiece &&
-            this.activePiece.getBottomBoundRow() < this.highestGroundedRow
-        ) {
-            this.resetLockDelay();
+        if (!this.intervalManager.getInterval(GameIntervalKeys.LOCK_DELAY)) {
+            this.initializeLockDelay();
         }
-        this.initializeLockDelay();
     }
 
     private autoDropPiece() {
@@ -132,12 +139,26 @@ export class Game {
     }
 
     private resetLockDelay() {
-        this.highestGroundedRow = this.numRows - 1;
         this.groundedMoves = 0;
         this.lockDelayFrames = 0;
+        this.intervalManager.unsubscribe(GameIntervalKeys.LOCK_DELAY);
     }
 
-    private initializeLockDelay() {}
+    private initializeLockDelay() {
+        this.intervalManager.subscribe(
+            GameIntervalKeys.LOCK_DELAY,
+            new Interval(
+                1000 / 60,
+                () => {
+                    if (this.lockDelayFrames >= this.lockDelayFrameLimit) {
+                        this.lockPiece();
+                    }
+                    this.lockDelayFrames++;
+                },
+                Infinity
+            )
+        );
+    }
 
     /**
      * Spawn a piece with the given piece id at the spawn coordinates.
@@ -168,6 +189,8 @@ export class Game {
                     .getBlocksCoordinates()
                     .reduce(
                         (noOverlap, blockCoordinates) =>
+                            // active piece should always have coordinates
+                            !!blockCoordinates &&
                             noOverlap &&
                             !this.matrix.hasBlockAt(blockCoordinates),
                         true
@@ -212,7 +235,8 @@ export class Game {
                 this.activePiece.getBlocksCoordinates();
 
             return activePieceCoordinates.map((coordinates) => {
-                if (this.activePiece) {
+                // active piece should always have coordinates
+                if (this.activePiece && coordinates) {
                     return [
                         coordinates[0],
                         coordinates[1] - this.activePiece.getHardDropUnits(),
@@ -225,20 +249,25 @@ export class Game {
 
     /**
      * Locks the active piece and takes it out of play. Also clears any lines.
+     * Piece will not lock if there is still space underneath
+     * (this behaviour can be ignored).
      */
-    private lockPiece() {
-        this.matrix.lockActivePiece();
+    private lockPiece(ignoreMoveCheck = false) {
+        if (!this.activePiece?.canMoveDownTogether(1) || ignoreMoveCheck) {
+            this.matrix.lockActivePiece();
 
-        if (this.isLockOut()) {
-            this.triggerGameOver(GameOverCode.LOCK_OUT);
+            if (this.isLockOut()) {
+                this.triggerGameOver(GameOverCode.LOCK_OUT);
+            }
+
+            // clear lines if any
+            this.clearLines();
+
+            // only nullify active piece once all logic above is completed
+            this.resetLockDelay();
+            this.canHold = true;
+            this.activePiece = null;
         }
-
-        // clear lines if any
-        this.clearLines();
-
-        // only nullify active piece once all logic above is completed
-        this.canHold = true;
-        this.activePiece = null;
     }
 
     /**
@@ -294,7 +323,12 @@ export class Game {
         if (this.activePiece) {
             return this.activePiece
                 .getBlocksCoordinates()
-                .map((coordinates) => coordinates[1]);
+                .map((coordinates) => {
+                    if (coordinates) {
+                        return coordinates[1];
+                    }
+                    throw Error("Active piece should always have coordinates");
+                });
         }
         return [];
     }
@@ -302,19 +336,27 @@ export class Game {
     /* Controller methods */
 
     moveLeft() {
-        this.activePiece?.moveLeft();
+        if (this.activePiece?.moveLeft()) {
+            this.resetLockDelay();
+        }
     }
 
     moveRight() {
-        this.activePiece?.moveRight();
+        if (this.activePiece?.moveRight()) {
+            this.resetLockDelay();
+        }
     }
 
     rotateClockwise() {
-        this.activePiece?.rotateClockwise();
+        if (this.activePiece?.rotateClockwise()) {
+            this.resetLockDelay();
+        }
     }
 
     rotateAntiClockwise() {
-        this.activePiece?.rotateAntiClockwise();
+        if (this.activePiece?.rotateAntiClockwise()) {
+            this.resetLockDelay();
+        }
     }
 
     enableSoftDrop() {
@@ -360,7 +402,7 @@ export class Game {
 
     triggerGameOver(code?: GameOverCode) {
         this.gameOver = true;
-        this.intervalManager.unsubscribe(GameIntervalKeys.AUTO_DROP);
+        this.intervalManager.unsubscribeAll();
         // Debugging feature
         console.log("Game over:", code);
     }

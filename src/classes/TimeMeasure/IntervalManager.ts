@@ -30,6 +30,7 @@ export class IntervalManager {
      * Removes an interval from the manager with a given key.
      */
     unsubscribe(key: IntervalManagerKey) {
+        this.subscriptions.get(key)?.clear();
         this.subscriptions.delete(key);
     }
 
@@ -51,6 +52,7 @@ export class IntervalManager {
      * Removes all intervals from the manager.
      */
     unsubscribeAll() {
+        this.subscriptions.forEach((interval) => interval.clear());
         this.subscriptions.clear();
     }
 }

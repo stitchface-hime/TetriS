@@ -67,7 +67,7 @@ export abstract class Piece {
     /**
      * Checks if the piece can move down all blocks together a specified number of units.
      */
-    private canMoveDownTogether(units = 1) {
+    canMoveDownTogether(units = 1) {
         return this.blocks.reduce(
             (canMove, block) => canMove && block.canMoveDown(units) === units,
             true

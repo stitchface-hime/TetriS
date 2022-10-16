@@ -8,6 +8,7 @@ export class Interval {
     protected callback: () => void;
 
     protected rollingMsCount = 0;
+    protected repetitions = 0;
     protected currentTime: number | null = null;
     protected currentTimeIntervalHandle?: ReturnType<typeof setTimeout> =
         undefined;
@@ -16,6 +17,21 @@ export class Interval {
         this.setIntervalMs(intervalMs);
         this.repeatCount = repeatCount < 0 ? 0 : repeatCount;
         this.callback = callback;
+    }
+
+    getIntervalMs() {
+        return this.intervalMs;
+    }
+
+    getRollingMsCount() {
+        return this.rollingMsCount;
+    }
+
+    /**
+     * Get the number of times the callback has been fired.
+     */
+    getRepetitions() {
+        return this.repetitions;
     }
 
     /**
@@ -32,6 +48,7 @@ export class Interval {
                     if (this.rollingMsCount >= this.intervalMs) {
                         if (this.repeatCount >= 0) {
                             this.callback();
+                            this.repetitions += 1;
                             this.repeatCount -= 1;
                             this.rollingMsCount -= this.intervalMs;
                         } else {
@@ -65,6 +82,14 @@ export class Interval {
     reset() {
         this.currentTime = null;
         this.rollingMsCount = 0;
+    }
+
+    /**
+     * Shorthand to pause and reset.
+     */
+    clear() {
+        this.pause();
+        this.reset();
     }
 
     /**
