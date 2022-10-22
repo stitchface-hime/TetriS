@@ -50,7 +50,7 @@ export class Interval {
                             this.callback();
                             this.repetitions += 1;
                             this.repeatCount -= 1;
-                            this.rollingMsCount -= this.intervalMs;
+                            this.rollingMsCount = 0;
                         } else {
                             // TODO: Does this even work?
                             this.pause();

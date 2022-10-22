@@ -22,7 +22,7 @@ export class Game {
     private nextQueue: PieceQueue;
 
     private linesCleared = 0;
-    private level = 1;
+    private level = 15;
     private maxLevel = 15;
     private levelLineQuota = 10;
     private combo = -1;
@@ -34,14 +34,16 @@ export class Game {
     private intervalManager = new IntervalManager();
 
     private spawnRetries = 2;
-    private gravity = 1;
 
-    private lockDelayFrameLimit = 10;
+    private lockDelayFrameLimit = 60;
     private lockDelayFrames = 0;
 
     private highestGroundedRow = 0;
 
-    private autoDropFrameTarget = 60;
+    private autoDropFrameBaseline =
+        (0.8 - (this.level - 1) * 0.007) ** (this.level - 1) * 60;
+
+    private autoDropFrameTarget = this.autoDropFrameBaseline;
     private autoDropFrames = 0;
 
     private groundedMoveLimit = 15;
@@ -50,6 +52,7 @@ export class Game {
     private grounded = false;
 
     private canHold = true;
+    private softDropEnabled = false;
 
     private gamePaused = false;
     private gameOver = false;
@@ -96,6 +99,7 @@ export class Game {
                 if (!spawnSuccessful) {
                     this.triggerGameOver(GameOverCode.BLOCK_OUT);
                 }
+                this.initAutoDrop();
             } else {
                 this.highestGroundedRow = this.getActivePieceLowestRow();
                 this.dropFlow();
@@ -130,8 +134,20 @@ export class Game {
      */
     private autoLockFlow() {
         if (!this.intervalManager.getInterval(GameIntervalKeys.LOCK_DELAY)) {
-            this.initializeLockDelay();
+            this.initLockDelay();
         }
+    }
+
+    private initAutoDrop() {
+        this.intervalManager.subscribe(
+            GameIntervalKeys.AUTO_DROP,
+            new Interval(1000 / 60, this.dropFlow)
+        );
+    }
+
+    private resetAutoDrop() {
+        this.autoDropFrames = 0;
+        this.intervalManager.unsubscribe(GameIntervalKeys.AUTO_DROP);
     }
 
     private autoDropPiece() {
@@ -144,7 +160,7 @@ export class Game {
         this.intervalManager.unsubscribe(GameIntervalKeys.LOCK_DELAY);
     }
 
-    private initializeLockDelay() {
+    private initLockDelay() {
         this.intervalManager.subscribe(
             GameIntervalKeys.LOCK_DELAY,
             new Interval(
@@ -216,7 +232,9 @@ export class Game {
      * was successful, returns `true`, `false` otherwise.
      */
     private spawnNextPiece() {
-        return this.spawnPiece(this.nextQueue.shiftNext());
+        const nextPiece = this.spawnPiece(this.nextQueue.shiftNext());
+        this.resetAutoDrop();
+        return nextPiece;
     }
 
     /**
@@ -360,11 +378,21 @@ export class Game {
     }
 
     enableSoftDrop() {
-        this.gravity *= 20;
+        if (!this.softDropEnabled) {
+            this.resetAutoDrop();
+            this.softDropEnabled = true;
+            this.autoDropFrameTarget = Math.round(
+                this.autoDropFrameBaseline / 20
+            );
+            this.initAutoDrop();
+        }
     }
 
     disableSoftDrop() {
-        this.gravity /= 20;
+        this.resetAutoDrop();
+        this.autoDropFrameTarget = this.autoDropFrameBaseline;
+        this.softDropEnabled = false;
+        this.initAutoDrop();
     }
 
     hardDrop() {

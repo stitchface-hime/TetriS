@@ -74,7 +74,7 @@ const App: React.FC = () => {
         if (gameInstance.current) {
             requestAnimationFrameRef.current = requestAnimationFrame(tick);
 
-            const key = (e: KeyboardEvent) => {
+            const keyDown = (e: KeyboardEvent) => {
                 if (gameInstance.current) {
                     if (e.key === "a") {
                         gameInstance.current.moveLeft();
@@ -86,6 +86,10 @@ const App: React.FC = () => {
                     }
                     if (e.key === "w") {
                         gameInstance.current.hardDrop();
+                        return;
+                    }
+                    if (e.key === "s") {
+                        gameInstance.current.enableSoftDrop();
                         return;
                     }
                     if (e.key === "b") {
@@ -100,11 +104,22 @@ const App: React.FC = () => {
                     }
                 }
             };
-            window.addEventListener("keydown", key);
+
+            const keyUp = (e: KeyboardEvent) => {
+                if (gameInstance.current) {
+                    if (e.key === "s") {
+                        gameInstance.current.disableSoftDrop();
+                        return;
+                    }
+                }
+            };
+            window.addEventListener("keydown", keyDown);
+            window.addEventListener("keyup", keyUp);
 
             return () => {
                 cancelAnimationFrame(requestAnimationFrameRef.current);
-                window.removeEventListener("keydown", key);
+                window.removeEventListener("keydown", keyDown);
+                window.removeEventListener("keyup", keyUp);
             };
         }
     }, [tick]);
