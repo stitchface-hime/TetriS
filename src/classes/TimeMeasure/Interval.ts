@@ -12,6 +12,8 @@ export class Interval {
     protected currentTime: number | null = null;
     protected currentTimeIntervalHandle?: number = undefined;
 
+    private killSignal = false;
+
     constructor(intervalMs: number, callback: () => void, repeatCount = 0) {
         this.setIntervalMs(intervalMs);
         this.repeatCount = repeatCount < 0 ? 0 : repeatCount;
@@ -34,30 +36,36 @@ export class Interval {
     }
 
     private intervalFlow = () => {
-        if (this.currentTime !== null) {
-            const newCurrentTime = Date.now();
-            const timeDelta = newCurrentTime - this.currentTime;
-            this.rollingMsCount += timeDelta;
-            if (this.rollingMsCount >= this.intervalMs) {
-                if (this.repeatCount >= 0) {
-                    this.callback();
-                    this.repetitions += 1;
-                    this.repeatCount -= 1;
-                    this.rollingMsCount -= this.intervalMs;
-                } else {
-                    // TODO: Does this even work?
-                    this.pause();
+        if (!this.killSignal) {
+            if (this.currentTime !== null) {
+                const newCurrentTime = Date.now();
+                const timeDelta = newCurrentTime - this.currentTime;
+                this.rollingMsCount += timeDelta;
+                if (this.rollingMsCount >= this.intervalMs) {
+                    if (this.repeatCount >= 0) {
+                        this.callback();
+                        this.repetitions += 1;
+                        this.repeatCount -= 1;
+                        this.rollingMsCount -= this.intervalMs;
+                    } else {
+                        // TODO: Does this even work?
+                        this.pause();
+                    }
                 }
+
+                this.currentTime = newCurrentTime;
+            } else {
+                this.currentTime = Date.now();
             }
 
-            this.currentTime = newCurrentTime;
+            this.currentTimeIntervalHandle = requestAnimationFrame(
+                this.intervalFlow
+            );
         } else {
-            this.currentTime = Date.now();
+            if (this.currentTimeIntervalHandle) {
+                cancelAnimationFrame(this.currentTimeIntervalHandle);
+            }
         }
-
-        this.currentTimeIntervalHandle = requestAnimationFrame(
-            this.intervalFlow
-        );
     };
 
     /**
@@ -98,6 +106,7 @@ export class Interval {
     clear() {
         this.pause();
         this.reset();
+        this.killSignal = true;
     }
 
     /**
