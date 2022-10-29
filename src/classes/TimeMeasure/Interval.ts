@@ -10,8 +10,7 @@ export class Interval {
     protected rollingMsCount = 0;
     protected repetitions = 0;
     protected currentTime: number | null = null;
-    protected currentTimeIntervalHandle?: ReturnType<typeof setTimeout> =
-        undefined;
+    protected currentTimeIntervalHandle?: number = undefined;
 
     constructor(intervalMs: number, callback: () => void, repeatCount = 0) {
         this.setIntervalMs(intervalMs);
@@ -34,34 +33,41 @@ export class Interval {
         return this.repetitions;
     }
 
+    private intervalFlow = () => {
+        if (this.currentTime !== null) {
+            const newCurrentTime = Date.now();
+            const timeDelta = newCurrentTime - this.currentTime;
+            this.rollingMsCount += timeDelta;
+            if (this.rollingMsCount >= this.intervalMs) {
+                if (this.repeatCount >= 0) {
+                    this.callback();
+                    this.repetitions += 1;
+                    this.repeatCount -= 1;
+                    this.rollingMsCount -= this.intervalMs;
+                } else {
+                    // TODO: Does this even work?
+                    this.pause();
+                }
+            }
+
+            this.currentTime = newCurrentTime;
+        } else {
+            this.currentTime = Date.now();
+        }
+
+        this.currentTimeIntervalHandle = requestAnimationFrame(
+            this.intervalFlow
+        );
+    };
+
     /**
      * Begin running callbacks at set intervals.
      */
     run() {
         if (this.currentTimeIntervalHandle === undefined) {
-            this.currentTimeIntervalHandle = setInterval(() => {
-                if (this.currentTime !== null) {
-                    const newCurrentTime = Date.now();
-                    const timeDelta = newCurrentTime - this.currentTime;
-
-                    this.rollingMsCount += timeDelta;
-                    if (this.rollingMsCount >= this.intervalMs) {
-                        if (this.repeatCount >= 0) {
-                            this.callback();
-                            this.repetitions += 1;
-                            this.repeatCount -= 1;
-                            this.rollingMsCount = 0;
-                        } else {
-                            // TODO: Does this even work?
-                            this.pause();
-                        }
-                    }
-
-                    this.currentTime = newCurrentTime;
-                } else {
-                    this.currentTime = Date.now();
-                }
-            }, 1);
+            this.currentTimeIntervalHandle = requestAnimationFrame(
+                this.intervalFlow
+            );
         }
     }
 
@@ -70,7 +76,9 @@ export class Interval {
      */
     pause() {
         this.currentTime = null;
-        clearInterval(this.currentTimeIntervalHandle);
+        if (this.currentTimeIntervalHandle) {
+            cancelAnimationFrame(this.currentTimeIntervalHandle);
+        }
         this.currentTimeIntervalHandle = undefined;
     }
 

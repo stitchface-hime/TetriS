@@ -22,7 +22,7 @@ export class Game {
     private nextQueue: PieceQueue;
 
     private linesCleared = 0;
-    private level = 15;
+    private level = 1;
     private maxLevel = 15;
     private levelLineQuota = 10;
     private combo = -1;
@@ -141,7 +141,7 @@ export class Game {
     private initAutoDrop() {
         this.intervalManager.subscribe(
             GameIntervalKeys.AUTO_DROP,
-            new Interval(1000 / 60, this.dropFlow)
+            new Interval(1000 / 60, this.dropFlow, Infinity)
         );
     }
 
