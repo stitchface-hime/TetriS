@@ -102,7 +102,6 @@ export class Game {
                 this.initAutoDrop();
             } else {
                 this.highestGroundedRow = this.getActivePieceLowestRow();
-                this.dropFlow();
             }
         }
     }
@@ -128,12 +127,12 @@ export class Game {
             this.autoDropFrames++;
         }
     }
-
     /**
      * The flow for an active piece to auto lock.
      */
     private autoLockFlow() {
         if (!this.intervalManager.getInterval(GameIntervalKeys.LOCK_DELAY)) {
+            this.autoDropFrames = 0;
             this.initLockDelay();
         }
     }
@@ -141,7 +140,7 @@ export class Game {
     private initAutoDrop() {
         this.intervalManager.subscribe(
             GameIntervalKeys.AUTO_DROP,
-            new Interval(1000 / 60, this.dropFlow, Infinity)
+            new Interval(1000 / 60, () => this.dropFlow(), Infinity)
         );
     }
 
