@@ -115,7 +115,7 @@ export class Game {
     /**
      * Triggers when the active piece has grounded
      */
-    private triggerGroundedCheck() {
+    private triggerGroundedCheck(wasRotationMove = false) {
         if (this.activePiece) {
             const lowestRowOccupiedByActivePiece =
                 this.activePiece.getBottomBoundRow();
@@ -126,7 +126,15 @@ export class Game {
             // it grounded on previously
             if (!this.activePiece?.canMoveDownTogether(1)) {
                 if (this.lowestGroundedRow > lowestRowOccupiedByActivePiece) {
-                    this.resetGroundedState();
+                    this.lowestGroundedRow =
+                        this.activePiece?.getBottomBoundRow();
+                    // If the piece was not grounded by rotation or
+                    // the piece was grounded via rotation but it has
+                    // not been grounded before reset the number of available
+                    // grounded moves
+                    if (!(wasRotationMove && this.hasGrounded)) {
+                        this.groundedMoves = 0;
+                    }
                 }
                 this.hasGrounded = true;
                 this.autoLockFlow();
@@ -201,7 +209,7 @@ export class Game {
                         return;
                     }
                     this.lockDelayFrames++;
-                    console.log("Lock delay frame:", this.lockDelayFrames);
+                    // console.log("Lock delay frame:", this.lockDelayFrames);
                 },
                 Infinity
             )
@@ -390,12 +398,16 @@ export class Game {
     }
 
     /* Controller methods */
-    private controlledMoveFlow() {
+    private controlledMoveFlow(wasRotationMove = false) {
         this.resetLockDelay();
         if (this.hasGrounded) {
             this.groundedMoves += 1;
+            console.log(
+                "Moves left before lock:",
+                this.groundedMoveLimit - this.groundedMoves
+            );
         }
-        this.triggerGroundedCheck();
+        this.triggerGroundedCheck(wasRotationMove);
     }
 
     moveLeft() {
@@ -412,13 +424,13 @@ export class Game {
 
     rotateClockwise() {
         if (this.activePiece?.rotateClockwise()) {
-            this.controlledMoveFlow();
+            this.controlledMoveFlow(true);
         }
     }
 
     rotateAntiClockwise() {
         if (this.activePiece?.rotateAntiClockwise()) {
-            this.controlledMoveFlow();
+            this.controlledMoveFlow(true);
         }
     }
 
