@@ -38,7 +38,7 @@ export class Game {
     private lockDelayFrameLimit = 60;
     private lockDelayFrames = 0;
 
-    private highestGroundedRow = 0;
+    private lowestGroundedRow = Infinity;
 
     private autoDropFrameBaseline =
         (0.8 - (this.level - 1) * 0.007) ** (this.level - 1) * 60;
@@ -49,7 +49,7 @@ export class Game {
     private groundedMoveLimit = 15;
     private groundedMoves = 0;
 
-    private grounded = false;
+    private hasGrounded = false;
 
     private canHold = true;
     private softDropEnabled = false;
@@ -100,8 +100,43 @@ export class Game {
                     this.triggerGameOver(GameOverCode.BLOCK_OUT);
                 }
                 this.initAutoDrop();
-            } else {
-                this.highestGroundedRow = this.getActivePieceLowestRow();
+            }
+        }
+    }
+
+    private resetGroundedState() {
+        if (this.activePiece) {
+            this.hasGrounded = false;
+            this.groundedMoves = 0;
+            this.lowestGroundedRow = this.activePiece?.getBottomBoundRow();
+        }
+    }
+
+    /**
+     * Triggers when the active piece has grounded
+     */
+    private triggerGroundedCheck() {
+        if (this.activePiece) {
+            const lowestRowOccupiedByActivePiece =
+                this.activePiece.getBottomBoundRow();
+
+            // Begin lock delay flow as soon as piece cannot move downwards
+            // and reset the number of moves the player can move
+            // if the piece has grounded on a row that is lower than any row
+            // it grounded on previously
+            if (!this.activePiece?.canMoveDownTogether(1)) {
+                if (this.lowestGroundedRow > lowestRowOccupiedByActivePiece) {
+                    this.resetGroundedState();
+                }
+                this.hasGrounded = true;
+                this.autoLockFlow();
+            }
+
+            if (
+                this.groundedMoves >= this.groundedMoveLimit &&
+                !this.activePiece.canMoveDownTogether(1)
+            ) {
+                this.lockPiece();
             }
         }
     }
@@ -109,19 +144,16 @@ export class Game {
     /**
      * The flow for an active piece to drop automatically.
      */
+    // Grounded flow still buggy
     private dropFlow() {
         if (this.autoDropFrames >= this.autoDropFrameTarget) {
             const autoDropped = this.autoDropPiece();
             // if piece was able to be moved down,
             if (autoDropped) {
+                this.resetLockDelay();
                 this.autoDropFrames -= this.autoDropFrameTarget;
                 // if soft dropped, add score
-                // reset lock delay
-                this.resetLockDelay();
-            }
-            // Begin lock delay flow as soon as piece cannot move downwards
-            if (!this.activePiece?.canMoveDownTogether(1)) {
-                this.autoLockFlow();
+                this.triggerGroundedCheck();
             }
         } else {
             this.autoDropFrames++;
@@ -154,7 +186,6 @@ export class Game {
     }
 
     private resetLockDelay() {
-        this.groundedMoves = 0;
         this.lockDelayFrames = 0;
         this.intervalManager.unsubscribe(GameIntervalKeys.LOCK_DELAY);
     }
@@ -167,8 +198,10 @@ export class Game {
                 () => {
                     if (this.lockDelayFrames >= this.lockDelayFrameLimit) {
                         this.lockPiece();
+                        return;
                     }
                     this.lockDelayFrames++;
+                    console.log("Lock delay frame:", this.lockDelayFrames);
                 },
                 Infinity
             )
@@ -213,6 +246,11 @@ export class Game {
 
                 // Set the active piece regardless of overlap
                 this.activePiece = spawnedPiece;
+
+                // Reset certain parameters when piece is spawned
+                this.resetGroundedState();
+                this.triggerGroundedCheck();
+
                 this.matrix.setActivePiece(spawnedPiece);
 
                 // if it doesn't overlap, spawn successful
@@ -297,8 +335,9 @@ export class Game {
     /**
      * Determine which row the lowest block in the piece is occupying.
      */
+    // This may be duplicate
     private getActivePieceLowestRow() {
-        if (this.activePiece) {
+        if (this.activePiece?.getBottomBoundRow) {
             return Math.min(...this.getRowsOccupiedByActivePiece());
         }
         // TODO:
@@ -351,28 +390,35 @@ export class Game {
     }
 
     /* Controller methods */
+    private controlledMoveFlow() {
+        this.resetLockDelay();
+        if (this.hasGrounded) {
+            this.groundedMoves += 1;
+        }
+        this.triggerGroundedCheck();
+    }
 
     moveLeft() {
         if (this.activePiece?.moveLeft()) {
-            this.resetLockDelay();
+            this.controlledMoveFlow();
         }
     }
 
     moveRight() {
         if (this.activePiece?.moveRight()) {
-            this.resetLockDelay();
+            this.controlledMoveFlow();
         }
     }
 
     rotateClockwise() {
         if (this.activePiece?.rotateClockwise()) {
-            this.resetLockDelay();
+            this.controlledMoveFlow();
         }
     }
 
     rotateAntiClockwise() {
         if (this.activePiece?.rotateAntiClockwise()) {
-            this.resetLockDelay();
+            this.controlledMoveFlow();
         }
     }
 
