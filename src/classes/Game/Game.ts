@@ -35,7 +35,7 @@ export class Game {
 
     private spawnRetries = 2;
 
-    private lockDelayFrameLimit = 60;
+    private lockDelayFrameLimit = 30;
     private lockDelayFrames = 0;
 
     private lowestGroundedRow = Infinity;
@@ -99,7 +99,6 @@ export class Game {
                 if (!spawnSuccessful) {
                     this.triggerGameOver(GameOverCode.BLOCK_OUT);
                 }
-                this.initAutoDrop();
             }
         }
     }
@@ -279,6 +278,7 @@ export class Game {
     private spawnNextPiece() {
         const nextPiece = this.spawnPiece(this.nextQueue.shiftNext());
         this.resetAutoDrop();
+        this.initAutoDrop();
         return nextPiece;
     }
 
@@ -368,6 +368,7 @@ export class Game {
     private clearLine(row: number) {
         this.matrix.clearRows(row);
         this.matrix.shiftRowsDown(row, 1);
+        this.linesCleared++;
     }
 
     /**
@@ -516,5 +517,21 @@ export class Game {
     // ! Debug only
     getMatrix() {
         return this.matrix;
+    }
+
+    // ! Debug only
+    /**
+     * Returns some stats about the game.
+     */
+    debugDetails() {
+        return {
+            lockDelay: this.lockDelayFrameLimit - this.lockDelayFrames,
+            autoDrop: this.autoDropFrameTarget - this.autoDropFrames,
+            groundedMoves: this.groundedMoveLimit - this.groundedMoves,
+            blocks: this.matrix.getNumCellsOccupied(),
+            linesCleared: this.linesCleared,
+            holdPieceId: this.holdPieceId,
+            canHold: this.canHold,
+        };
     }
 }

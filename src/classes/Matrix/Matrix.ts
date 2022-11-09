@@ -64,6 +64,13 @@ export class Matrix {
     }
 
     /**
+     * Gets the number of cells occupied by blocks.
+     */
+    getNumCellsOccupied() {
+        return this.numCellsOccupied;
+    }
+
+    /**
      * Returns the grid of the matrix. (Readonly)
      */
     getGrid(): ReadonlyArray<ReadonlyArray<Block | null>> {

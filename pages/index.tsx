@@ -136,34 +136,54 @@ const App: React.FC = () => {
 
     if (gameInstance.current) {
         const game = gameInstance.current;
+        const {
+            autoDrop,
+            lockDelay,
+            groundedMoves,
+            blocks,
+            linesCleared,
+            holdPieceId,
+            canHold,
+        } = game.debugDetails();
         return (
-            <table>
-                <tbody>
-                    {[
-                        ...game
-                            .getMatrixGrid()
-                            .slice(0, game.getNumVisibleRows() + 1),
-                    ]
-                        .reverse()
-                        .map((row, rowIdx) => {
-                            const rowNo = game.getNumVisibleRows() - rowIdx;
-                            return (
-                                <tr key={`row-${rowNo}`}>
-                                    {row.map((block, colIdx) => (
-                                        <td key={`cell-${rowNo}-${colIdx}`}>
-                                            {generateBlock(
-                                                [colIdx, rowNo],
-                                                gameInstance.current,
-                                                block
-                                            )}
-                                        </td>
-                                    ))}
-                                    <td>{rowNo}</td>
-                                </tr>
-                            );
-                        })}
-                </tbody>
-            </table>
+            <>
+                <table>
+                    <tbody>
+                        {[
+                            ...game
+                                .getMatrixGrid()
+                                .slice(0, game.getNumVisibleRows() + 1),
+                        ]
+                            .reverse()
+                            .map((row, rowIdx) => {
+                                const rowNo = game.getNumVisibleRows() - rowIdx;
+                                return (
+                                    <tr key={`row-${rowNo}`}>
+                                        {row.map((block, colIdx) => (
+                                            <td key={`cell-${rowNo}-${colIdx}`}>
+                                                {generateBlock(
+                                                    [colIdx, rowNo],
+                                                    gameInstance.current,
+                                                    block
+                                                )}
+                                            </td>
+                                        ))}
+                                        <td>{rowNo}</td>
+                                    </tr>
+                                );
+                            })}
+                    </tbody>
+                </table>
+                <div>
+                    <div>Auto drop timer: {autoDrop}</div>
+                    <div>Auto lock timer: {lockDelay}</div>
+                    <div>Grounded moves left: {groundedMoves}</div>
+                    <div>Blocks: {blocks}</div>
+                    <div>Lines: {linesCleared}</div>
+                    <div>Hold: {holdPieceId}</div>
+                    <div>Can hold: {`${canHold}`}</div>
+                </div>
+            </>
         );
     }
 
