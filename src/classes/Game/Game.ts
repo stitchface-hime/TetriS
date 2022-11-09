@@ -9,6 +9,8 @@ import { PieceId } from "@data/index";
 import { GameIntervalKeys } from "./GameIntervalKeys";
 import { GameOverCode } from "./GameOverCode";
 
+const MAX_GRAVITY = 20;
+
 export class Game {
     private numRows: number;
     private numColumns: number;
@@ -43,7 +45,10 @@ export class Game {
     private autoDropFrameBaseline =
         (0.8 - (this.level - 1) * 0.007) ** (this.level - 1) * 60;
 
-    private autoDropFrameTarget = this.autoDropFrameBaseline;
+    private gravity = 1 / this.autoDropFrameBaseline;
+
+    private autoDropFrameTarget =
+        this.autoDropFrameBaseline < 1 ? 1 : this.autoDropFrameBaseline;
     private autoDropFrames = 0;
 
     private groundedMoveLimit = 15;
@@ -152,16 +157,9 @@ export class Game {
      * The flow for an active piece to drop automatically.
      */
     // Grounded flow still buggy
-    private dropFlow() {
+    private dropFlow(dropUnits = 1) {
         if (this.autoDropFrames >= this.autoDropFrameTarget) {
-            const autoDropped = this.autoDropPiece();
-            // if piece was able to be moved down,
-            if (autoDropped) {
-                this.resetLockDelay();
-                this.autoDropFrames -= this.autoDropFrameTarget;
-                // if soft dropped, add score
-                this.triggerGroundedCheck();
-            }
+            this.autoDropPiece(dropUnits);
         } else {
             this.autoDropFrames++;
         }
@@ -172,14 +170,19 @@ export class Game {
     private autoLockFlow() {
         if (!this.intervalManager.getInterval(GameIntervalKeys.LOCK_DELAY)) {
             this.autoDropFrames = 0;
-            this.initLockDelay();
+            // lock immediately if there is no frame delay
+            if (this.lockDelayFrameLimit === 0) {
+                this.lockPiece();
+            } else {
+                this.initLockDelay();
+            }
         }
     }
 
-    private initAutoDrop() {
+    private initAutoDrop(dropUnits = 1) {
         this.intervalManager.subscribe(
             GameIntervalKeys.AUTO_DROP,
-            new Interval(1000 / 60, () => this.dropFlow(), Infinity)
+            new Interval(1000 / 60, () => this.dropFlow(dropUnits), Infinity)
         );
     }
 
@@ -188,8 +191,15 @@ export class Game {
         this.intervalManager.unsubscribe(GameIntervalKeys.AUTO_DROP);
     }
 
-    private autoDropPiece() {
-        return !!this.activePiece?.moveDown();
+    private autoDropPiece(units = 1) {
+        const autoDropped = !!this.activePiece?.moveDown(units);
+
+        if (autoDropped) {
+            this.resetLockDelay();
+            this.autoDropFrames -= this.autoDropFrameTarget;
+            // if soft dropped, add score
+            this.triggerGroundedCheck();
+        }
     }
 
     private resetLockDelay() {
@@ -276,9 +286,14 @@ export class Game {
      * was successful, returns `true`, `false` otherwise.
      */
     private spawnNextPiece() {
+        const unitsToDrop = this.gravity < 1 ? 1 : Math.round(this.gravity);
         const nextPiece = this.spawnPiece(this.nextQueue.shiftNext());
         this.resetAutoDrop();
-        this.initAutoDrop();
+        // If gravity xG > 1G drop immediately x units when piece spawns
+        if (unitsToDrop > 1) {
+            this.autoDropPiece(unitsToDrop);
+        }
+        this.initAutoDrop(unitsToDrop);
         return nextPiece;
     }
 
@@ -525,10 +540,12 @@ export class Game {
      */
     debugDetails() {
         return {
+            gravity: this.gravity,
             lockDelay: this.lockDelayFrameLimit - this.lockDelayFrames,
             autoDrop: this.autoDropFrameTarget - this.autoDropFrames,
             groundedMoves: this.groundedMoveLimit - this.groundedMoves,
             blocks: this.matrix.getNumCellsOccupied(),
+            level: this.level,
             linesCleared: this.linesCleared,
             holdPieceId: this.holdPieceId,
             canHold: this.canHold,

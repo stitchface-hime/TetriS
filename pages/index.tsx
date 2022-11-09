@@ -137,6 +137,8 @@ const App: React.FC = () => {
     if (gameInstance.current) {
         const game = gameInstance.current;
         const {
+            level,
+            gravity,
             autoDrop,
             lockDelay,
             groundedMoves,
@@ -175,11 +177,14 @@ const App: React.FC = () => {
                     </tbody>
                 </table>
                 <div>
+                    <div>Level {level}</div>
+                    <div>Lines: {linesCleared}</div>
+                    <br />
+                    <div>Gravity: {gravity}</div>
                     <div>Auto drop timer: {autoDrop}</div>
                     <div>Auto lock timer: {lockDelay}</div>
                     <div>Grounded moves left: {groundedMoves}</div>
                     <div>Blocks: {blocks}</div>
-                    <div>Lines: {linesCleared}</div>
                     <div>Hold: {holdPieceId}</div>
                     <div>Can hold: {`${canHold}`}</div>
                 </div>
