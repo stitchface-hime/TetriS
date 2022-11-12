@@ -3,6 +3,7 @@ import { Standard } from "@classes/Game";
 import { Block } from "@classes/Piece";
 
 import { Bag } from "@classes/PieceQueue";
+import { Stopwatch } from "@classes/TimeMeasure";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const generateBlock = (
@@ -43,7 +44,7 @@ const generateBlock = (
  * @param game
  */
 const gameSetup = (game: Game) => {
-    game.getMatrix().addBlockRows(6);
+    /* game.getMatrix().addBlockRows(6);
     game.getMatrix().removeBlocks([
         [9, 0],
         [9, 1],
@@ -55,12 +56,21 @@ const gameSetup = (game: Game) => {
         [8, 3],
         [8, 4],
         [8, 5],
-    ]);
+    ]); */
+};
+
+const getTime = (timer: Stopwatch) => {
+    const data = timer.getRunTimeData();
+
+    return `${data.minutes.toString().padStart(2, "0")}:${data.seconds
+        .toString()
+        .padStart(2, "0")}.${data.milliseconds.toString().padStart(3, "0")}`;
 };
 
 const App: React.FC = () => {
     const [ticker, setTicker] = useState(false);
     const requestAnimationFrameRef = useRef(0);
+    // const timer = useRef(new Stopwatch());
 
     const gameInstance = useRef<Game | null>(null);
 
@@ -72,6 +82,7 @@ const App: React.FC = () => {
 
     useEffect(() => {
         if (gameInstance.current) {
+            // timer.current.run();
             requestAnimationFrameRef.current = requestAnimationFrame(tick);
 
             const keyDown = (e: KeyboardEvent) => {
@@ -140,6 +151,7 @@ const App: React.FC = () => {
             level,
             gravity,
             autoDrop,
+            autoDropFrameTarget,
             lockDelay,
             groundedMoves,
             blocks,
@@ -179,9 +191,11 @@ const App: React.FC = () => {
                 <div>
                     <div>Level {level}</div>
                     <div>Lines: {linesCleared}</div>
+                    {/* <div>Time: {getTime(timer.current)}</div> */}
                     <br />
                     <div>Gravity: {gravity}</div>
                     <div>Auto drop timer: {autoDrop}</div>
+                    <div>Auto drop timer target: {autoDropFrameTarget}</div>
                     <div>Auto lock timer: {lockDelay}</div>
                     <div>Grounded moves left: {groundedMoves}</div>
                     <div>Blocks: {blocks}</div>

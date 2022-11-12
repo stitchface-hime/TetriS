@@ -9,8 +9,6 @@ import { PieceId } from "@data/index";
 import { GameIntervalKeys } from "./GameIntervalKeys";
 import { GameOverCode } from "./GameOverCode";
 
-const MAX_GRAVITY = 20;
-
 export class Game {
     private numRows: number;
     private numColumns: number;
@@ -45,10 +43,7 @@ export class Game {
     private autoDropFrameBaseline =
         (0.8 - (this.level - 1) * 0.007) ** (this.level - 1) * 60;
 
-    private gravity = 1 / this.autoDropFrameBaseline;
-
-    private autoDropFrameTarget =
-        this.autoDropFrameBaseline < 1 ? 1 : this.autoDropFrameBaseline;
+    private autoDropFrameTarget = 60;
     private autoDropFrames = 0;
 
     private groundedMoveLimit = 15;
@@ -179,10 +174,16 @@ export class Game {
         }
     }
 
-    private initAutoDrop(dropUnits = 1) {
+    private initAutoDrop() {
+        const gravity = 1 / this.autoDropFrameTarget;
+        const unitsToDrop = gravity < 1 ? 1 : Math.round(gravity);
+        if (gravity >= 1) {
+            this.autoDropPiece(unitsToDrop);
+        }
+
         this.intervalManager.subscribe(
             GameIntervalKeys.AUTO_DROP,
-            new Interval(1000 / 60, () => this.dropFlow(dropUnits), Infinity)
+            new Interval(1000 / 60, () => this.dropFlow(unitsToDrop), Infinity)
         );
     }
 
@@ -286,14 +287,11 @@ export class Game {
      * was successful, returns `true`, `false` otherwise.
      */
     private spawnNextPiece() {
-        const unitsToDrop = this.gravity < 1 ? 1 : Math.round(this.gravity);
         const nextPiece = this.spawnPiece(this.nextQueue.shiftNext());
         this.resetAutoDrop();
         // If gravity xG > 1G drop immediately x units when piece spawns
-        if (unitsToDrop > 1) {
-            this.autoDropPiece(unitsToDrop);
-        }
-        this.initAutoDrop(unitsToDrop);
+
+        this.initAutoDrop();
         return nextPiece;
     }
 
@@ -378,12 +376,30 @@ export class Game {
     }
 
     /**
+     * Inceases level when conditions are met.
+     * TODO: This should be moved out!
+     */
+    private increaseLevelCheck() {
+        // Increase level when lines meet a quota (should move this out)
+        if (
+            this.linesCleared % this.levelLineQuota === 0 &&
+            this.level < this.maxLevel
+        ) {
+            this.level++;
+            this.autoDropFrameBaseline =
+                (0.8 - (this.level - 1) * 0.007) ** (this.level - 1) * 60;
+            this.autoDropFrameTarget = this.autoDropFrameBaseline;
+        }
+    }
+
+    /**
      * Clears a line from the matrix at a given row.
      */
     private clearLine(row: number) {
         this.matrix.clearRows(row);
         this.matrix.shiftRowsDown(row, 1);
         this.linesCleared++;
+        this.increaseLevelCheck();
     }
 
     /**
@@ -454,9 +470,7 @@ export class Game {
         if (!this.softDropEnabled) {
             this.resetAutoDrop();
             this.softDropEnabled = true;
-            this.autoDropFrameTarget = Math.round(
-                this.autoDropFrameBaseline / 20
-            );
+            this.autoDropFrameTarget = this.autoDropFrameBaseline / 20;
             this.initAutoDrop();
         }
     }
@@ -540,9 +554,10 @@ export class Game {
      */
     debugDetails() {
         return {
-            gravity: this.gravity,
+            gravity: 1 / this.autoDropFrameBaseline,
             lockDelay: this.lockDelayFrameLimit - this.lockDelayFrames,
             autoDrop: this.autoDropFrameTarget - this.autoDropFrames,
+            autoDropFrameTarget: this.autoDropFrameTarget,
             groundedMoves: this.groundedMoveLimit - this.groundedMoves,
             blocks: this.matrix.getNumCellsOccupied(),
             level: this.level,
