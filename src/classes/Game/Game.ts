@@ -57,11 +57,15 @@ export class Game {
     private gamePaused = false;
     private gameOver = false;
 
+    // let React know to re-render
+    private rerender: () => void;
+
     constructor(
         numRows: number,
         numColumns: number,
         pieceQueue: PieceQueue,
-        spawnCoordinates: [x: number, y: number]
+        spawnCoordinates: [x: number, y: number],
+        rerender: () => void
     ) {
         this.pieceFactory = new PieceFactory();
         this.numRows = numRows;
@@ -69,6 +73,7 @@ export class Game {
         this.matrix = new Matrix(numRows, numColumns);
         this.nextQueue = pieceQueue;
         this.spawnCoordinates = spawnCoordinates;
+        this.rerender = rerender;
     }
 
     /* Game flow methods */
@@ -81,6 +86,7 @@ export class Game {
                 new Interval(
                     1000 / 60,
                     () => {
+                        // this.rerender();
                         this.tick();
                     },
                     Infinity

@@ -9,10 +9,8 @@ export class Interval {
 
     protected rollingMsCount = 0;
     protected repetitions = 0;
-    protected currentTime: number | null = null;
-    protected currentTimeIntervalHandle?: number = undefined;
 
-    private killSignal = false;
+    private shouldRun = false;
 
     constructor(intervalMs: number, callback: () => void, repeatCount = 0) {
         this.setIntervalMs(intervalMs);
@@ -35,59 +33,35 @@ export class Interval {
         return this.repetitions;
     }
 
-    private intervalFlow = () => {
-        if (!this.killSignal) {
-            if (this.currentTime !== null) {
-                const newCurrentTime = Date.now();
-                const timeDelta = newCurrentTime - this.currentTime;
-                this.rollingMsCount += timeDelta;
-                if (this.rollingMsCount >= this.intervalMs) {
-                    if (this.repeatCount >= 0) {
-                        this.callback();
-                        this.repetitions += 1;
-                        this.repeatCount -= 1;
-                        this.rollingMsCount -= this.intervalMs;
-                    } else {
-                        // TODO: Does this even work?
-                        this.pause();
-                    }
+    increaseTimeElapsed(ms: number) {
+        if (this.shouldRun) {
+            this.rollingMsCount += ms;
+            if (this.rollingMsCount >= this.intervalMs) {
+                if (this.repeatCount >= 0) {
+                    this.callback();
+                    this.repetitions += 1;
+                    this.repeatCount -= 1;
+                    this.rollingMsCount -= this.intervalMs;
+                } else {
+                    // TODO: Does this even work?
+                    this.pause();
                 }
-
-                this.currentTime = newCurrentTime;
-            } else {
-                this.currentTime = Date.now();
-            }
-
-            this.currentTimeIntervalHandle = requestAnimationFrame(
-                this.intervalFlow
-            );
-        } else {
-            if (this.currentTimeIntervalHandle) {
-                cancelAnimationFrame(this.currentTimeIntervalHandle);
             }
         }
-    };
+    }
 
     /**
      * Begin running callbacks at set intervals.
      */
     run() {
-        if (this.currentTimeIntervalHandle === undefined) {
-            this.currentTimeIntervalHandle = requestAnimationFrame(
-                this.intervalFlow
-            );
-        }
+        this.shouldRun = true;
     }
 
     /**
      * Pauses making any callbacks.
      */
     pause() {
-        this.currentTime = null;
-        if (this.currentTimeIntervalHandle) {
-            cancelAnimationFrame(this.currentTimeIntervalHandle);
-        }
-        this.currentTimeIntervalHandle = undefined;
+        this.shouldRun = false;
     }
 
     /**
@@ -96,7 +70,6 @@ export class Interval {
      * called prior to any callbacks being made.
      */
     reset() {
-        this.currentTime = null;
         this.rollingMsCount = 0;
     }
 
@@ -106,7 +79,6 @@ export class Interval {
     clear() {
         this.pause();
         this.reset();
-        this.killSignal = true;
     }
 
     /**

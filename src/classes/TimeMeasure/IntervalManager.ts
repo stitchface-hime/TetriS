@@ -7,7 +7,47 @@ type IntervalManagerKey = string | number;
  * `Interval` instances.
  */
 export class IntervalManager {
+    private tickInterval = 1000 / 60; // ~16.6667ms
+    private globalIntervalHandle?: number = undefined;
+    private globalPause: boolean = false;
+    private then: number | null = null;
+
     private subscriptions: Map<IntervalManagerKey, Interval> = new Map();
+
+    constructor() {
+        this.tick();
+    }
+
+    private tick() {
+        const now = Date.now();
+        if (this.then === null) {
+            this.then = now;
+        }
+        if (!this.globalPause) {
+            const delta = now - this.then;
+            if (delta >= this.tickInterval) {
+                console.log("Delta:", delta);
+                this.advanceAllIntervals(delta);
+                this.then = now;
+            }
+            this.globalIntervalHandle = requestAnimationFrame(() =>
+                this.tick()
+            );
+        } else {
+            if (this.globalIntervalHandle !== undefined) {
+                cancelAnimationFrame(this.globalIntervalHandle);
+            }
+        }
+    }
+
+    /**
+     *
+     */
+    advanceAllIntervals(ms: number) {
+        this.subscriptions.forEach((interval) =>
+            interval.increaseTimeElapsed(ms)
+        );
+    }
 
     /**
      * Adds a new interval into the manager with a given key.
