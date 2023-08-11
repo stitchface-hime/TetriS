@@ -6,23 +6,43 @@ import { Bag } from "@classes/PieceQueue";
 import { Stopwatch } from "@classes/TimeMeasure";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+const showConnections = true;
+const connectionChar = [
+    "•",
+    "╴",
+    "╷",
+    "┐",
+    "╶",
+    "─",
+    "┌",
+    "┬",
+    "╵",
+    "┘",
+    "│",
+    "┤",
+    "└",
+    "┴",
+    "└",
+    "┼",
+];
+
 const generateBlock = (
     cell: [x: number, y: number],
     game: Game | null,
     block: Block | null
 ) => {
     const activePiece = game?.getActivePiece();
-
-    if (
-        activePiece &&
-        activePiece
-            .getBlocksCoordinates()
-            .find(
-                (coordinates) =>
-                    coordinates[0] === cell[0] && coordinates[1] === cell[1]
-            )
-    ) {
-        return "🟩";
+    const activeBlock = activePiece
+        ?.getBlocks()
+        .find(
+            (block) =>
+                block.getActiveCoordinates()[0] === cell[0] &&
+                block.getActiveCoordinates()[1] === cell[1]
+        );
+    if (activePiece && activeBlock) {
+        return showConnections
+            ? connectionChar[activeBlock.getConnections()]
+            : "🟩";
     }
 
     if (
@@ -36,7 +56,11 @@ const generateBlock = (
         return "🟪";
     }
 
-    return block ? "🔳" : "⬜";
+    return block
+        ? showConnections
+            ? connectionChar[block.getConnections()]
+            : "🔳"
+        : "⬜";
 };
 
 /**
@@ -174,7 +198,13 @@ const App: React.FC = () => {
                                 return (
                                     <tr key={`row-${rowNo}`}>
                                         {row.map((block, colIdx) => (
-                                            <td key={`cell-${rowNo}-${colIdx}`}>
+                                            <td
+                                                key={`cell-${rowNo}-${colIdx}`}
+                                                title={`${block?.getActiveCoordinates()} C${block?.getConnections()}[${block
+                                                    ?.getConnections()
+                                                    .toString(2)
+                                                    .padStart(4, "0")}]`}
+                                            >
                                                 {generateBlock(
                                                     [colIdx, rowNo],
                                                     gameInstance.current,

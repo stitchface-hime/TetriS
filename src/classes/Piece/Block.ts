@@ -1,5 +1,6 @@
 import { Matrix } from "@classes/Matrix";
 import { Piece } from "./Piece";
+import { Connection } from "@data/Connection";
 
 /**
  * A block is a single unit that takes up one cell in the matrix.
@@ -11,13 +12,20 @@ export class Block {
      * If not part of an active piece, this is null.
      * NOTE: `x` refers to columns and `y` refers to the rows!
      */
-    private activeCoordinates: [x: number, y: number] | null;
+    private activeCoordinates: [x: number, y: number];
     private color: string;
     private matrix: Matrix;
     /**
      * The blocks that are coupled to this block in cardinal directions.
      */
     private coupledBlocks: Block[];
+    /**
+     * A 4-bit number to represent where the coupled blocks are.
+     * A `0` bit representing no connection and a `1` bit representing a connection.
+     * The bit order is top, right, bottom, left. For example, if the coupled blocks are to the left and on top of this block, this value will be
+     * 9 (`1001`). This needs to be updated everytime the piece rotates.
+     */
+    private connections: number;
     /**
      * The piece this block belongs to. If `undefined`,
      * this block is locked in the matrix.
@@ -33,8 +41,12 @@ export class Block {
         this.activeCoordinates = globalCoordinates;
         this.matrix = matrix;
         this.color = color;
-        this.coupledBlocks = [...coupledBlocks];
+
+        this.coupledBlocks = [];
+        this.setCoupledBlocks(coupledBlocks);
+
         this.associatedPiece = undefined;
+        this.connections = 0;
     }
 
     getActiveCoordinates() {
@@ -48,18 +60,48 @@ export class Block {
         return this.coupledBlocks;
     }
 
+    getConnections() {
+        return this.connections;
+    }
+
+    /**
+     * Determines where the coupled block is relative to this block.
+     * If this block is not in a cardinal direction to the coupled block returns undefined.
+     */
+    private determineConnection(coupledBlock: Block) {
+        const [thisX, thisY] = this.activeCoordinates;
+        const [coupledX, coupledY] = coupledBlock.getActiveCoordinates();
+
+        if (coupledX > thisX) return Connection.RIGHT;
+        if (coupledX < thisX) return Connection.LEFT;
+        if (coupledY > thisY) return Connection.TOP;
+        if (coupledY < thisY) return Connection.BOTTOM;
+
+        return undefined;
+    }
+
+    /**
+     * Updates the connections property of this block.
+     * Should be called if this block is a part of a piece and the piece rotates. TODO!!!!!
+     */
+    updateConnections() {
+        this.connections = 0;
+        this.coupledBlocks.forEach((block) => {
+            const coupledConnection = this.determineConnection(block);
+            if (coupledConnection !== undefined) {
+                this.connections |= coupledConnection;
+            }
+        });
+    }
+
     /**
      * Set the blocks that will be coupled with this block in cardinal directions.
      */
     setCoupledBlocks(blocks: Block[]) {
         this.coupledBlocks = blocks;
-    }
 
-    /**
-     *
-     */
-    lock() {
-        this.activeCoordinates = null;
+        // also set connection
+        this.updateConnections();
     }
 
     /**
@@ -74,6 +116,9 @@ export class Block {
         this.coupledBlocks = this.coupledBlocks.filter(
             (block) => block !== blockToUnset
         );
+
+        // also update connection
+        this.updateConnections();
     }
 
     registerPiece(piece: Piece) {
@@ -95,15 +140,12 @@ export class Block {
         let unitsMoved = 0;
 
         if (activeCoordinates) {
-            let newY = activeCoordinates[1];
-
             for (
                 let i = activeCoordinates[1] - 1;
                 i >= activeCoordinates[1] - units;
                 i--
             ) {
                 if (!this.matrix.hasBlockAt([activeCoordinates[0], i])) {
-                    newY = i;
                     unitsMoved += 1;
                 } else {
                     break;
@@ -122,12 +164,10 @@ export class Block {
      * Move the block down a specified number of units. (Default: 1 unit)
      */
     moveDown(units = 1) {
-        if (this.activeCoordinates) {
-            this.activeCoordinates = [
-                this.activeCoordinates[0],
-                this.activeCoordinates[1] - this.canMoveDown(units),
-            ];
-        }
+        this.activeCoordinates = [
+            this.activeCoordinates[0],
+            this.activeCoordinates[1] - this.canMoveDown(units),
+        ];
     }
 
     /**
@@ -140,17 +180,15 @@ export class Block {
         const activeCoordinates = this.activeCoordinates;
         let unitsMoved = 0;
 
-        if (activeCoordinates) {
-            for (
-                let i = activeCoordinates[0] - 1;
-                i >= activeCoordinates[0] - units;
-                i--
-            ) {
-                if (!this.matrix.hasBlockAt([i, activeCoordinates[1]])) {
-                    unitsMoved += 1;
-                } else {
-                    break;
-                }
+        for (
+            let i = activeCoordinates[0] - 1;
+            i >= activeCoordinates[0] - units;
+            i--
+        ) {
+            if (!this.matrix.hasBlockAt([i, activeCoordinates[1]])) {
+                unitsMoved += 1;
+            } else {
+                break;
             }
         }
 
@@ -165,12 +203,10 @@ export class Block {
      * Move the block left a specified number of units. (Default: 1 unit)
      */
     moveLeft(units = 1) {
-        if (this.activeCoordinates) {
-            this.activeCoordinates = [
-                this.activeCoordinates[0] - this.canMoveLeft(units),
-                this.activeCoordinates[1],
-            ];
-        }
+        this.activeCoordinates = [
+            this.activeCoordinates[0] - this.canMoveLeft(units),
+            this.activeCoordinates[1],
+        ];
     }
 
     /**
@@ -184,17 +220,15 @@ export class Block {
         const activeCoordinates = this.activeCoordinates;
         let unitsMoved = 0;
 
-        if (activeCoordinates) {
-            for (
-                let i = activeCoordinates[0] + 1;
-                i <= activeCoordinates[0] + units;
-                i++
-            ) {
-                if (!this.matrix.hasBlockAt([i, activeCoordinates[1]])) {
-                    unitsMoved += 1;
-                } else {
-                    break;
-                }
+        for (
+            let i = activeCoordinates[0] + 1;
+            i <= activeCoordinates[0] + units;
+            i++
+        ) {
+            if (!this.matrix.hasBlockAt([i, activeCoordinates[1]])) {
+                unitsMoved += 1;
+            } else {
+                break;
             }
         }
 
@@ -209,12 +243,10 @@ export class Block {
      * Move the block right a specified number of units.
      */
     moveRight(units = 1) {
-        if (this.activeCoordinates) {
-            this.activeCoordinates = [
-                this.activeCoordinates[0] + this.canMoveRight(units),
-                this.activeCoordinates[1],
-            ];
-        }
+        this.activeCoordinates = [
+            this.activeCoordinates[0] + this.canMoveRight(units),
+            this.activeCoordinates[1],
+        ];
     }
 
     /**
@@ -228,11 +260,6 @@ export class Block {
         xUnits = 0,
         yUnits = 0
     ): { newCoordinates: [x: number, y: number]; canTranslate: boolean } {
-        if (!this.activeCoordinates) {
-            throw Error(
-                "Cannot call this on a block which is not part of an active piece."
-            );
-        }
         let [newX, newY] = this.activeCoordinates;
 
         const potentialX = this.activeCoordinates[0] + xUnits;

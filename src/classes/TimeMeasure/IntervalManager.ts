@@ -26,7 +26,6 @@ export class IntervalManager {
         if (!this.globalPause) {
             const delta = now - this.then;
             if (delta >= this.tickInterval) {
-                console.log("Delta:", delta);
                 this.advanceAllIntervals(delta);
                 this.then = now;
             }

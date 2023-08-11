@@ -32,6 +32,7 @@ export abstract class Piece {
         this.blocks = blocks;
         this.blocks.forEach((block) => {
             block.registerPiece(this);
+            block.updateConnections();
         });
         this.rotationState = 0;
         this.clockwiseRotationMap = clockwiseRotationMap;
@@ -60,6 +61,13 @@ export abstract class Piece {
      */
     getId() {
         return Piece.id;
+    }
+
+    /**
+     * Gets the piece color.
+     */
+    getColor() {
+        return Piece.color;
     }
 
     // Movement methods
@@ -253,6 +261,10 @@ export abstract class Piece {
         );
     }
 
+    private updateAllBlocksConnections() {
+        this.blocks.forEach((block) => block.updateConnections());
+    }
+
     /**
      * Rotate a piece either clockwise or anticlockwise
      * by translating the blocks in the piece.
@@ -289,6 +301,8 @@ export abstract class Piece {
                     console.error(error);
                 }
             });
+
+            this.updateAllBlocksConnections();
         }
 
         return !!wallKickOffset;
