@@ -20,7 +20,7 @@ import * as Rotation from "./S_Tetromino.rotation";
 
 export class S_Tetromino extends Tetromino {
     protected static id = PieceId.TETROMINO_S;
-    protected static override color = "";
+    protected static override color = "#60b21c";
 
     constructor(originCoordinates: [x: number, y: number], matrix: Matrix) {
         const [originX, originY] = originCoordinates;

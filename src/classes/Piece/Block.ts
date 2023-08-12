@@ -60,8 +60,19 @@ export class Block {
         return this.coupledBlocks;
     }
 
+    /**
+     * Gets how the block is connected to its coupled blocks.
+     */
     getConnections() {
         return this.connections;
+    }
+
+    getColor() {
+        return this.color;
+    }
+
+    setColor(color: string) {
+        this.color = color;
     }
 
     /**

@@ -6,7 +6,7 @@ import { Bag } from "@classes/PieceQueue";
 import { Stopwatch } from "@classes/TimeMeasure";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-const showConnections = true;
+const showConnections = false;
 const connectionChar = [
     "•",
     "╴",
@@ -26,6 +26,31 @@ const connectionChar = [
     "┼",
 ];
 
+const getBlockColor = (
+    cell: [x: number, y: number],
+    game: Game | null,
+    block: Block | null
+) => {
+    const activePiece = game?.getActivePiece();
+    const activeBlock = activePiece
+        ?.getBlocks()
+        .find(
+            (block) =>
+                block.getActiveCoordinates()[0] === cell[0] &&
+                block.getActiveCoordinates()[1] === cell[1]
+        );
+
+    if (activePiece && activeBlock) {
+        return activeBlock.getColor();
+    }
+
+    if (block) {
+        return block.getColor();
+    }
+
+    return "#000000";
+};
+
 const generateBlock = (
     cell: [x: number, y: number],
     game: Game | null,
@@ -42,7 +67,7 @@ const generateBlock = (
     if (activePiece && activeBlock) {
         return showConnections
             ? connectionChar[activeBlock.getConnections()]
-            : "🟩";
+            : "◼";
     }
 
     if (
@@ -53,14 +78,14 @@ const generateBlock = (
                     coordinates[0] === cell[0] && coordinates[1] === cell[1]
             )
     ) {
-        return "🟪";
+        return "◼";
     }
 
     return block
         ? showConnections
             ? connectionChar[block.getConnections()]
-            : "🔳"
-        : "⬜";
+            : "◼"
+        : "◻";
 };
 
 /**
@@ -184,7 +209,7 @@ const App: React.FC = () => {
             canHold,
         } = game.debugDetails();
         return (
-            <>
+            <div style={{ fontFamily: "monospace" }}>
                 <table>
                     <tbody>
                         {[
@@ -196,7 +221,12 @@ const App: React.FC = () => {
                             .map((row, rowIdx) => {
                                 const rowNo = game.getNumVisibleRows() - rowIdx;
                                 return (
-                                    <tr key={`row-${rowNo}`}>
+                                    <tr
+                                        key={`row-${rowNo}`}
+                                        style={{
+                                            lineHeight: "0.75rem",
+                                        }}
+                                    >
                                         {row.map((block, colIdx) => (
                                             <td
                                                 key={`cell-${rowNo}-${colIdx}`}
@@ -204,6 +234,14 @@ const App: React.FC = () => {
                                                     ?.getConnections()
                                                     .toString(2)
                                                     .padStart(4, "0")}]`}
+                                                style={{
+                                                    color: getBlockColor(
+                                                        [colIdx, rowNo],
+                                                        gameInstance.current,
+                                                        block
+                                                    ),
+                                                    fontSize: 16,
+                                                }}
                                             >
                                                 {generateBlock(
                                                     [colIdx, rowNo],
@@ -232,7 +270,7 @@ const App: React.FC = () => {
                     <div>Hold: {holdPieceId}</div>
                     <div>Can hold: {`${canHold}`}</div>
                 </div>
-            </>
+            </div>
         );
     }
 
