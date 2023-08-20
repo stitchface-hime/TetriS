@@ -157,7 +157,7 @@ export class Game {
     /**
      * The flow for an active piece to drop automatically.
      */
-    // Grounded flow still buggy
+    // TODO: Grounded flow still buggy
     private dropFlow(dropUnits = 1) {
         if (this.autoDropFrames >= this.autoDropFrameTarget) {
             this.autoDropPiece(dropUnits);

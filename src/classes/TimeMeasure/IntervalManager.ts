@@ -54,7 +54,9 @@ export class IntervalManager {
      */
     subscribe(key: IntervalManagerKey, interval: Interval, autoRun = true) {
         this.subscriptions.set(key, interval);
-        interval.run();
+        if (autoRun) {
+            interval.run();
+        }
     }
 
     /**

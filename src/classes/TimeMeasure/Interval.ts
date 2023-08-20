@@ -84,7 +84,7 @@ export class Interval {
     /**
      * Set the duration before a callback is made.
      * The next callback will be made after the number of milliseconds that was specified
-     * when calling this method.
+     * when calling this method, has passed.
      */
     setIntervalMs(intervalMs: number) {
         this.intervalMs = intervalMs < 0 ? 0 : intervalMs;

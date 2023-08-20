@@ -1,3 +1,9 @@
 export { add2DVectorTuples } from "./add2DVectorTuples";
+export { declareShaderAttribute } from "./declareShaderAttribute";
 export { getRandomInt } from "./getRandomInt";
+export { glsl } from "./glsl";
+export { getRectangleCoords } from "./getRectangleCoords";
+export { getUniformSetters } from "./getUniformSetters";
+export { setAttributeData } from "./setAttributeData";
+export { setUniformData } from "./setUniformData";
 export { randomizeArray } from "./randomizeArray";

@@ -5,6 +5,7 @@ import { Block } from "@classes/Piece";
 import { Bag } from "@classes/PieceQueue";
 import { Stopwatch } from "@classes/TimeMeasure";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { GameCanvas } from "src/components/GameCanvas";
 
 const showConnections = false;
 const connectionChar = [
@@ -269,6 +270,9 @@ const App: React.FC = () => {
                     <div>Blocks: {blocks}</div>
                     <div>Hold: {holdPieceId}</div>
                     <div>Can hold: {`${canHold}`}</div>
+                </div>
+                <div style={{ position: "absolute", top: 0, left: "50%" }}>
+                    <GameCanvas game={gameInstance.current} />
                 </div>
             </div>
         );

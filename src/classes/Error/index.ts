@@ -1,0 +1,1 @@
+export { ShaderProgramError } from "./ShaderProgramError";
