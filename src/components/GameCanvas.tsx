@@ -10,10 +10,11 @@ export const GameCanvas = ({ game }: { game: Game }) => {
         if (canvasRef.current) {
             const context = canvasRef.current.getContext("webgl", {
                 premultipliedAlpha: false,
+                antialias: false,
             });
 
             if (context) {
-                setRenderer(new DrawMatrix("matrix-draw", context, 21, 10));
+                setRenderer(new DrawMatrix("matrix-draw", context, 20, 10));
             }
         }
     };

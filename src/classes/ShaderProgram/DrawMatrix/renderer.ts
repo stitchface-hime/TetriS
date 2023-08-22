@@ -5,18 +5,20 @@ import { vertex } from "./vertex";
 import { getRectangleCoords } from "@utils/index";
 import {
     DEFAULT_MATRIX_BORDER_WIDTH,
+    DEFAULT_MATRIX_OPACITY,
     MATRIX_BUFFER_ZONE_RATIO,
 } from "src/constants";
 import { HexString } from "src/shaders/types";
 import { hexToRgb } from "@utils/hexToRgb";
+import { generateGrid } from "./data";
 
 export class DrawMatrix extends ShaderProgram {
     private rows: number;
     private columns: number;
     // TODO: Magic numbers
-    private opacity = 1;
+    private opacity = DEFAULT_MATRIX_OPACITY;
     private borderWidth = DEFAULT_MATRIX_BORDER_WIDTH;
-    private borderColor: HexString = "#000000";
+    private borderColor: HexString = "#ffffff";
     private color: HexString = "#ffffff";
 
     constructor(
@@ -46,96 +48,89 @@ export class DrawMatrix extends ShaderProgram {
         // set viewport
         this.resizeCanvas();
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+        gl.enable(gl.SAMPLE_COVERAGE);
+        gl.sampleCoverage(1, false);
 
         if (program) {
             gl.useProgram(program);
 
             try {
+                const gridlines = generateGrid(
+                    this.rows,
+                    this.columns,
+                    this.borderWidth,
+                    playArea.width,
+                    playArea.height
+                );
                 const positionLocation = gl.getAttribLocation(
                     program,
                     "a_position"
                 );
-                const positionBuffer = gl.createBuffer();
-                gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-                gl.bufferData(
-                    gl.ARRAY_BUFFER,
-                    new Float32Array(getRectangleCoords(0, 0, 150, 50)),
-                    gl.STATIC_DRAW
-                );
-                //
                 const colorLocation = gl.getAttribLocation(
                     program,
                     "a_gridColor"
                 );
-                const colorBuffer = gl.createBuffer();
-                gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-                gl.bufferData(
-                    gl.ARRAY_BUFFER,
-                    new Uint8Array([
-                        200, 70, 120, 255, 200, 70, 120, 255, 200, 70, 120, 255,
-                        80, 70, 200, 255, 80, 70, 200, 255, 80, 70, 200, 255,
-                    ]),
-                    gl.STATIC_DRAW
-                );
-                console.log([
-                    ...hexToRgb(this.borderColor),
-                    256 * this.opacity - 1,
-                ]);
-                //
-                gl.enableVertexAttribArray(positionLocation);
-                gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-                gl.vertexAttribPointer(
-                    positionLocation,
-                    2,
-                    gl.FLOAT,
-                    false,
-                    0,
-                    0
-                );
-
-                gl.enableVertexAttribArray(colorLocation);
-                gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-                gl.vertexAttribPointer(
-                    colorLocation,
-                    4,
-                    gl.UNSIGNED_BYTE,
-                    true,
-                    0,
-                    0
-                );
-
-                /* const uniforms: ShaderUniformRecord = {
-                    u_resolution: {
-                        type: gl.FLOAT_VEC2,
-                    },
-                };
-
-                const uniformData = {
-                    u_resolution: [canvas.clientWidth, canvas.clientHeight],
-                };
-
-                console.log([
-                    ...hexToRgb(this.borderColor),
-                    256 * this.opacity - 1,
-                ]);
-                setUniformData(
-                    getUniformSetters(uniforms, program, gl),
-                    uniformData
-                ); */
                 const resolutionLocation = gl.getUniformLocation(
                     program,
                     "u_resolution"
                 );
-                gl.uniform2f(
-                    resolutionLocation,
-                    canvas.clientWidth,
-                    canvas.clientHeight
-                );
 
-                console.log(canvas.clientWidth, canvas.clientHeight);
+                const positionBuffer = gl.createBuffer();
+                const colorBuffer = gl.createBuffer();
 
-                console.log("Draw");
-                gl.drawArrays(gl.TRIANGLES, 0, 6);
+                gridlines.forEach((line) => {
+                    console.log("Draw line", line);
+                    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+                    gl.bufferData(
+                        gl.ARRAY_BUFFER,
+                        new Float32Array(line),
+                        gl.STATIC_DRAW
+                    );
+
+                    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+                    gl.bufferData(
+                        gl.ARRAY_BUFFER,
+                        new Uint8Array(
+                            new Array(6)
+                                .fill([
+                                    ...hexToRgb(this.borderColor),
+                                    this.opacity * 255,
+                                ])
+                                .flat()
+                        ),
+                        gl.STATIC_DRAW
+                    );
+
+                    gl.enableVertexAttribArray(positionLocation);
+                    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+                    gl.vertexAttribPointer(
+                        positionLocation,
+                        2,
+                        gl.FLOAT,
+                        false,
+                        0,
+                        0
+                    );
+
+                    gl.enableVertexAttribArray(colorLocation);
+                    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+                    gl.vertexAttribPointer(
+                        colorLocation,
+                        4,
+                        gl.UNSIGNED_BYTE,
+                        true,
+                        0,
+                        0
+                    );
+
+                    gl.uniform2f(
+                        resolutionLocation,
+                        canvas.clientWidth,
+                        canvas.clientHeight
+                    );
+
+                    gl.drawArrays(gl.TRIANGLES, 0, 6);
+                });
             } catch (e) {
                 throw new ShaderProgramError(
                     this.id,
