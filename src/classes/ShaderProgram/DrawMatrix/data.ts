@@ -8,15 +8,15 @@ const generateColumnLines = (
 ) => {
     const columnLines: number[][] = [];
 
-    const spacing = (matrixWidth - (columns + 1) * borderWidth) / columns;
-
+    const spacing = (matrixWidth - columns * borderWidth * 2) / columns;
     let currentDist = 0;
 
     for (let i = 0; i < columns + 1; i++) {
+        const lineWidth = borderWidth * (i === 0 || i === columns ? 1 : 2);
         columnLines.push(
-            getRectangleCoords(currentDist, 0, borderWidth, matrixHeight)
+            getRectangleCoords(currentDist, 0, lineWidth, matrixHeight)
         );
-        currentDist += borderWidth + spacing;
+        currentDist += lineWidth + spacing;
     }
 
     return columnLines;
@@ -30,15 +30,16 @@ const generateRowLines = (
 ) => {
     const rowLines: number[][] = [];
 
-    const spacing = (matrixHeight - (rows + 1) * borderWidth) / rows;
+    const spacing = (matrixHeight - rows * borderWidth * 2) / rows;
 
     let currentDist = 0;
 
     for (let i = 0; i < rows + 1; i++) {
+        const lineWidth = borderWidth * (i === 0 || i === rows ? 1 : 2);
         rowLines.push(
-            getRectangleCoords(0, currentDist, matrixWidth, borderWidth)
+            getRectangleCoords(0, currentDist, matrixWidth, lineWidth)
         );
-        currentDist += borderWidth + spacing;
+        currentDist += lineWidth + spacing;
     }
 
     return rowLines;
