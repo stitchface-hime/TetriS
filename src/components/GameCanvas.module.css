@@ -1,6 +1,5 @@
 .scene {
     height: calc(80vh + 20vh);
     width: calc(80vh / 2);
-    border: 1px solid;
     background-color: black;
 }

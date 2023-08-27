@@ -49,15 +49,17 @@ export abstract class ShaderProgram {
             if (!ok) {
                 throw new ShaderProgramError(
                     this.id,
-                    `Failed to compile shader of type ${type}. ${this.gl.getShaderInfoLog(
-                        shader
-                    )}`
+                    `Failed to compile shader of type ${type} (${
+                        type === this.gl.FRAGMENT_SHADER ? "fragment" : "vertex"
+                    }). ${this.gl.getShaderInfoLog(shader)}`
                 );
             }
         } else {
             throw new ShaderProgramError(
                 this.id,
-                `Failed to create shader of type ${type}.`
+                `Failed to create shader of type ${type} (${
+                    type === this.gl.FRAGMENT_SHADER ? "fragment" : "vertex"
+                }).`
             );
         }
 
@@ -140,5 +142,5 @@ export abstract class ShaderProgram {
         return this.program;
     }
 
-    abstract draw(): void;
+    abstract draw(...args: any[]): void;
 }

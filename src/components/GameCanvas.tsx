@@ -2,9 +2,11 @@ import { Game } from "@classes/Game";
 import React, { useRef } from "react";
 import classes from "./GameCanvas.module.css";
 import { DrawMatrix } from "@classes/ShaderProgram";
+import { DrawSprite } from "@classes/ShaderProgram/DrawSprite/renderer";
 export const GameCanvas = ({ game }: { game: Game }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [renderer, setRenderer] = React.useState<DrawMatrix | null>(null);
+    const [drawer, setDrawer] = React.useState<DrawSprite | null>(null);
 
     const set = () => {
         if (canvasRef.current) {
@@ -15,6 +17,7 @@ export const GameCanvas = ({ game }: { game: Game }) => {
 
             if (context) {
                 setRenderer(new DrawMatrix("matrix-draw", context, 20, 10));
+                setDrawer(new DrawSprite("sprite-draw", context));
             }
         }
     };
@@ -23,11 +26,27 @@ export const GameCanvas = ({ game }: { game: Game }) => {
         renderer?.draw();
     };
 
+    const loadSheet = () => {
+        drawer?.load({
+            id: "mino",
+            src: "/sample_texture_2.png",
+            spriteSize: { width: 64, height: 64 },
+        });
+    };
+
+    const drawSprite = () => {
+        drawer?.draw([
+            { sheetId: "mino", drawData: [{ offset: [0, 0], coords: [0, 0] }] },
+        ]);
+    };
+
     return (
         <>
             <canvas className={classes.scene} ref={canvasRef} />{" "}
             <button onClick={set}>Set rederer</button>{" "}
             <button onClick={draw}>Draw</button>
+            <button onClick={loadSheet}>Load sheet</button>
+            <button onClick={drawSprite}>Draw sprite</button>
         </>
     );
 };

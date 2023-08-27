@@ -8,20 +8,23 @@ export const getRectangleCoords = (
     width: number,
     height: number
 ) => {
+    /**
+     * 24____5
+     * | \   |
+     * |  \  |
+     * |   \ |
+     * 1____36
+     */
+
+    // prettier-ignore
     return [
         // Triangle 1
-        x,
-        y,
-        x,
-        y + height,
-        x + width,
-        y,
+        x, y,                   // 1
+        x, y + height,          // 2
+        x + width, y,           // 3
         // Triangle 2
-        x,
-        y + height,
-        x + width,
-        y + height,
-        x + width,
-        y,
+        x, y + height,          // 4
+        x + width, y + height,  // 5
+        x + width, y            // 6
     ];
 };

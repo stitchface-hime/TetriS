@@ -48,8 +48,6 @@ export class DrawMatrix extends ShaderProgram {
         // set viewport
         this.resizeCanvas();
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
-        gl.enable(gl.SAMPLE_COVERAGE);
-        gl.sampleCoverage(1, false);
 
         if (program) {
             gl.useProgram(program);
@@ -79,7 +77,6 @@ export class DrawMatrix extends ShaderProgram {
                 const colorBuffer = gl.createBuffer();
 
                 gridlines.forEach((line) => {
-                    console.log("Draw line", line);
                     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
                     gl.bufferData(
                         gl.ARRAY_BUFFER,
