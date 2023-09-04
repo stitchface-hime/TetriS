@@ -50,12 +50,18 @@ export class DrawSprite extends ShaderProgram {
         };
         const image = new Image();
         image.src = src;
-        console.log("Hello");
-        image.onload = () => {
-            this.spriteSheets[sheetId].loaded = true;
-            this.spriteSheets[sheetId].image = image;
-            console.log("Loaded", src);
-        };
+
+
+        const promise = new Promise<void>((resolve) => {
+            image.onload = () => {
+                this.spriteSheets[sheetId].loaded = true;
+                this.spriteSheets[sheetId].image = image;
+
+                resolve();
+            };
+        });
+
+        return promise;
     }
 
     loadMultiple(sheetsData: SpriteSheetLoadData[]) {
