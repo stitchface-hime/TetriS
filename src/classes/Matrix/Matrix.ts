@@ -1,6 +1,7 @@
+import { GameEntity } from "@classes/GameEntity/GameEntity";
 import { Block, Piece } from "@classes/Piece";
 
-export class Matrix {
+export class Matrix extends GameEntity {
     private grid: (Block | null)[][];
     private numRows: number;
     private numVisibleRows: number;
@@ -13,6 +14,7 @@ export class Matrix {
      * you specify to account for blocks above the visible part of the matrix.
      */
     constructor(numRows: number, numColumns: number) {
+        super();
         this.numRows = numRows * 2;
         this.numVisibleRows = numRows;
         this.numColumns = numColumns;
@@ -328,5 +330,9 @@ export class Matrix {
         });
         console.log("Occupied cells:", this.numCellsOccupied);
         console.log("\n");
+    }
+
+    draw() {
+        // TODO:
     }
 }

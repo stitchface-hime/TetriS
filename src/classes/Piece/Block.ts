@@ -1,12 +1,14 @@
 import { Matrix } from "@classes/Matrix";
 import { Piece } from "./Piece";
 import { Connection } from "@data/Connection";
+import { GameEntity } from "@classes/GameEntity/GameEntity";
+import { SpriteSheets } from "@data/SpriteSheets";
 
 /**
  * A block is a single unit that takes up one cell in the matrix.
  * It can be connected to one or more other blocks to form a piece.
  */
-export class Block {
+export class Block extends GameEntity {
     /**
      * The coordinates of the block in the matrix when it is part of an active piece.
      * If not part of an active piece, this is null.
@@ -38,6 +40,8 @@ export class Block {
         color: string = "",
         coupledBlocks: Block[] = []
     ) {
+        super({ spriteSheets: [SpriteSheets.STANDARD_MINO] });
+
         this.activeCoordinates = globalCoordinates;
         this.matrix = matrix;
         this.color = color;
@@ -93,7 +97,7 @@ export class Block {
 
     /**
      * Updates the connections property of this block.
-     * Should be called if this block is a part of a piece and the piece rotates. TODO!!!!!
+     * Should be called if this block is a part of a piece and the piece rotates.
      */
     updateConnections() {
         this.connections = 0;
@@ -103,6 +107,9 @@ export class Block {
                 this.connections |= coupledConnection;
             }
         });
+
+        // each sprite in the mino sprite sheet corresponds to a connection index
+        this.setActiveSpriteByIndex(this.connections);
     }
 
     /**
@@ -289,7 +296,7 @@ export class Block {
     /**
      * Translates the block from its current position a certain number of x or y units.
      */
-    translate(xUnits = 0, yUnits = 0) {
+    moveBlock(xUnits = 0, yUnits = 0) {
         const { newCoordinates, canTranslate } = this.canTranslate(
             xUnits,
             yUnits

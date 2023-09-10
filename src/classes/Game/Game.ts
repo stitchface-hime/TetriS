@@ -8,6 +8,7 @@ import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
 import { PieceId } from "@data/index";
 import { GameIntervalKeys } from "./GameIntervalKeys";
 import { GameOverCode } from "./GameOverCode";
+import { GameRenderer } from "@classes/GameRenderer";
 
 export class Game {
     private numRows: number;
@@ -57,6 +58,7 @@ export class Game {
     private gamePaused = false;
     private gameOver = false;
 
+    private renderer = new GameRenderer();
     // let React know to re-render
     private rerender: () => void;
 
@@ -107,6 +109,7 @@ export class Game {
                 }
             }
         }
+        this.renderer.renderScene();
     }
 
     private resetGroundedState() {

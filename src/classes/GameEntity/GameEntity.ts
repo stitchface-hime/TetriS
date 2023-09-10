@@ -1,5 +1,6 @@
 import { add2DVectorTuples } from "@utils/add2DVectorTuples";
 import { getRectangleCoords } from "@utils/getRectangleCoords";
+import { SpriteSheet } from "src/shaders/types";
 
 class GameEntityTransform {
     /**
@@ -54,16 +55,6 @@ class GameEntityTransform {
     }
 }
 
-interface SpriteSheet {
-    name: string;
-    width: number;
-    height: number;
-    spriteInfo: {
-        width: number;
-        height: number;
-    };
-}
-
 /* interface AnimationFrame {
     name: string;
     spriteIdx: number;
@@ -102,15 +93,29 @@ export abstract class GameEntity extends GameEntityTransform {
         position,
         scale,
         rotation,
-        spriteSheets = {},
+        spriteSheets = [],
     }: Partial<{
         position: [x: number, y: number];
         scale: number;
         rotation: number;
-        spriteSheets: Record<string, SpriteSheet>;
-    }>) {
+        spriteSheets: SpriteSheet[];
+    }> = {}) {
         super({ position, scale, rotation });
-        this.spriteSheets = spriteSheets;
+        spriteSheets.forEach((sheet) => this.registerSpriteSheet(sheet));
+    }
+
+    registerSpriteSheet(spriteSheet: SpriteSheet) {
+        this.spriteSheets[spriteSheet.name] = spriteSheet;
+    }
+
+    unregisterSpriteSheet(name: string) {
+        if (this.spriteSheets[name]) {
+            delete this.spriteSheets[name];
+        } else {
+            throw new Error(
+                "Sprite sheet could not be found. Skipping operation."
+            );
+        }
     }
 
     /**

@@ -288,7 +288,7 @@ export abstract class Piece {
                 const blockPositionAdjust = rotationStateAdjust[blockIdx];
                 try {
                     if (blockPositionAdjust) {
-                        block.translate(
+                        block.moveBlock(
                             blockPositionAdjust[0] + wallKickOffset[0],
                             blockPositionAdjust[1] + wallKickOffset[1]
                         );
