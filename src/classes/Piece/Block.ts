@@ -3,6 +3,7 @@ import { Piece } from "./Piece";
 import { Connection } from "@data/Connection";
 import { GameEntity } from "@classes/GameEntity/GameEntity";
 import { SpriteSheets } from "@data/SpriteSheets";
+import { DrawSprite } from "@classes/ShaderProgram";
 
 /**
  * A block is a single unit that takes up one cell in the matrix.
@@ -40,7 +41,8 @@ export class Block extends GameEntity {
         color: string = "",
         coupledBlocks: Block[] = []
     ) {
-        super({ spriteSheets: [SpriteSheets.STANDARD_MINO] });
+        super({ spriteSheetDatas: [SpriteSheets.STANDARD_MINO] });
+        this.setActiveSpriteSheetData(SpriteSheets.STANDARD_MINO.id);
 
         this.activeCoordinates = globalCoordinates;
         this.matrix = matrix;
@@ -306,4 +308,6 @@ export class Block extends GameEntity {
             this.activeCoordinates = [...newCoordinates];
         }
     }
+
+    draw() {}
 }

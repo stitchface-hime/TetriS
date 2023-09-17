@@ -1,11 +1,12 @@
-import { SpriteSheet } from "src/shaders/types";
+import { SpriteSheetDetails } from "src/shaders/types";
 
-export const SpriteSheets: Record<string, SpriteSheet> = {
+export const SpriteSheets: Record<string, SpriteSheetDetails> = {
     STANDARD_MINO: {
-        name: "standard_mino",
+        id: "standard_mino",
+        src: "/mino_sprites_light.png",
         width: 256,
         height: 256,
-        spriteInfo: {
+        spriteSize: {
             width: 64,
             height: 64,
         },

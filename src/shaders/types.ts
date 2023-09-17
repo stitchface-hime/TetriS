@@ -44,12 +44,23 @@ export type ShaderAttributeDataRecord = Record<
 
 export type ShaderUniformDataRecord = Record<string, number[]>;
 
-export interface SpriteSheet {
-    name: string;
+export interface SpriteSheetDetails {
+    id: string;
+    src: string;
     width: number;
     height: number;
-    spriteInfo: {
+    spriteSize: {
         width: number;
         height: number;
     };
+}
+
+export interface SpriteSheet {
+    id: string;
+    image: HTMLImageElement | null;
+    spriteSize: {
+        width: number;
+        height: number;
+    };
+    loaded: boolean;
 }

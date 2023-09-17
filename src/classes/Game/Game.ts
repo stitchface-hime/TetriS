@@ -41,6 +41,7 @@ export class Game {
 
     private lowestGroundedRow = Infinity;
 
+    // this should be extracted out
     private autoDropFrameBaseline =
         (0.8 - (this.level - 1) * 0.007) ** (this.level - 1) * 60;
 
@@ -59,15 +60,12 @@ export class Game {
     private gameOver = false;
 
     private renderer = new GameRenderer();
-    // let React know to re-render
-    private rerender: () => void;
 
     constructor(
         numRows: number,
         numColumns: number,
         pieceQueue: PieceQueue,
-        spawnCoordinates: [x: number, y: number],
-        rerender: () => void
+        spawnCoordinates: [x: number, y: number]
     ) {
         this.pieceFactory = new PieceFactory();
         this.numRows = numRows;
@@ -75,7 +73,10 @@ export class Game {
         this.matrix = new Matrix(numRows, numColumns);
         this.nextQueue = pieceQueue;
         this.spawnCoordinates = spawnCoordinates;
-        this.rerender = rerender;
+    }
+
+    setCanvas(canvas: HTMLCanvasElement) {
+        this.renderer.setCanvas(canvas);
     }
 
     /* Game flow methods */
@@ -109,7 +110,7 @@ export class Game {
                 }
             }
         }
-        this.renderer.renderScene();
+        // this.renderer.renderScene();
     }
 
     private resetGroundedState() {
@@ -258,8 +259,11 @@ export class Game {
                 pieceId
             );
 
-            // Does the spawned piece overlap with any blocks in the matrix?
             if (spawnedPiece) {
+                // Register block entities
+                this.renderer.registerEntities(spawnedPiece.getBlocks());
+
+                // Does the spawned piece overlap with any blocks in the matrix?
                 const pieceDoesNotOverlap = spawnedPiece
                     .getBlocksCoordinates()
                     .reduce(
@@ -405,7 +409,8 @@ export class Game {
      * Clears a line from the matrix at a given row.
      */
     private clearLine(row: number) {
-        this.matrix.clearRows(row);
+        this.renderer.unregisterEntities(this.matrix.clearRows(row));
+
         this.matrix.shiftRowsDown(row, 1);
         this.linesCleared++;
         this.increaseLevelCheck();
@@ -498,6 +503,9 @@ export class Game {
 
     hold() {
         if (this.canHold && this.activePiece !== null) {
+            // take blocks out of play
+            this.renderer.unregisterEntities(this.activePiece.getBlocks());
+
             if (this.holdPieceId === null) {
                 // when hold piece is null, hold current piece and spawn a new piece
                 this.holdPieceId = this.activePiece.getId();

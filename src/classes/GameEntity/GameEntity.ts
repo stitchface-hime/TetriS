@@ -1,6 +1,7 @@
+import { DrawSprite } from "@classes/ShaderProgram";
 import { add2DVectorTuples } from "@utils/add2DVectorTuples";
 import { getRectangleCoords } from "@utils/getRectangleCoords";
-import { SpriteSheet } from "src/shaders/types";
+import { SpriteSheetDetails, SpriteSheet } from "src/shaders/types";
 
 class GameEntityTransform {
     /**
@@ -79,9 +80,9 @@ export abstract class GameEntity extends GameEntityTransform {
     /**
      * The sprite sheets that will be used when drawing this entity to the scene.
      */
-    protected spriteSheets: Record<string, SpriteSheet> = {};
+    protected spriteSheetDatas: Record<string, SpriteSheetDetails> = {};
 
-    protected activeSpriteSheet: SpriteSheet | null = null;
+    protected activeSpriteSheetData: SpriteSheetDetails | null = null;
 
     protected activeSpriteQuadCoords: number[] | null = null;
 
@@ -93,24 +94,47 @@ export abstract class GameEntity extends GameEntityTransform {
         position,
         scale,
         rotation,
-        spriteSheets = [],
+        spriteSheetDatas = [],
     }: Partial<{
         position: [x: number, y: number];
         scale: number;
         rotation: number;
-        spriteSheets: SpriteSheet[];
+        spriteSheetDatas: SpriteSheetDetails[];
     }> = {}) {
         super({ position, scale, rotation });
-        spriteSheets.forEach((sheet) => this.registerSpriteSheet(sheet));
+        spriteSheetDatas.forEach((sheet) =>
+            this.registerSpriteSheetData(sheet)
+        );
     }
 
-    registerSpriteSheet(spriteSheet: SpriteSheet) {
-        this.spriteSheets[spriteSheet.name] = spriteSheet;
+    getActiveSpriteSheetData() {
+        return this.activeSpriteSheetData;
     }
 
-    unregisterSpriteSheet(name: string) {
-        if (this.spriteSheets[name]) {
-            delete this.spriteSheets[name];
+    /**
+     * Sets the active sprite sheet to use via its id.
+     * Note that this also nulls out the current quad coordinates of the sprite.
+     */
+    setActiveSpriteSheetData(id: string) {
+        const spriteSheetData = this.spriteSheetDatas[id];
+
+        if (spriteSheetData) {
+            this.activeSpriteSheetData = spriteSheetData;
+            this.activeSpriteQuadCoords = null;
+        } else {
+            throw new Error(
+                "Could not set active sprite sheet data. Did you forget to register the sprite sheet first?"
+            );
+        }
+    }
+
+    registerSpriteSheetData(spriteSheetData: SpriteSheetDetails) {
+        this.spriteSheetDatas[spriteSheetData.id] = spriteSheetData;
+    }
+
+    unregisterSpriteSheetData(name: string) {
+        if (this.spriteSheetDatas[name]) {
+            delete this.spriteSheetDatas[name];
         } else {
             throw new Error(
                 "Sprite sheet could not be found. Skipping operation."
@@ -123,10 +147,10 @@ export abstract class GameEntity extends GameEntityTransform {
      * starting from the top left of the sprite sheet.
      */
     setActiveSpriteByIndex(spriteIdx: number) {
-        if (this.activeSpriteSheet) {
-            const { width: sheetWidth, spriteInfo } = this.activeSpriteSheet;
+        if (this.activeSpriteSheetData) {
+            const { spriteSize, width } = this.activeSpriteSheetData;
 
-            const totalCols = Math.ceil(sheetWidth / spriteInfo.width);
+            const totalCols = Math.ceil(width / spriteSize.width);
             const row = Math.floor(spriteIdx / totalCols);
             const column = spriteIdx % totalCols;
 
@@ -143,15 +167,11 @@ export abstract class GameEntity extends GameEntityTransform {
      * the first row and first column starting at the top and left respectively. Row and columns start at index 0.
      */
     setActiveSpriteByRowCol([row, column]: [row: number, col: number]) {
-        if (this.activeSpriteSheet) {
-            const {
-                width: sheetWidth,
-                height: sheetHeight,
-                spriteInfo,
-            } = this.activeSpriteSheet;
-            const totalRows = Math.ceil(sheetHeight / spriteInfo.height);
-            const totalCols = Math.ceil(sheetWidth / spriteInfo.width);
-            const u = (totalCols - column) / totalCols;
+        if (this.activeSpriteSheetData) {
+            const { spriteSize, width, height } = this.activeSpriteSheetData;
+            const totalRows = Math.ceil(height / spriteSize.height);
+            const totalCols = Math.ceil(width / spriteSize.width);
+            const u = column / totalCols;
             const v = (totalRows - row - 1) / totalRows;
 
             this.setActiveSpriteByUV([u, v]);
@@ -167,15 +187,15 @@ export abstract class GameEntity extends GameEntityTransform {
      * `[0,0]` being the bottom-left and `[1,1]` being the top-right of the sprite sheet.
      */
     setActiveSpriteByUV([u, v]: [u: number, v: number]) {
-        if (this.activeSpriteSheet) {
+        if (this.activeSpriteSheetData) {
             const {
-                spriteInfo: { width, height },
-            } = this.activeSpriteSheet;
+                spriteSize: { width, height },
+            } = this.activeSpriteSheetData;
             this.activeSpriteQuadCoords = getRectangleCoords(
                 u,
                 v,
-                width,
-                height
+                width / this.activeSpriteSheetData.width,
+                height / this.activeSpriteSheetData.height
             );
         } else {
             throw new Error(
@@ -184,5 +204,9 @@ export abstract class GameEntity extends GameEntityTransform {
         }
     }
 
-    draw() {}
+    abstract draw(
+        gl: WebGLRenderingContext,
+        spriteRenderer: DrawSprite,
+        spriteSheet?: SpriteSheet
+    ): void;
 }

@@ -122,8 +122,9 @@ export class Matrix extends GameEntity {
     /**
      * Clears a block in the matrix at specified coordinates.
      * Blocks that are coupled to this block will be decoupled.
+     * Returns `Block` if it was cleared, `null` otherwise.
      */
-    clearBlock(coordinates: [x: number, y: number]) {
+    clearBlock(coordinates: [x: number, y: number]): Block | null {
         const [row, column] = this.translateToRowsColumns(coordinates);
         const gridRow = this.grid[row];
 
@@ -138,7 +139,11 @@ export class Matrix extends GameEntity {
             }
             gridRow[column] = null;
             this.numCellsOccupied -= 1;
+
+            return block;
         }
+
+        return null;
     }
 
     /**
@@ -146,19 +151,26 @@ export class Matrix extends GameEntity {
      * When clearing lines don't forget to shift rows down.
      * @param from clear rows starting from this row
      * @param to Optional - clear up to this row (non-inclusive)
+     * @returns All `Block`s cleared.
      */
-    clearRows(from: number, to = from + 1) {
+    clearRows(from: number, to = from + 1): Block[] {
+        const blocksCleared: Block[] = [];
         for (let rowIdx = from; rowIdx < to; rowIdx++) {
             const gridRow = this.grid[rowIdx];
 
             if (gridRow) {
                 gridRow.forEach((block, colIdx) => {
                     if (block) {
-                        this.clearBlock([colIdx, rowIdx]);
+                        const clearedBlock = this.clearBlock([colIdx, rowIdx]);
+                        if (clearedBlock) {
+                            blocksCleared.push(clearedBlock);
+                        }
                     }
                 });
             }
         }
+
+        return blocksCleared;
     }
 
     /**

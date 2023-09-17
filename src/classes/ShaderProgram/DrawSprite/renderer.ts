@@ -3,7 +3,7 @@ import { getRectangleCoords } from "@utils/index";
 import { vertex } from "./vertex";
 import { fragment } from "./fragment";
 
-interface SpriteSheet extends SpriteSheetLoadData {
+interface SpriteSheetImage extends SpriteSheetLoadData {
     image: HTMLImageElement | null;
     loaded: boolean;
 }
@@ -28,7 +28,7 @@ interface DrawArgs {
 }
 
 export class DrawSprite extends ShaderProgram {
-    private spriteSheets: Record<string, SpriteSheet> = {};
+    private spriteSheets: Record<string, SpriteSheetImage> = {};
 
     constructor(id: string, gl: WebGLRenderingContext) {
         super(id, vertex, fragment, gl);
@@ -50,7 +50,6 @@ export class DrawSprite extends ShaderProgram {
         };
         const image = new Image();
         image.src = src;
-
 
         const promise = new Promise<void>((resolve) => {
             image.onload = () => {
@@ -76,7 +75,7 @@ export class DrawSprite extends ShaderProgram {
         }
     }
 
-    private drawSprite(drawData: DrawData, sheet: SpriteSheet) {
+    private drawSprite(drawData: DrawData, sheet: SpriteSheetImage) {
         const { spriteSize, image, loaded } = sheet;
         const gl = this.gl;
         const program = this.program;
