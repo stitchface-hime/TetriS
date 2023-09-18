@@ -47,7 +47,10 @@ export const GameCanvas = ({ game }: { game: Game }) => {
 
     const drawSprite = () => {
         drawer?.draw([
-            { sheetId: "mino", drawData: [{ offset: [0, 0], coords: [0, 0] }] },
+            {
+                sheetId: "mino",
+                drawData: [{ textureCoordinates: [0, 0], anchor: [0, 0] }],
+            },
         ]);
     };
 

@@ -2,6 +2,7 @@ import { ShaderProgram } from "../ShaderProgram";
 import { getRectangleCoords } from "@utils/index";
 import { vertex } from "./vertex";
 import { fragment } from "./fragment";
+import { SpriteSheet } from "src/shaders/types";
 
 interface SpriteSheetImage extends SpriteSheetLoadData {
     image: HTMLImageElement | null;
@@ -18,64 +19,27 @@ interface SpriteSheetLoadData {
 }
 
 interface DrawData {
-    offset: [x: number, y: number];
-    coords: [x: number, y: number];
+    /**
+     * The texture coordinates that make up the sprite quad that you want to render from the sheet.
+     */
+    textureCoordinates: number[];
+    /**
+     * The coordinates of the bottom-left of the entity when it appears on screen.
+     */
+    anchor: [x: number, y: number];
 }
 
 interface DrawArgs {
-    sheetId: string;
+    spriteSheet: SpriteSheet;
     drawData: DrawData[];
 }
 
 export class DrawSprite extends ShaderProgram {
-    private spriteSheets: Record<string, SpriteSheetImage> = {};
-
     constructor(id: string, gl: WebGLRenderingContext) {
         super(id, vertex, fragment, gl);
     }
 
-    /**
-     * Loads a sprite sheet given its source.
-     * @param src source of the sprite sheet.
-     * @param sheetId an id used to identify the loaded sprite sheet later.
-     * @param spriteSize the size of each individual sprite.
-     */
-    load({ id: sheetId, src, spriteSize }: SpriteSheetLoadData) {
-        this.spriteSheets[sheetId] = {
-            id: sheetId,
-            src,
-            image: null,
-            loaded: false,
-            spriteSize,
-        };
-        const image = new Image();
-        image.src = src;
-
-        const promise = new Promise<void>((resolve) => {
-            image.onload = () => {
-                this.spriteSheets[sheetId].loaded = true;
-                this.spriteSheets[sheetId].image = image;
-
-                resolve();
-            };
-        });
-
-        return promise;
-    }
-
-    loadMultiple(sheetsData: SpriteSheetLoadData[]) {
-        sheetsData.forEach((data) => this.load(data));
-    }
-
-    unload(sheetId: string) {
-        if (this.spriteSheets[sheetId]) {
-            delete this.spriteSheets[sheetId];
-        } else {
-            console.warn("Sprite sheet not present, no operation occurred.");
-        }
-    }
-
-    private drawSprite(drawData: DrawData, sheet: SpriteSheetImage) {
+    drawSprite(drawData: DrawData, sheet: SpriteSheet) {
         const { spriteSize, image, loaded } = sheet;
         const gl = this.gl;
         const program = this.program;
@@ -104,8 +68,8 @@ export class DrawSprite extends ShaderProgram {
             const textureCoordBuffer = gl.createBuffer();
 
             const drawCoord = getRectangleCoords(
-                drawData.coords[0],
-                drawData.coords[1],
+                drawData.anchor[0],
+                drawData.anchor[1],
                 // temp - need to also consider the size of the sprite being drawn here
                 spriteSize.width,
                 spriteSize.height
@@ -123,14 +87,7 @@ export class DrawSprite extends ShaderProgram {
             gl.bufferData(
                 gl.ARRAY_BUFFER,
                 // prettier-ignore
-                new Float32Array([
-                    0.0, 0.0, 
-                    0.0, 1.0, 
-                    1.0, 0.0, 
-                    0.0, 1.0,
-                    1.0, 1.0,
-                    1.0, 0.0
-                ]),
+                new Float32Array(drawData.offset),
                 gl.STATIC_DRAW
             );
 
@@ -184,14 +141,10 @@ export class DrawSprite extends ShaderProgram {
         }
     }
 
-    drawFromSheet({ sheetId, drawData }: DrawArgs) {
-        const selectedSheet = this.spriteSheets[sheetId];
-
-        if (selectedSheet) {
-            drawData.forEach((data) => {
-                this.drawSprite(data, selectedSheet);
-            });
-        }
+    drawFromSheet({ spriteSheet, drawData }: DrawArgs) {
+        drawData.forEach((data) => {
+            this.drawSprite(data, spriteSheet);
+        });
     }
 
     draw(sheets: DrawArgs[]) {

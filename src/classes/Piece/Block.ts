@@ -4,6 +4,7 @@ import { Connection } from "@data/Connection";
 import { GameEntity } from "@classes/GameEntity/GameEntity";
 import { SpriteSheets } from "@data/SpriteSheets";
 import { DrawSprite } from "@classes/ShaderProgram";
+import { SpriteSheet } from "src/shaders/types";
 
 /**
  * A block is a single unit that takes up one cell in the matrix.
@@ -11,8 +12,7 @@ import { DrawSprite } from "@classes/ShaderProgram";
  */
 export class Block extends GameEntity {
     /**
-     * The coordinates of the block in the matrix when it is part of an active piece.
-     * If not part of an active piece, this is null.
+     * The coordinates of the block in the matrix.
      * NOTE: `x` refers to columns and `y` refers to the rows!
      */
     private activeCoordinates: [x: number, y: number];
@@ -309,5 +309,20 @@ export class Block extends GameEntity {
         }
     }
 
-    draw() {}
+    draw(
+        gl: WebGLRenderingContext,
+        spriteRenderer: DrawSprite,
+        spriteSheet: SpriteSheet
+    ) {
+        // location and offset
+        if (this.activeSpriteQuadCoords) {
+            spriteRenderer.drawSprite(
+                {
+                    anchor: [0, 0],
+                    textureCoordinates: [0, 0],
+                },
+                spriteSheet
+            );
+        }
+    }
 }

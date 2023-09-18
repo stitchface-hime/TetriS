@@ -33,6 +33,10 @@ export class DrawMatrix extends ShaderProgram {
         this.columns = columns;
     }
 
+    getBorderWidth() {
+        return this.borderWidth;
+    }
+
     draw() {
         const gl = this.gl;
         const program = this.program;

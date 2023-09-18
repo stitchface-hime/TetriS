@@ -204,6 +204,9 @@ export abstract class GameEntity extends GameEntityTransform {
         }
     }
 
+    /**
+     * Draws the game entity's sprite if provided.
+     */
     abstract draw(
         gl: WebGLRenderingContext,
         spriteRenderer: DrawSprite,
