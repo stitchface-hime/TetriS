@@ -1,8 +1,7 @@
 import { ShaderProgramError } from "@classes/Error";
 
 export abstract class ShaderProgram {
-    protected id: string;
-
+    private id = "shader-program";
     private vertexSrc: string;
     private fragmentSrc: string;
 
@@ -13,13 +12,11 @@ export abstract class ShaderProgram {
     protected program: WebGLProgram | null = null;
 
     constructor(
-        id: string,
         vertexSrc: string,
         fragmentSrc: string,
         gl: WebGLRenderingContext,
         autoBuild = true
     ) {
-        this.id = id;
         this.vertexSrc = vertexSrc;
         this.fragmentSrc = fragmentSrc;
         this.gl = gl;
@@ -132,10 +129,6 @@ export abstract class ShaderProgram {
         this.compileFragmentShader();
         console.log("Fragment OK");
         this.compileProgram();
-    }
-
-    getId() {
-        return this.id;
     }
 
     getProgram() {

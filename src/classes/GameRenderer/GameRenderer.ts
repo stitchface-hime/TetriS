@@ -6,36 +6,41 @@ export class GameRenderer {
 
     private entities: Set<GameEntity> = new Set();
     private canvas: HTMLCanvasElement | null = null;
+
+    // Is this necessary to store a single instance?
     private spriteRenderer: DrawSprite | null = null;
 
     constructor() {}
+
     /**
      * Loads a sprite sheet given its source.
-     * @param src source of the sprite sheet.
-     * @param sheetId an id used to identify the loaded sprite sheet later.
-     * @param spriteSize the size of each individual sprite.
+     * If the sprite sheet is already loaded, returns the sprite sheet.
+     * You can set the `reload` flag to load the image regardless if it has already been loaded.
      */
-    load({ id, src, spriteSize }: SpriteSheetDetails) {
-        this.spriteSheets[id] = {
-            id,
-            image: null,
-            loaded: false,
-            spriteSize,
-        };
-        const image = new Image();
-        image.src = src;
-
-        const promise = new Promise<void>((resolve) => {
-            image.onload = () => {
-                // TODO: What happens if same sheet is loaded twice?
-                this.spriteSheets[id].loaded = true;
-                this.spriteSheets[id].image = image;
-
-                resolve();
+    async load({ id, src, spriteSize }: SpriteSheetDetails, reload = false) {
+        // load the sprite sheet
+        if (!this.spriteSheets[id] || reload) {
+            this.spriteSheets[id] = {
+                id,
+                image: null,
+                loaded: false,
+                spriteSize,
             };
-        });
+            const image = new Image();
+            image.src = src;
 
-        return promise;
+            const promise = new Promise((resolve) => {
+                image.onload = resolve;
+            });
+
+            await promise;
+
+            this.spriteSheets[id].loaded = true;
+            this.spriteSheets[id].image = image;
+        }
+
+        // or use existing
+        return this.spriteSheets[id];
     }
 
     loadMultiple(sheetsData: SpriteSheetDetails[]) {
@@ -48,6 +53,14 @@ export class GameRenderer {
         } else {
             console.warn("Sprite sheet not present, no operation occurred.");
         }
+    }
+
+    getCanvas() {
+        return this.canvas;
+    }
+
+    getRenderingContext() {
+        return this.canvas?.getContext("webgl");
     }
 
     setCanvas(canvas: HTMLCanvasElement) {
@@ -67,18 +80,15 @@ export class GameRenderer {
      * an entity with the same reference more than once.
      */
     registerEntity(entity: GameEntity) {
-        this.entities.add(entity);
-        const spriteSheetData = entity.getActiveSpriteSheetData();
-        if (spriteSheetData) {
-            const { id, src, width, height, spriteSize } = spriteSheetData;
+        const gl = this.canvas?.getContext("webgl");
 
-            this.load({
-                id,
-                src,
-                width,
-                height,
-                spriteSize,
-            });
+        if (gl) {
+            this.entities.add(entity);
+            entity.setSpriteRenderer(new DrawSprite(gl));
+        } else {
+            throw new Error(
+                "Failed to register entity, unable to obtain rendering context."
+            );
         }
     }
 
@@ -114,19 +124,10 @@ export class GameRenderer {
      * Entities at the front are drawn first.
      */
     renderScene() {
-        const gl = this.canvas?.getContext("webgl");
+        const gl = this.getRenderingContext();
         if (gl && this.spriteRenderer) {
-            const spriteRenderer = this.spriteRenderer;
-
             this.entities.forEach((entity) => {
-                const activeSpriteSheetId =
-                    entity.getActiveSpriteSheetData()?.id;
-                const spriteSheet = activeSpriteSheetId
-                    ? this.spriteSheets[activeSpriteSheetId]
-                    : undefined;
-
-                // Pass sprite sheet to entity drawer
-                entity.draw(gl, spriteRenderer, spriteSheet);
+                entity.draw();
             });
             return;
         } else {

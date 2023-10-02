@@ -1,5 +1,7 @@
 import { GameEntity } from "@classes/GameEntity/GameEntity";
+import { GameRenderer } from "@classes/GameRenderer";
 import { Block, Piece } from "@classes/Piece";
+import { MATRIX_BUFFER_ZONE_RATIO } from "src/constants";
 
 export class Matrix extends GameEntity {
     private grid: (Block | null)[][];
@@ -8,6 +10,12 @@ export class Matrix extends GameEntity {
     private numColumns: number;
     private numCellsOccupied: number;
     private activePiece: Piece | null;
+
+    /**
+     * The play area of the game. This is the area in the scene
+     * where gridlines will be rendered.
+     */
+    private playArea: { width: number; height: number } | null = null;
 
     /**
      * When constructing the matrix, the matrix will have twice the number of rows
@@ -31,6 +39,32 @@ export class Matrix extends GameEntity {
         });
 
         this.activePiece = null;
+    }
+
+    /**
+     * Sets the play area of the matrix, the game renderer must be set before calling this.
+     */
+    setPlayArea() {
+        const canvas = this.gameRenderer?.getCanvas();
+
+        if (canvas) {
+            this.playArea = {
+                width: canvas.clientWidth,
+                // height of matrix minus the buffer area above the rows
+                height: canvas.clientHeight * (1 - MATRIX_BUFFER_ZONE_RATIO),
+            };
+        } else {
+            throw new Error(
+                "Could not set play area. Did you forget to set a game renderer and set its rendering context?"
+            );
+        }
+    }
+
+    /**
+     * Gets the play area. Useful for positioning blocks within the matrix.
+     */
+    getPlayArea() {
+        return this.playArea;
     }
 
     /**

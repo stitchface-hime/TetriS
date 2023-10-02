@@ -1,3 +1,4 @@
+import { GameRenderer } from "@classes/GameRenderer";
 import { DrawSprite } from "@classes/ShaderProgram";
 import { add2DVectorTuples } from "@utils/add2DVectorTuples";
 import { getRectangleCoords } from "@utils/getRectangleCoords";
@@ -5,7 +6,7 @@ import { SpriteSheetDetails, SpriteSheet } from "src/shaders/types";
 
 class GameEntityTransform {
     /**
-     * Position of the entity within a scene.
+     * Position of the bottom-left pixel of an entity within a scene
      */
     protected position: [x: number, y: number] = [0, 0];
     /**
@@ -86,6 +87,10 @@ export abstract class GameEntity extends GameEntityTransform {
 
     protected activeSpriteQuadCoords: number[] | null = null;
 
+    protected spriteRenderer: DrawSprite | null = null;
+
+    protected gameRenderer: GameRenderer | null = null;
+
     /* protected animationCycles: Record<string, number[]> = {};
 
     protected animation: SpriteAnimation | null = {}; */
@@ -105,6 +110,14 @@ export abstract class GameEntity extends GameEntityTransform {
         spriteSheetDatas.forEach((sheet) =>
             this.registerSpriteSheetData(sheet)
         );
+    }
+
+    setSpriteRenderer(renderer: DrawSprite) {
+        this.spriteRenderer = renderer;
+    }
+
+    setGameRenderer(renderer: GameRenderer) {
+        this.gameRenderer = renderer;
     }
 
     getActiveSpriteSheetData() {
@@ -207,9 +220,5 @@ export abstract class GameEntity extends GameEntityTransform {
     /**
      * Draws the game entity's sprite if provided.
      */
-    abstract draw(
-        gl: WebGLRenderingContext,
-        spriteRenderer: DrawSprite,
-        spriteSheet?: SpriteSheet
-    ): void;
+    abstract draw(): void;
 }

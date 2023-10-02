@@ -150,6 +150,27 @@ export class Block extends GameEntity {
     }
 
     /**
+     * Should be used whenever you need to move a block within the matrix.
+     * This also moves the block entity within the canvas.
+     */
+    private updateCoordinates(coordinates: [x: number, y: number]) {
+        this.activeCoordinates = coordinates;
+        const playArea = this.matrix.getPlayArea();
+
+        if (playArea) {
+            // Move entity within the canvas
+            const matrixRows = this.matrix.getNumRows();
+            const matrixColumns = this.matrix.getNumColumns();
+
+            // Move the entity
+            this.setPosition([
+                this.activeCoordinates[0] * (playArea.width / matrixColumns),
+                this.activeCoordinates[1] * (playArea.height / matrixRows),
+            ]);
+        }
+    }
+
+    /**
      * Determines if the block can move down a specified number of units (default: 1 unit).
      * If the block cannot move the specified number of units, it will move as many units down
      * possible.
@@ -184,10 +205,10 @@ export class Block extends GameEntity {
      * Move the block down a specified number of units. (Default: 1 unit)
      */
     moveDown(units = 1) {
-        this.activeCoordinates = [
+        this.updateCoordinates([
             this.activeCoordinates[0],
             this.activeCoordinates[1] - this.canMoveDown(units),
-        ];
+        ]);
     }
 
     /**
@@ -223,10 +244,10 @@ export class Block extends GameEntity {
      * Move the block left a specified number of units. (Default: 1 unit)
      */
     moveLeft(units = 1) {
-        this.activeCoordinates = [
+        this.updateCoordinates([
             this.activeCoordinates[0] - this.canMoveLeft(units),
             this.activeCoordinates[1],
-        ];
+        ]);
     }
 
     /**
@@ -263,10 +284,10 @@ export class Block extends GameEntity {
      * Move the block right a specified number of units.
      */
     moveRight(units = 1) {
-        this.activeCoordinates = [
+        this.updateCoordinates([
             this.activeCoordinates[0] + this.canMoveRight(units),
             this.activeCoordinates[1],
-        ];
+        ]);
     }
 
     /**
@@ -305,24 +326,26 @@ export class Block extends GameEntity {
         );
 
         if (canTranslate) {
-            this.activeCoordinates = [...newCoordinates];
+            this.updateCoordinates([...newCoordinates]);
         }
     }
 
-    draw(
-        gl: WebGLRenderingContext,
-        spriteRenderer: DrawSprite,
-        spriteSheet: SpriteSheet
-    ) {
-        // location and offset
-        if (this.activeSpriteQuadCoords) {
-            spriteRenderer.drawSprite(
-                {
-                    anchor: [0, 0],
-                    textureCoordinates: [0, 0],
-                },
-                spriteSheet
+    async draw() {
+        if (this.gameRenderer && this.activeSpriteSheetData) {
+            const sheet = await this.gameRenderer.load(
+                this.activeSpriteSheetData
             );
+
+            if (this.activeSpriteQuadCoords) {
+                this.spriteRenderer?.drawSprite(
+                    {
+                        anchor: this.position,
+                        textureCoordinates: this.activeSpriteQuadCoords,
+                    },
+                    sheet
+                );
+            }
         }
+        // location and offset
     }
 }

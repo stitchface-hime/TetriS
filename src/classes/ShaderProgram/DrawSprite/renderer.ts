@@ -35,8 +35,8 @@ interface DrawArgs {
 }
 
 export class DrawSprite extends ShaderProgram {
-    constructor(id: string, gl: WebGLRenderingContext) {
-        super(id, vertex, fragment, gl);
+    constructor(gl: WebGLRenderingContext) {
+        super(vertex, fragment, gl);
     }
 
     drawSprite(drawData: DrawData, sheet: SpriteSheet) {
@@ -87,7 +87,7 @@ export class DrawSprite extends ShaderProgram {
             gl.bufferData(
                 gl.ARRAY_BUFFER,
                 // prettier-ignore
-                new Float32Array(drawData.offset),
+                new Float32Array(drawData.textureCoordinates),
                 gl.STATIC_DRAW
             );
 
