@@ -24,13 +24,12 @@ export class DebugProgram extends ShaderProgram {
     private color: HexString = "#ffffff";
 
     constructor(
-        id: string,
         gl: WebGLRenderingContext,
         rows: number,
         columns: number,
         autoBuild = true
     ) {
-        super(id, vertex, fragment, gl, autoBuild);
+        super(vertex, fragment, gl, autoBuild);
         this.rows = rows;
         this.columns = columns;
     }
@@ -142,13 +141,13 @@ export class DebugProgram extends ShaderProgram {
                 gl.drawArrays(gl.TRIANGLES, 0, 6);
             } catch (e) {
                 throw new ShaderProgramError(
-                    this.id,
+                    "debug",
                     "Unable to set attribute data."
                 );
             }
         } else {
             throw new ShaderProgramError(
-                this.id,
+                "debug",
                 `Program not found. Did you forget to build first?`
             );
         }

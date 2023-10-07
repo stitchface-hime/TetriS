@@ -70,13 +70,18 @@ export class Game {
         this.pieceFactory = new PieceFactory();
         this.numRows = numRows;
         this.numColumns = numColumns;
+
         this.matrix = new Matrix(numRows, numColumns);
+        this.matrix.setGameRenderer(this.renderer);
+
         this.nextQueue = pieceQueue;
         this.spawnCoordinates = spawnCoordinates;
     }
 
     setCanvas(canvas: HTMLCanvasElement) {
+        // Could be reworked setting play area here seems lke it doesn't belong here
         this.renderer.setCanvas(canvas);
+        this.matrix.setPlayArea();
     }
 
     /* Game flow methods */

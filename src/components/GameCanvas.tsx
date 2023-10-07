@@ -14,6 +14,7 @@ export const GameCanvas = ({ game }: { game: Game }) => {
         console.log(canvasRef.current);
         if (canvasRef.current) {
             game.setCanvas(canvasRef.current);
+            game.run();
         }
     }, [canvasRef, game]);
 
@@ -26,9 +27,7 @@ export const GameCanvas = ({ game }: { game: Game }) => {
 
             if (context) {
                 // setRenderer(new DrawMatrix("matrix-draw", context, 20, 10));
-                setRenderer2(
-                    new DebugFramebuffers("matrix-draw", context, 20, 10)
-                );
+                setRenderer2(new DebugFramebuffers(context, 20, 10));
             }
         }
     };

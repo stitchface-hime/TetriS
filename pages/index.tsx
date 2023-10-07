@@ -52,7 +52,7 @@ const getBlockColor = (
     return "#000000";
 };
 
-const generateBlock = (
+const getChar = (
     cell: [x: number, y: number],
     game: Game | null,
     block: Block | null
@@ -87,6 +87,39 @@ const generateBlock = (
             ? connectionChar[block.getConnections()]
             : "◼"
         : "◻";
+};
+
+const generateBlock = (
+    cell: [x: number, y: number],
+    game: Game | null,
+    block: Block | null
+) => {
+    const activePiece = game?.getActivePiece();
+    const displayedBlock =
+        block ||
+        activePiece
+            ?.getBlocks()
+            .find(
+                (block) =>
+                    block.getActiveCoordinates()[0] === cell[0] &&
+                    block.getActiveCoordinates()[1] === cell[1]
+            );
+
+    return (
+        <td
+            key={`cell-${cell[1]}-${cell[0]}`}
+            title={`${displayedBlock?.getActiveCoordinates()} C${displayedBlock?.getConnections()}[${displayedBlock
+                ?.getConnections()
+                .toString(2)
+                .padStart(4, "0")}] ${displayedBlock?.getPosition()}`}
+            style={{
+                color: getBlockColor([cell[0], cell[1]], game, block),
+                fontSize: 16,
+            }}
+        >
+            {getChar(cell, game, block)}
+        </td>
+    );
 };
 
 /**
@@ -191,7 +224,6 @@ const App: React.FC = () => {
         } else {
             gameInstance.current = game;
             gameSetup(game);
-            game.run();
         }
     }, []);
 
@@ -228,30 +260,13 @@ const App: React.FC = () => {
                                             lineHeight: "0.75rem",
                                         }}
                                     >
-                                        {row.map((block, colIdx) => (
-                                            <td
-                                                key={`cell-${rowNo}-${colIdx}`}
-                                                title={`${block?.getActiveCoordinates()} C${block?.getConnections()}[${block
-                                                    ?.getConnections()
-                                                    .toString(2)
-                                                    .padStart(4, "0")}]`}
-                                                style={{
-                                                    color: getBlockColor(
-                                                        [colIdx, rowNo],
-                                                        gameInstance.current,
-                                                        block
-                                                    ),
-                                                    fontSize: 16,
-                                                }}
-                                            >
-                                                {generateBlock(
-                                                    [colIdx, rowNo],
-                                                    gameInstance.current,
-                                                    block
-                                                )}
-                                            </td>
-                                        ))}
-                                        <td>{rowNo}</td>
+                                        {row.map((block, colIdx) =>
+                                            generateBlock(
+                                                [colIdx, rowNo],
+                                                gameInstance.current,
+                                                block
+                                            )
+                                        )}
                                     </tr>
                                 );
                             })}

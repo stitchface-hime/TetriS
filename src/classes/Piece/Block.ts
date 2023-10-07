@@ -46,6 +46,7 @@ export class Block extends GameEntity {
 
         this.activeCoordinates = globalCoordinates;
         this.matrix = matrix;
+        this.updateCoordinates(this.activeCoordinates);
         this.color = color;
 
         this.coupledBlocks = [];
@@ -159,7 +160,7 @@ export class Block extends GameEntity {
 
         if (playArea) {
             // Move entity within the canvas
-            const matrixRows = this.matrix.getNumRows();
+            const matrixRows = this.matrix.getNumVisibleRows();
             const matrixColumns = this.matrix.getNumColumns();
 
             // Move the entity

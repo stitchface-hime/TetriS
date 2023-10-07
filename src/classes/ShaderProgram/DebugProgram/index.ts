@@ -1,1 +1,1 @@
-export { DebugProgram as DrawMatrix } from "./renderer";
+export { DebugProgram } from "./renderer";

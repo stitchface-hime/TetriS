@@ -32,6 +32,10 @@ class GameEntityTransform {
         if (rotation !== undefined) this.rotation = rotation || this.rotation;
     }
 
+    getPosition() {
+        return this.position;
+    }
+
     setPosition(position: [x: number, y: number]) {
         this.position = position;
     }
@@ -40,12 +44,20 @@ class GameEntityTransform {
         this.position = add2DVectorTuples(this.position, position);
     }
 
+    getScale() {
+        return this.scale;
+    }
+
     setScale(scale: number) {
         this.scale = scale;
     }
 
     adjustScale(scale: number) {
         this.scale += scale;
+    }
+
+    getRotation() {
+        return this.rotation;
     }
 
     setRotation(rotation: number) {

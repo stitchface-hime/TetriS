@@ -55,7 +55,7 @@ export class Matrix extends GameEntity {
             };
         } else {
             throw new Error(
-                "Could not set play area. Did you forget to set a game renderer and set its rendering context?"
+                "Could not set play area. Did you forget to set a game renderer and set its canvas?"
             );
         }
     }
