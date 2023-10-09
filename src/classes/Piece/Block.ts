@@ -4,7 +4,6 @@ import { Connection } from "@data/Connection";
 import { GameEntity } from "@classes/GameEntity/GameEntity";
 import { SpriteSheets } from "@data/SpriteSheets";
 import { DrawSprite } from "@classes/ShaderProgram";
-import { SpriteSheet } from "src/shaders/types";
 
 /**
  * A block is a single unit that takes up one cell in the matrix.
@@ -35,6 +34,8 @@ export class Block extends GameEntity {
      */
     private associatedPiece: Piece | undefined;
 
+    protected renderer: DrawSprite = new DrawSprite();
+
     constructor(
         globalCoordinates: [x: number, y: number],
         matrix: Matrix,
@@ -54,6 +55,10 @@ export class Block extends GameEntity {
 
         this.associatedPiece = undefined;
         this.connections = 0;
+    }
+
+    setRenderer(renderer: DrawSprite): void {
+        this.renderer = renderer;
     }
 
     getActiveCoordinates() {
@@ -338,7 +343,7 @@ export class Block extends GameEntity {
             );
 
             if (this.activeSpriteQuadCoords) {
-                this.spriteRenderer?.drawSprite(
+                this.renderer?.drawSprite(
                     {
                         anchor: this.position,
                         textureCoordinates: this.activeSpriteQuadCoords,

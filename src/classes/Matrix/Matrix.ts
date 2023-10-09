@@ -1,6 +1,7 @@
 import { GameEntity } from "@classes/GameEntity/GameEntity";
 import { GameRenderer } from "@classes/GameRenderer";
 import { Block, Piece } from "@classes/Piece";
+import { DrawMatrix } from "@classes/ShaderProgram";
 import { MATRIX_BUFFER_ZONE_RATIO } from "src/constants";
 
 export class Matrix extends GameEntity {
@@ -17,6 +18,8 @@ export class Matrix extends GameEntity {
      */
     private playArea: { width: number; height: number } | null = null;
 
+    protected renderer: DrawMatrix;
+
     /**
      * When constructing the matrix, the matrix will have twice the number of rows
      * you specify to account for blocks above the visible part of the matrix.
@@ -27,6 +30,8 @@ export class Matrix extends GameEntity {
         this.numVisibleRows = numRows;
         this.numColumns = numColumns;
         this.numCellsOccupied = 0;
+
+        this.renderer = new DrawMatrix(this.numVisibleRows, this.numColumns);
 
         // the assignment directly below is used to satisfy type check
         this.grid = new Array(this.numRows).fill(
@@ -39,6 +44,10 @@ export class Matrix extends GameEntity {
         });
 
         this.activePiece = null;
+    }
+
+    setRenderer(renderer: DrawMatrix) {
+        this.renderer = renderer;
     }
 
     /**

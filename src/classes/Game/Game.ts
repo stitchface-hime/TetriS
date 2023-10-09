@@ -81,7 +81,10 @@ export class Game {
     setCanvas(canvas: HTMLCanvasElement) {
         // Could be reworked setting play area here seems lke it doesn't belong here
         this.renderer.setCanvas(canvas);
+
         this.matrix.setPlayArea();
+
+        this.renderer.registerEntity(this.matrix);
     }
 
     /* Game flow methods */

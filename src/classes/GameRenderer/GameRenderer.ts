@@ -7,9 +7,6 @@ export class GameRenderer {
     private entities: Set<GameEntity> = new Set();
     private canvas: HTMLCanvasElement | null = null;
 
-    // Is this necessary to store a single instance?
-    private spriteRenderer: DrawSprite | null = null;
-
     constructor() {}
 
     /**
@@ -60,19 +57,11 @@ export class GameRenderer {
     }
 
     getRenderingContext() {
-        return this.canvas?.getContext("webgl");
+        return this.canvas?.getContext("webgl") || null;
     }
 
     setCanvas(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
-    }
-
-    setSpriteRenderer(spriteRenderer: DrawSprite) {
-        this.spriteRenderer = spriteRenderer;
-    }
-
-    unsetSpriteRenderer() {
-        this.spriteRenderer = null;
     }
 
     /**
@@ -84,7 +73,7 @@ export class GameRenderer {
 
         if (gl) {
             this.entities.add(entity);
-            entity.setSpriteRenderer(new DrawSprite(gl));
+            entity.assignContextToRenderer(gl);
         } else {
             throw new Error(
                 "Failed to register entity, unable to obtain rendering context."
@@ -125,7 +114,7 @@ export class GameRenderer {
      */
     renderScene() {
         const gl = this.getRenderingContext();
-        if (gl && this.spriteRenderer) {
+        if (gl) {
             this.entities.forEach((entity) => {
                 entity.draw();
             });

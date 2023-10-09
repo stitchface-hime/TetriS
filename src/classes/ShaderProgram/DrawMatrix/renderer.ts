@@ -13,6 +13,9 @@ import { hexToRgb } from "@utils/hexToRgb";
 import { generateGrid } from "./data";
 
 export class DrawMatrix extends ShaderProgram {
+    /**
+     * Number of visible rows in the matrix.
+     */
     private rows: number;
     private columns: number;
     // TODO: Magic numbers
@@ -21,14 +24,8 @@ export class DrawMatrix extends ShaderProgram {
     private borderColor: HexString = "#ffffff";
     private color: HexString = "#ffffff";
 
-    constructor(
-        id: string,
-        gl: WebGLRenderingContext,
-        rows: number,
-        columns: number,
-        autoBuild = true
-    ) {
-        super(id, vertex, fragment, gl, autoBuild);
+    constructor(rows: number, columns: number) {
+        super(vertex, fragment);
         this.rows = rows;
         this.columns = columns;
     }
@@ -39,110 +36,112 @@ export class DrawMatrix extends ShaderProgram {
 
     draw() {
         const gl = this.gl;
-        const program = this.program;
-        const canvas = gl.canvas as HTMLCanvasElement;
-        const playArea = {
-            width: canvas.clientWidth,
-            // height of matrix minus the buffer area above the rows
-            height: canvas.clientHeight * (1 - MATRIX_BUFFER_ZONE_RATIO),
-            // height of matrix including the buffer zone
-            trueHeight: canvas.clientHeight,
-        };
+        if (gl) {
+            const program = this.program;
+            const canvas = gl.canvas as HTMLCanvasElement;
+            const playArea = {
+                width: canvas.clientWidth,
+                // height of matrix minus the buffer area above the rows
+                height: canvas.clientHeight * (1 - MATRIX_BUFFER_ZONE_RATIO),
+                // height of matrix including the buffer zone
+                trueHeight: canvas.clientHeight,
+            };
 
-        // set viewport
-        this.resizeCanvas();
-        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+            // set viewport
+            this.resizeCanvas();
+            gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
-        if (program) {
-            gl.useProgram(program);
+            if (program) {
+                gl.useProgram(program);
 
-            try {
-                const gridlines = generateGrid(
-                    this.rows,
-                    this.columns,
-                    this.borderWidth,
-                    playArea.width,
-                    playArea.height
-                );
-                const positionLocation = gl.getAttribLocation(
-                    program,
-                    "a_position"
-                );
-                const colorLocation = gl.getAttribLocation(
-                    program,
-                    "a_gridColor"
-                );
-                const resolutionLocation = gl.getUniformLocation(
-                    program,
-                    "u_resolution"
-                );
-
-                const positionBuffer = gl.createBuffer();
-                const colorBuffer = gl.createBuffer();
-
-                gridlines.forEach((line) => {
-                    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-                    gl.bufferData(
-                        gl.ARRAY_BUFFER,
-                        new Float32Array(line),
-                        gl.STATIC_DRAW
+                try {
+                    const gridlines = generateGrid(
+                        this.rows,
+                        this.columns,
+                        this.borderWidth,
+                        playArea.width,
+                        playArea.height
+                    );
+                    const positionLocation = gl.getAttribLocation(
+                        program,
+                        "a_position"
+                    );
+                    const colorLocation = gl.getAttribLocation(
+                        program,
+                        "a_gridColor"
+                    );
+                    const resolutionLocation = gl.getUniformLocation(
+                        program,
+                        "u_resolution"
                     );
 
-                    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-                    gl.bufferData(
-                        gl.ARRAY_BUFFER,
-                        new Uint8Array(
-                            new Array(6)
-                                .fill([
-                                    ...hexToRgb(this.borderColor),
-                                    this.opacity * 255,
-                                ])
-                                .flat()
-                        ),
-                        gl.STATIC_DRAW
-                    );
+                    const positionBuffer = gl.createBuffer();
+                    const colorBuffer = gl.createBuffer();
 
-                    gl.enableVertexAttribArray(positionLocation);
-                    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-                    gl.vertexAttribPointer(
-                        positionLocation,
-                        2,
-                        gl.FLOAT,
-                        false,
-                        0,
-                        0
-                    );
+                    gridlines.forEach((line) => {
+                        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+                        gl.bufferData(
+                            gl.ARRAY_BUFFER,
+                            new Float32Array(line),
+                            gl.STATIC_DRAW
+                        );
 
-                    gl.enableVertexAttribArray(colorLocation);
-                    gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-                    gl.vertexAttribPointer(
-                        colorLocation,
-                        4,
-                        gl.UNSIGNED_BYTE,
-                        true,
-                        0,
-                        0
-                    );
+                        gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+                        gl.bufferData(
+                            gl.ARRAY_BUFFER,
+                            new Uint8Array(
+                                new Array(6)
+                                    .fill([
+                                        ...hexToRgb(this.borderColor),
+                                        this.opacity * 255,
+                                    ])
+                                    .flat()
+                            ),
+                            gl.STATIC_DRAW
+                        );
 
-                    gl.uniform2f(
-                        resolutionLocation,
-                        canvas.clientWidth,
-                        canvas.clientHeight
-                    );
+                        gl.enableVertexAttribArray(positionLocation);
+                        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+                        gl.vertexAttribPointer(
+                            positionLocation,
+                            2,
+                            gl.FLOAT,
+                            false,
+                            0,
+                            0
+                        );
 
-                    gl.drawArrays(gl.TRIANGLES, 0, 6);
-                });
-            } catch (e) {
+                        gl.enableVertexAttribArray(colorLocation);
+                        gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+                        gl.vertexAttribPointer(
+                            colorLocation,
+                            4,
+                            gl.UNSIGNED_BYTE,
+                            true,
+                            0,
+                            0
+                        );
+
+                        gl.uniform2f(
+                            resolutionLocation,
+                            canvas.clientWidth,
+                            canvas.clientHeight
+                        );
+
+                        gl.drawArrays(gl.TRIANGLES, 0, 6);
+                    });
+                } catch (e) {
+                    throw new ShaderProgramError(
+                        "matrix",
+                        "Unable to set attribute data."
+                    );
+                }
+            } else {
                 throw new ShaderProgramError(
-                    this.id,
-                    "Unable to set attribute data."
+                    "matrix",
+                    `Program not found. Did you forget to build first?`
                 );
             }
-        } else {
-            throw new ShaderProgramError(
-                this.id,
-                `Program not found. Did you forget to build first?`
-            );
         }
     }
 

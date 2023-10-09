@@ -35,109 +35,126 @@ interface DrawArgs {
 }
 
 export class DrawSprite extends ShaderProgram {
-    constructor(gl: WebGLRenderingContext) {
-        super(vertex, fragment, gl);
+    constructor() {
+        super(vertex, fragment);
     }
 
     drawSprite(drawData: DrawData, sheet: SpriteSheet) {
-        const { spriteSize, image, loaded } = sheet;
         const gl = this.gl;
-        const program = this.program;
-        const canvas = this.gl.canvas as HTMLCanvasElement;
+        if (gl) {
+            const { spriteSize, image, loaded } = sheet;
+            const program = this.program;
+            const canvas = gl.canvas as HTMLCanvasElement;
 
-        this.resizeCanvas();
-        gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+            this.resizeCanvas();
+            gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
-        if (program && image && loaded) {
-            gl.useProgram(program);
+            if (program && image && loaded) {
+                gl.useProgram(program);
 
-            const positionLocation = gl.getAttribLocation(
-                program,
-                "a_position"
-            );
-            const textureCoordLocation = gl.getAttribLocation(
-                program,
-                "a_textureCoord"
-            );
-            const resolutionLocation = gl.getUniformLocation(
-                program,
-                "u_resolution"
-            );
+                const positionLocation = gl.getAttribLocation(
+                    program,
+                    "a_position"
+                );
+                const textureCoordLocation = gl.getAttribLocation(
+                    program,
+                    "a_textureCoord"
+                );
+                const resolutionLocation = gl.getUniformLocation(
+                    program,
+                    "u_resolution"
+                );
 
-            const positionBuffer = gl.createBuffer();
-            const textureCoordBuffer = gl.createBuffer();
+                const positionBuffer = gl.createBuffer();
+                const textureCoordBuffer = gl.createBuffer();
 
-            const drawCoord = getRectangleCoords(
-                drawData.anchor[0],
-                drawData.anchor[1],
-                // temp - need to also consider the size of the sprite being drawn here
-                spriteSize.width,
-                spriteSize.height
-            );
+                const drawCoord = getRectangleCoords(
+                    drawData.anchor[0],
+                    drawData.anchor[1],
+                    // temp - need to also consider the size of the sprite being drawn here
+                    spriteSize.width,
+                    spriteSize.height
+                );
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-            gl.bufferData(
-                gl.ARRAY_BUFFER,
-                new Float32Array(drawCoord),
-                gl.STATIC_DRAW
-            );
+                gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+                gl.bufferData(
+                    gl.ARRAY_BUFFER,
+                    new Float32Array(drawCoord),
+                    gl.STATIC_DRAW
+                );
 
-            // not final - this renders the entire sprite sheet for now, need to use the offset
-            gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
-            gl.bufferData(
-                gl.ARRAY_BUFFER,
-                // prettier-ignore
-                new Float32Array(drawData.textureCoordinates),
-                gl.STATIC_DRAW
-            );
+                // not final - this renders the entire sprite sheet for now, need to use the offset
+                gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
+                gl.bufferData(
+                    gl.ARRAY_BUFFER,
+                    // prettier-ignore
+                    new Float32Array(drawData.textureCoordinates),
+                    gl.STATIC_DRAW
+                );
 
-            var texture = gl.createTexture();
-            gl.bindTexture(gl.TEXTURE_2D, texture);
+                var texture = gl.createTexture();
+                gl.bindTexture(gl.TEXTURE_2D, texture);
 
-            gl.texParameteri(
-                gl.TEXTURE_2D,
-                gl.TEXTURE_WRAP_S,
-                gl.CLAMP_TO_EDGE
-            );
-            gl.texParameteri(
-                gl.TEXTURE_2D,
-                gl.TEXTURE_WRAP_T,
-                gl.CLAMP_TO_EDGE
-            );
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+                gl.texParameteri(
+                    gl.TEXTURE_2D,
+                    gl.TEXTURE_WRAP_S,
+                    gl.CLAMP_TO_EDGE
+                );
+                gl.texParameteri(
+                    gl.TEXTURE_2D,
+                    gl.TEXTURE_WRAP_T,
+                    gl.CLAMP_TO_EDGE
+                );
+                gl.texParameteri(
+                    gl.TEXTURE_2D,
+                    gl.TEXTURE_MIN_FILTER,
+                    gl.NEAREST
+                );
+                gl.texParameteri(
+                    gl.TEXTURE_2D,
+                    gl.TEXTURE_MAG_FILTER,
+                    gl.NEAREST
+                );
 
-            gl.texImage2D(
-                gl.TEXTURE_2D,
-                0,
-                gl.RGBA,
-                gl.RGBA,
-                gl.UNSIGNED_BYTE,
-                image
-            );
+                gl.texImage2D(
+                    gl.TEXTURE_2D,
+                    0,
+                    gl.RGBA,
+                    gl.RGBA,
+                    gl.UNSIGNED_BYTE,
+                    image
+                );
 
-            gl.enableVertexAttribArray(positionLocation);
-            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+                gl.enableVertexAttribArray(positionLocation);
+                gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+                gl.vertexAttribPointer(
+                    positionLocation,
+                    2,
+                    gl.FLOAT,
+                    false,
+                    0,
+                    0
+                );
 
-            gl.enableVertexAttribArray(textureCoordLocation);
-            gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
-            gl.vertexAttribPointer(
-                textureCoordLocation,
-                2,
-                gl.FLOAT,
-                false,
-                0,
-                0
-            );
+                gl.enableVertexAttribArray(textureCoordLocation);
+                gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
+                gl.vertexAttribPointer(
+                    textureCoordLocation,
+                    2,
+                    gl.FLOAT,
+                    false,
+                    0,
+                    0
+                );
 
-            gl.uniform2f(
-                resolutionLocation,
-                canvas.clientWidth,
-                canvas.clientHeight
-            );
+                gl.uniform2f(
+                    resolutionLocation,
+                    canvas.clientWidth,
+                    canvas.clientHeight
+                );
 
-            gl.drawArrays(gl.TRIANGLES, 0, 6);
+                gl.drawArrays(gl.TRIANGLES, 0, 6);
+            }
         }
     }
 

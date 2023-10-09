@@ -36,9 +36,30 @@ export const GameCanvas = ({ game }: { game: Game }) => {
         renderer2?.draw();
     };
 
+    const loadSheet = () => {
+        drawer?.load({
+            id: "mino",
+            src: "/sample_texture_2.png",
+            spriteSize: { width: 64, height: 64 },
+        });
+    };
+
+    const drawSprite = () => {
+        drawer?.draw([
+            {
+                sheetId: "mino",
+                drawData: [{ textureCoordinates: [0, 0], anchor: [0, 0] }],
+            },
+        ]);
+    };
+
     return (
         <>
             <canvas className={classes.scene} ref={canvasRef} />{" "}
+            <button onClick={set}>Set rederer</button>{" "}
+            <button onClick={draw}>Draw</button>
+            <button onClick={loadSheet}>Load sheet</button>
+            <button onClick={drawSprite}>Draw sprite</button>
         </>
     );
 };

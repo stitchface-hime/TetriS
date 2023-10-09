@@ -1,5 +1,6 @@
 import { GameRenderer } from "@classes/GameRenderer";
 import { DrawSprite } from "@classes/ShaderProgram";
+import { ShaderProgram } from "@classes/ShaderProgram/ShaderProgram";
 import { add2DVectorTuples } from "@utils/add2DVectorTuples";
 import { getRectangleCoords } from "@utils/getRectangleCoords";
 import { SpriteSheetDetails, SpriteSheet } from "src/shaders/types";
@@ -99,7 +100,7 @@ export abstract class GameEntity extends GameEntityTransform {
 
     protected activeSpriteQuadCoords: number[] | null = null;
 
-    protected spriteRenderer: DrawSprite | null = null;
+    protected renderer: ShaderProgram | null = null;
 
     protected gameRenderer: GameRenderer | null = null;
 
@@ -124,8 +125,14 @@ export abstract class GameEntity extends GameEntityTransform {
         );
     }
 
-    setSpriteRenderer(renderer: DrawSprite) {
-        this.spriteRenderer = renderer;
+    assignContextToRenderer(gl: WebGLRenderingContext) {
+        if (this.renderer) {
+            this.renderer.setWebGLRenderingContext(gl);
+        } else {
+            throw new Error(
+                "Could not set assign context to renderer. Did you forget to set a renderer for this entity?"
+            );
+        }
     }
 
     setGameRenderer(renderer: GameRenderer) {
