@@ -269,6 +269,7 @@ export class Game {
 
             if (spawnedPiece) {
                 // Register block entities
+                // TODO: Disable register Block entities
                 this.renderer.registerEntities(spawnedPiece.getBlocks());
 
                 // Does the spawned piece overlap with any blocks in the matrix?

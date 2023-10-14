@@ -106,9 +106,7 @@ export abstract class ShaderProgram {
             if (program) {
                 if (this.vertexShader && this.fragmentShader) {
                     this.gl.attachShader(program, this.vertexShader);
-                    console.log("OK");
                     this.gl.attachShader(program, this.fragmentShader);
-                    console.log("OK");
 
                     this.gl.linkProgram(program);
                     const ok = this.gl.getProgramParameter(
@@ -157,9 +155,8 @@ export abstract class ShaderProgram {
      */
     build() {
         this.compileVertexShader();
-        console.log("Vertex OK");
         this.compileFragmentShader();
-        console.log("Fragment OK");
+
         this.compileProgram();
     }
 

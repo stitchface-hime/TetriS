@@ -139,9 +139,12 @@ export class Matrix extends GameEntity {
     /**
      * Shifts all rows above a starting row down a specified number of rows.
      * Used when clearing lines to bubble up the blank rows to the top of the matrix.
+     * Call after clearing blocks.
      */
     shiftRowsDown(startingRow: number, numRows = 1) {
+        // TODO: update coordinates of the blocks that are above the cleared lines!
         const rows = this.grid.splice(startingRow, numRows);
+
         this.grid.push(...rows);
     }
 
@@ -388,6 +391,6 @@ export class Matrix extends GameEntity {
     }
 
     draw() {
-        // TODO:
+        // this.renderer.draw();
     }
 }

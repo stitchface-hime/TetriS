@@ -79,6 +79,7 @@ export class GameRenderer {
                 "Failed to register entity, unable to obtain rendering context."
             );
         }
+        // console.log("Registered entities:", this.entities.size);
     }
 
     /**
