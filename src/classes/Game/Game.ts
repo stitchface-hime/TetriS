@@ -118,7 +118,7 @@ export class Game {
                 }
             }
         }
-        // this.renderer.renderScene();
+        this.renderer.renderScene();
     }
 
     private resetGroundedState() {
@@ -327,22 +327,22 @@ export class Game {
     /**
      * Get the coordinates of where the ghost piece will be.
      */
-    getGhostPieceCoordinates() {
+    getGhostPieceCoordinates(): [x: number, y: number][] {
         if (this.activePiece) {
             const activePieceCoordinates =
                 this.activePiece.getBlocksCoordinates();
 
+            const hardDropUnits = this.activePiece.getHardDropUnits();
+
             return activePieceCoordinates.map((coordinates) => {
                 // active piece should always have coordinates
                 if (this.activePiece && coordinates) {
-                    return [
-                        coordinates[0],
-                        coordinates[1] - this.activePiece.getHardDropUnits(),
-                    ];
+                    return [coordinates[0], coordinates[1] - hardDropUnits];
                 }
                 return coordinates;
             });
         }
+        return [];
     }
 
     /**
@@ -559,7 +559,7 @@ export class Game {
      * Returns the grid of the matrix. (Readonly)
      */
     getMatrixGrid() {
-        return this.matrix.getGrid();
+        return this.matrix.matrixToArrays();
     }
 
     /**

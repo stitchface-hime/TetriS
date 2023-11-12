@@ -180,9 +180,10 @@ export class Block extends GameEntity {
      * Determines if the block can move down a specified number of units (default: 1 unit).
      * If the block cannot move the specified number of units, it will move as many units down
      * possible.
-     * @returns number of units moved.
+     * You can also choose to ignore other blocks when moving down. (e.g for when moving blocks down on line clears)
+     * @returns number of units movable.
      */
-    canMoveDown(units = 1) {
+    canMoveDown(units = 1, ignoreOtherBlocks = false) {
         const activeCoordinates = this.activeCoordinates;
         let unitsMoved = 0;
 
@@ -192,7 +193,10 @@ export class Block extends GameEntity {
                 i >= activeCoordinates[1] - units;
                 i--
             ) {
-                if (!this.matrix.hasBlockAt([activeCoordinates[0], i])) {
+                if (
+                    !this.matrix.hasBlockAt([activeCoordinates[0], i]) ||
+                    ignoreOtherBlocks
+                ) {
                     unitsMoved += 1;
                 } else {
                     break;
@@ -209,11 +213,13 @@ export class Block extends GameEntity {
 
     /**
      * Move the block down a specified number of units. (Default: 1 unit)
+     * You can also choose to ignore other blocks when moving down. (e.g for when moving blocks down on line clears)
      */
-    moveDown(units = 1) {
+    moveDown(units = 1, ignoreOtherBlocks = false) {
         this.updateCoordinates([
             this.activeCoordinates[0],
-            this.activeCoordinates[1] - this.canMoveDown(units),
+            this.activeCoordinates[1] -
+                this.canMoveDown(units, ignoreOtherBlocks),
         ]);
     }
 

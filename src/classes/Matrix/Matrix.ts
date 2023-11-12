@@ -2,13 +2,16 @@ import { GameEntity } from "@classes/GameEntity/GameEntity";
 import { GameRenderer } from "@classes/GameRenderer";
 import { Block, Piece } from "@classes/Piece";
 import { DrawMatrix } from "@classes/ShaderProgram";
+import { isEqual2DVectorTuples } from "@utils/index";
 import { MATRIX_BUFFER_ZONE_RATIO } from "src/constants";
 
 export class Matrix extends GameEntity {
-    private grid: (Block | null)[][];
+    private blocks: Block[] = [];
     private numRows: number;
     private numVisibleRows: number;
     private numColumns: number;
+
+    // TODO: Is this required now that we're keeping track of blocks?
     private numCellsOccupied: number;
     private activePiece: Piece | null;
 
@@ -32,17 +35,6 @@ export class Matrix extends GameEntity {
         this.numCellsOccupied = 0;
 
         this.renderer = new DrawMatrix(this.numVisibleRows, this.numColumns);
-
-        // the assignment directly below is used to satisfy type check
-        this.grid = new Array(this.numRows).fill(
-            new Array(this.numColumns).fill(null)
-        );
-
-        // we want each row to have a unique array
-        this.grid.forEach((_, rowIdx) => {
-            this.grid[rowIdx] = new Array(this.numColumns).fill(null);
-        });
-
         this.activePiece = null;
     }
 
@@ -86,6 +78,16 @@ export class Matrix extends GameEntity {
     }
 
     /**
+     * Transforms rows and columns coordinates to x-y coordinates.
+     * Syntactical sugar - performs the same function as `translateToRowsColumns`.
+     */
+    private translateToXY(
+        rowCol: [row: number, column: number]
+    ): [x: number, y: number] {
+        return this.translateToRowsColumns(rowCol);
+    }
+
+    /**
      * Gets the number of visible rows in the matrix which does NOT include those above the normal
      * field of play.
      */
@@ -116,10 +118,10 @@ export class Matrix extends GameEntity {
     }
 
     /**
-     * Returns the grid of the matrix. (Readonly)
+     * Returns blocks in the matrix. (Readonly)
      */
-    getGrid(): ReadonlyArray<ReadonlyArray<Block | null>> {
-        return this.grid;
+    getBlocks(): ReadonlyArray<Block> {
+        return this.blocks;
     }
 
     /**
@@ -142,27 +144,40 @@ export class Matrix extends GameEntity {
      * Call after clearing blocks.
      */
     shiftRowsDown(startingRow: number, numRows = 1) {
-        // TODO: update coordinates of the blocks that are above the cleared lines!
-        const rows = this.grid.splice(startingRow, numRows);
+        const minRowToShift = startingRow + numRows;
 
-        this.grid.push(...rows);
+        this.blocks.forEach((block) => {
+            if (block.getActiveCoordinates()[1] >= minRowToShift) {
+                block.moveDown(numRows, true);
+            }
+        });
+    }
+
+    private findBlockPredicate =
+        (coordinates: [x: number, y: number]) => (block: Block) =>
+            isEqual2DVectorTuples(block.getActiveCoordinates(), coordinates);
+
+    getBlock(coordinates: [x: number, y: number]) {
+        return this.blocks.find(this.findBlockPredicate(coordinates));
+    }
+
+    /**
+     * Returns the index of the block with coordinates is found in the array, -1 otherwise.
+     */
+    private getBlockIndex(coordinates: [x: number, y: number]) {
+        return this.blocks.findIndex(this.findBlockPredicate(coordinates));
     }
 
     /**
      * Determines whether the given row forms a line.
      */
     rowFormsLine(row: number) {
-        const selectedRow = this.grid[row];
-
-        if (selectedRow) {
-            return selectedRow.reduce(
-                (isRowFilled, currentCell) =>
-                    isRowFilled && currentCell !== null,
-                true
-            );
+        for (let column = 0; column < this.numColumns; column++) {
+            if (!this.getBlock([column, row])) {
+                return false;
+            }
         }
-
-        return false;
+        return true;
     }
 
     /**
@@ -171,29 +186,25 @@ export class Matrix extends GameEntity {
      * Returns `Block` if it was cleared, `null` otherwise.
      */
     clearBlock(coordinates: [x: number, y: number]): Block | null {
-        const [row, column] = this.translateToRowsColumns(coordinates);
-        const gridRow = this.grid[row];
+        const blockIdx = this.getBlockIndex(coordinates);
+        if (blockIdx !== -1) {
+            const [block] = this.blocks.splice(blockIdx, 1);
 
-        if (gridRow) {
-            const block = gridRow[column];
-            if (block) {
-                block
-                    .getCoupledBlocks()
-                    .forEach((coupledBlock) =>
-                        coupledBlock.unsetCoupledBlock(block)
-                    );
-            }
-            gridRow[column] = null;
+            block
+                .getCoupledBlocks()
+                .forEach((coupledBlock) =>
+                    coupledBlock.unsetCoupledBlock(block)
+                );
             this.numCellsOccupied -= 1;
 
             return block;
+        } else {
+            return null;
         }
-
-        return null;
     }
 
     /**
-     * Clears blocks in a range of rows.
+     * Clears blocks in a range of rows, regardless if the rows are fully filled.
      * When clearing lines don't forget to shift rows down.
      * @param from clear rows starting from this row
      * @param to Optional - clear up to this row (non-inclusive)
@@ -202,58 +213,62 @@ export class Matrix extends GameEntity {
     clearRows(from: number, to = from + 1): Block[] {
         const blocksCleared: Block[] = [];
         for (let rowIdx = from; rowIdx < to; rowIdx++) {
-            const gridRow = this.grid[rowIdx];
+            for (let colIdx = 0; colIdx < this.numColumns; colIdx++) {
+                const block = this.getBlock(
+                    this.translateToXY([rowIdx, colIdx])
+                );
 
-            if (gridRow) {
-                gridRow.forEach((block, colIdx) => {
-                    if (block) {
-                        const clearedBlock = this.clearBlock([colIdx, rowIdx]);
-                        if (clearedBlock) {
-                            blocksCleared.push(clearedBlock);
-                        }
+                if (block) {
+                    const clearedBlock = this.clearBlock([colIdx, rowIdx]);
+                    if (clearedBlock) {
+                        blocksCleared.push(clearedBlock);
                     }
-                });
+                }
             }
         }
 
         return blocksCleared;
     }
 
-    /**
-     * Checks whether a block is occupying a cell at a given coordinate.
-     */
-    hasBlockAt(coordinates: [x: number, y: number]) {
-        const [row, column] = this.translateToRowsColumns(coordinates);
-
-        const gridRow = this.grid[row];
-
-        // only perform the check if the row and columns are in bounds
-        if (gridRow && column >= 0 && column < this.numColumns) {
-            return !!gridRow[column];
-        }
-
-        // if out of bounds consider it to be occupied
-        return true;
+    private areCoordinatesOutOfBounds(coordinates: [x: number, y: number]) {
+        return (
+            coordinates[0] < 0 ||
+            coordinates[0] >= this.numColumns ||
+            coordinates[1] < 0 ||
+            coordinates[1] >= this.numRows
+        );
     }
 
     /**
-     * Adds a block to the matrix.
+     * Checks whether a block is occupying a cell at a given coordinate.
+     * A cell that is out of bounds is considered occupied.
+     */
+    hasBlockAt(coordinates: [x: number, y: number]) {
+        return (
+            this.areCoordinatesOutOfBounds(coordinates) ||
+            this.getBlock(coordinates) !== undefined
+        );
+    }
+
+    /**
+     * Adds a block to the matrix. If a block already exists at that location clears existing block, then adds it.
      */
     addBlock(block: Block) {
         const activeCoordinates = block.getActiveCoordinates();
 
-        if (activeCoordinates) {
-            const [row, column] =
-                this.translateToRowsColumns(activeCoordinates);
-
-            const gridRow = this.grid[row];
-
-            // only perform the check if the row and columns are in bounds
-            if (gridRow) {
-                gridRow[column] = block;
-                this.numCellsOccupied += 1;
-            }
+        if (this.hasBlockAt(activeCoordinates)) {
+            this.clearBlock(activeCoordinates);
         }
+
+        this.blocks.push(block);
+        this.numCellsOccupied += 1;
+    }
+
+    /**
+     * Adds blocks to the matrix. If a block already exists at that location clears existing block, then adds it.
+     */
+    addBlocks(blocks: Block[]) {
+        blocks.forEach((block) => this.addBlock(block));
     }
 
     /**
@@ -263,9 +278,8 @@ export class Matrix extends GameEntity {
         if (this.activePiece) {
             // blocks will no longer be tied to a piece
             this.activePiece.lockPiece();
-            this.activePiece
-                .getBlocks()
-                .forEach((block) => this.addBlock(block));
+
+            this.addBlocks(this.activePiece.getBlocks());
         }
 
         this.activePiece = null;
@@ -275,68 +289,69 @@ export class Matrix extends GameEntity {
     /**
      * Adds some blocks to the matrix at supplied coordinates. (Debug only)
      */
-    addBlocks(coordinates: [x: number, y: number][]) {
-        coordinates.forEach((coordinate) => {
-            const [row, column] = this.translateToRowsColumns(coordinate);
-            const gridRow = this.grid[row];
-
-            if (gridRow) {
-                gridRow[column] = new Block([column, row], this);
-                this.numCellsOccupied += 1;
-            }
+    addBlocksByCoordinates(coordinatesList: [x: number, y: number][]) {
+        coordinatesList.forEach((coordinates) => {
+            this.addBlock(new Block(coordinates, this));
+            this.numCellsOccupied += 1;
         });
     }
 
     /**
      * Removes some blocks in the matrix at supplied coordinates. (Debug only)
      */
-    removeBlocks(matrixCoordinates: [x: number, y: number][]) {
-        matrixCoordinates.forEach((coordinate) => {
-            const [row, column] = this.translateToRowsColumns(coordinate);
-            const gridRow = this.grid[row];
-
-            if (gridRow) {
-                gridRow[column] = null;
-                this.numCellsOccupied -= 1;
-            }
+    removeBlocks(coordinatesList: [x: number, y: number][]) {
+        coordinatesList.forEach((coordinates) => {
+            this.clearBlock(coordinates);
+            this.numCellsOccupied -= 1;
         });
     }
 
     /**
      * Fills the rows of a matrix. Supply a number `n` to fill rows from 0 to `n - 1`, or supply an
-     * array of list numbers to fill rows individually. (Debug only)
+     * array of row numbers to fill rows individually. (Debug only)
      */
     addBlockRows(rows: number | number[]) {
-        if (Array.isArray(rows)) {
-            rows.forEach((row) => {
-                const gridRow = this.grid[row];
+        const setRows =
+            typeof rows === "number"
+                ? Array.from({ length: rows }, (_v, row) => row)
+                : rows;
 
-                if (gridRow) {
-                    for (let i = 0; i < this.numColumns; i++) {
-                        gridRow[i] = new Block([i, row], this);
-                        this.numCellsOccupied += 1;
-                    }
-                }
-            });
-        } else {
-            for (let i = 0; i < rows; i++) {
-                const gridRow = this.grid[i];
-
-                if (gridRow) {
-                    for (let j = 0; j < this.numColumns; j++) {
-                        // j = columns, x; i = rows, y
-                        gridRow[j] = new Block([j, i], this);
-                        this.numCellsOccupied += 1;
-                    }
-                }
+        setRows.forEach((row) => {
+            for (let col = 0; col < this.numColumns; col++) {
+                this.addBlock(new Block(this.translateToXY([row, col]), this));
             }
-        }
+        });
+    }
+
+    /**
+     * Prints the matrix in array form.
+     * `null` is used to represent a free cell.
+     * (This is an expensive operation - Debug only)
+     */
+    matrixToArrays() {
+        const arrays: (Block | null)[][] = new Array(this.numRows).fill(null);
+
+        // we want each row to have a unique array
+        arrays.forEach((_, rowIdx) => {
+            console.log("Filling row", rowIdx);
+            arrays[rowIdx] = new Array(this.numColumns).fill(null);
+        });
+
+        this.blocks.forEach((block) => {
+            const [row, column] = this.translateToRowsColumns(
+                block.getActiveCoordinates()
+            );
+
+            arrays[row][column] = block;
+        });
+        console.log("Return", this.blocks);
+        return arrays;
     }
 
     /**
      * Prints the matrix. You can also specify if you would like the
      * non-visible part of the matrix to be printed as well and if you
-     * would like the row numbers printed as well. (Debug only)
+     * would like the row numbers printed as well. (This is an expensive operation - Debug only)
      *
      * `⬜` = occupied cell
      *
@@ -345,6 +360,8 @@ export class Matrix extends GameEntity {
      * `🟩` = active piece
      */
     printMatrix(showNonVisibleArea = false, showRowNumbers = false) {
+        const matrixArrays = this.matrixToArrays();
+
         const numRowsToPrint = showNonVisibleArea
             ? this.numRows
             : this.numVisibleRows;
@@ -358,7 +375,7 @@ export class Matrix extends GameEntity {
         ];
 
         // reverse() reverses in-place
-        const gridCopy = [...this.grid.slice(0, numRowsToPrint)];
+        const gridCopy = [...matrixArrays.slice(0, numRowsToPrint)];
 
         gridCopy.reverse().forEach((row, rowIdx) => {
             let rowString = "";

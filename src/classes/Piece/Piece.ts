@@ -20,7 +20,7 @@ export abstract class Piece {
     protected readonly antiClockwiseRotationMap: RotationPositionAdjustMap;
     protected readonly clockwiseWallKickOffsetData: WallKickPositionOffsetTestData;
     protected readonly antiClockwiseWallKickOffsetData: WallKickPositionOffsetTestData;
-    protected static color: string;
+    protected static color: string = "#000000";
 
     constructor(
         blocks: Block[],
