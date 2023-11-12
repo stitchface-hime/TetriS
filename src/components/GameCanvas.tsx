@@ -4,6 +4,7 @@ import classes from "./GameCanvas.module.css";
 import { DrawMatrix } from "@classes/ShaderProgram";
 import { DrawSprite } from "@classes/ShaderProgram/DrawSprite/renderer";
 import { DebugFramebuffers } from "@classes/ShaderProgram/DebugFramebuffers/renderer";
+import { Block } from "@classes/Piece";
 export const GameCanvas = ({ game }: { game: Game }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [renderer2, setRenderer2] = useState<DebugFramebuffers | null>(null);
@@ -36,9 +37,36 @@ export const GameCanvas = ({ game }: { game: Game }) => {
         renderer2?.draw();
     };
 
+    const loadSheet = () => {
+        drawer?.load({
+            id: "mino",
+            src: "/sample_texture_2.png",
+            spriteSize: { width: 64, height: 64 },
+        });
+    };
+
+    const drawSprite = () => {
+        const block = new Block([0, 0], game.getMatrix());
+        block.updateConnections();
+        console.log(block.getConnections());
+        block.setGameRenderer(game.getRenderer());
+
+        game.getRenderer().registerEntity(block);
+        console.log(
+            block.getActiveSpriteQuadCoords(),
+            block.getActiveSpriteSheetData()
+        );
+
+        block.draw();
+    };
+
     return (
         <>
             <canvas className={classes.scene} ref={canvasRef} />{" "}
+            {/* <button onClick={set}>Set rederer</button>{" "}
+            <button onClick={draw}>Draw</button>
+            <button onClick={loadSheet}>Load sheet</button> */}
+            <button onClick={drawSprite}>Draw sprite</button>
         </>
     );
 };

@@ -62,6 +62,17 @@ export class GameRenderer {
 
     setCanvas(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
+
+        // Load images into a texture such that the image is loaded into the texture
+        // top-left to bottom-right
+        const gl = this.canvas?.getContext("webgl");
+        if (gl) {
+            gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+        }
+    }
+
+    getEntities() {
+        return this.entities;
     }
 
     /**

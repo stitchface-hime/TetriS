@@ -118,7 +118,7 @@ export class Game {
                 }
             }
         }
-        this.renderer.renderScene();
+        // this.renderer.renderScene();
     }
 
     private resetGroundedState() {
@@ -572,6 +572,11 @@ export class Game {
     // ! Debug only
     getMatrix() {
         return this.matrix;
+    }
+
+    // ! Debug only
+    getRenderer() {
+        return this.renderer;
     }
 
     // ! Debug only

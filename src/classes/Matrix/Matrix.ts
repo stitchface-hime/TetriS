@@ -408,6 +408,6 @@ export class Matrix extends GameEntity {
     }
 
     draw() {
-        // this.renderer.draw();
+        this.renderer.draw();
     }
 }

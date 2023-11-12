@@ -139,6 +139,10 @@ export abstract class GameEntity extends GameEntityTransform {
         this.gameRenderer = renderer;
     }
 
+    getActiveSpriteQuadCoords() {
+        return this.activeSpriteQuadCoords;
+    }
+
     getActiveSpriteSheetData() {
         return this.activeSpriteSheetData;
     }
@@ -179,6 +183,7 @@ export abstract class GameEntity extends GameEntityTransform {
      * starting from the top left of the sprite sheet.
      */
     setActiveSpriteByIndex(spriteIdx: number) {
+        // console.log("Load index", spriteIdx);
         if (this.activeSpriteSheetData) {
             const { spriteSize, width } = this.activeSpriteSheetData;
 
@@ -235,6 +240,16 @@ export abstract class GameEntity extends GameEntityTransform {
             );
         }
     }
+
+    /*     setActiveSpriteSize(px: number) {
+        if (this.activeSpriteSheetData) {
+            const { spriteSize } = this.activeSpriteSheetData;
+
+            if (spriteSize.width !== 0 && spriteSize.height !== 0) {
+                this.setScale(px / spriteSize.width);
+            }
+        }
+    } */
 
     /**
      * Draws the game entity's sprite if provided.

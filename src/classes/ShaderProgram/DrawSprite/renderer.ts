@@ -27,6 +27,10 @@ interface DrawData {
      * The coordinates of the bottom-left of the entity when it appears on screen.
      */
     anchor: [x: number, y: number];
+    /**
+     *
+     */
+    scale: number | [x: number, y: number];
 }
 
 interface DrawArgs {
@@ -40,11 +44,16 @@ export class DrawSprite extends ShaderProgram {
     }
 
     drawSprite(drawData: DrawData, sheet: SpriteSheet) {
+        console.log("Draw data", drawData);
         const gl = this.gl;
         if (gl) {
             const { spriteSize, image, loaded } = sheet;
             const program = this.program;
             const canvas = gl.canvas as HTMLCanvasElement;
+            const scale: [x: number, y: number] =
+                typeof drawData.scale === "number"
+                    ? [drawData.scale, drawData.scale]
+                    : drawData.scale;
 
             this.resizeCanvas();
             gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
@@ -72,8 +81,8 @@ export class DrawSprite extends ShaderProgram {
                     drawData.anchor[0],
                     drawData.anchor[1],
                     // temp - need to also consider the size of the sprite being drawn here
-                    spriteSize.width,
-                    spriteSize.height
+                    spriteSize.width * scale[0],
+                    spriteSize.height * scale[1]
                 );
 
                 gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);

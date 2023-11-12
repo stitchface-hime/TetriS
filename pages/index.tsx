@@ -8,7 +8,7 @@ import { isEqual2DVectorTuples } from "@utils/isEqual2DVectorTuples";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { GameCanvas } from "src/components/GameCanvas";
 
-const showConnections = true;
+const showConnections = false;
 const connectionChar = [
     "•",
     "╴",
@@ -284,6 +284,13 @@ const App: React.FC = () => {
                     }}
                 >
                     Get blocks
+                </button>
+                <button
+                    onClick={() => {
+                        console.log(game.getRenderer().getEntities());
+                    }}
+                >
+                    Get entities
                 </button>
                 <div style={{ position: "absolute", top: 0, left: "50%" }}>
                     <GameCanvas game={gameInstance.current} />

@@ -343,20 +343,25 @@ export class Block extends GameEntity {
     }
 
     async draw() {
+        console.log("Draw", this.gameRenderer, this.activeSpriteSheetData);
         if (this.gameRenderer && this.activeSpriteSheetData) {
             const sheet = await this.gameRenderer.load(
                 this.activeSpriteSheetData
             );
 
             if (this.activeSpriteQuadCoords) {
+                console.log("Draw");
                 this.renderer?.drawSprite(
                     {
                         anchor: this.position,
+                        scale: this.scale,
                         textureCoordinates: this.activeSpriteQuadCoords,
                     },
                     sheet
                 );
             }
+        } else {
+            console.log("Failed to draw");
         }
         // location and offset
     }
