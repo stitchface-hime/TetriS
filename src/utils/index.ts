@@ -7,6 +7,7 @@ export { getMatrixAnchor } from "./getMatrixAnchor";
 export { getPlayAreaDimensions } from "./getPlayAreaDimensions";
 export { getUniformSetters } from "./getUniformSetters";
 export { isEqual2DVectorTuples } from "./isEqual2DVectorTuples";
+export { product2DVectorTuples } from "./product2DVectorTuples";
 export { setAttributeData } from "./setAttributeData";
 export { setUniformData } from "./setUniformData";
 export { randomizeArray } from "./randomizeArray";

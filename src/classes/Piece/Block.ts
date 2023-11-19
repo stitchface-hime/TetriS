@@ -47,7 +47,6 @@ export class Block extends GameEntity {
 
         this.activeCoordinates = globalCoordinates;
         this.matrix = matrix;
-        this.updateCoordinates(this.activeCoordinates);
         this.color = color;
 
         this.coupledBlocks = [];
@@ -55,6 +54,8 @@ export class Block extends GameEntity {
 
         this.associatedPiece = undefined;
         this.connections = 0;
+
+        this.updateCoordinates(this.activeCoordinates);
     }
 
     setRenderer(renderer: DrawSprite): void {
@@ -164,7 +165,6 @@ export class Block extends GameEntity {
         const playArea = this.matrix.getPlayArea();
 
         if (playArea) {
-            // Move entity within the canvas
             const matrixRows = this.matrix.getNumVisibleRows();
             const matrixColumns = this.matrix.getNumColumns();
 
@@ -172,6 +172,21 @@ export class Block extends GameEntity {
             this.setPosition([
                 this.activeCoordinates[0] * (playArea.width / matrixColumns),
                 this.activeCoordinates[1] * (playArea.height / matrixRows),
+            ]);
+        }
+    }
+
+    private updateSpriteScale() {
+        const playArea = this.matrix.getPlayArea();
+
+        if (playArea) {
+            const matrixRows = this.matrix.getNumVisibleRows();
+            const matrixColumns = this.matrix.getNumColumns();
+
+            // Scale the entity
+            this.setScaleRelativeToDimensions([
+                playArea.width / matrixColumns,
+                playArea.height / matrixRows,
             ]);
         }
     }
@@ -344,6 +359,7 @@ export class Block extends GameEntity {
 
     async draw() {
         console.log("Draw", this.gameRenderer, this.activeSpriteSheetData);
+        this.updateSpriteScale();
         if (this.gameRenderer && this.activeSpriteSheetData) {
             const sheet = await this.gameRenderer.load(
                 this.activeSpriteSheetData

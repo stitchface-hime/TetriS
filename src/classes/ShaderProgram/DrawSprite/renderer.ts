@@ -30,7 +30,7 @@ interface DrawData {
     /**
      *
      */
-    scale: number | [x: number, y: number];
+    scale: [x: number, y: number];
 }
 
 interface DrawArgs {

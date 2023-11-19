@@ -3,9 +3,17 @@ import { DrawSprite } from "@classes/ShaderProgram";
 import { ShaderProgram } from "@classes/ShaderProgram/ShaderProgram";
 import { add2DVectorTuples } from "@utils/add2DVectorTuples";
 import { getRectangleCoords } from "@utils/getRectangleCoords";
+import { product2DVectorTuples } from "@utils/index";
 import { SpriteSheetDetails, SpriteSheet } from "src/shaders/types";
 
 class GameEntityTransform {
+    protected defaultScale: [x: number, y: number] = [1, 1];
+
+    /**
+     * Width and height of the entity. (this is the default) TODO: should probably change name
+     */
+    protected dimensions: [width: number, height: number] = [0, 0];
+
     /**
      * Position of the bottom-left pixel of an entity within a scene
      */
@@ -13,7 +21,7 @@ class GameEntityTransform {
     /**
      * Scale of the entity within a scene.
      */
-    protected scale = 1;
+    protected scale: [x: number, y: number] = this.defaultScale;
     /**
      * Rotation of the entity in degrees within a scene.
      */
@@ -25,12 +33,23 @@ class GameEntityTransform {
         rotation,
     }: Partial<{
         position: [x: number, y: number];
-        scale: number;
+        scale: [x: number, y: number];
         rotation: number;
     }>) {
         if (position !== undefined) this.setPosition(position);
         if (scale !== undefined) this.scale = scale || this.scale;
         if (rotation !== undefined) this.rotation = rotation || this.rotation;
+    }
+
+    getDimensions() {
+        return this.dimensions;
+    }
+
+    setDimensions(dimensions: number | [width: number, height: number]) {
+        this.dimensions =
+            typeof dimensions == "number"
+                ? [dimensions, dimensions]
+                : dimensions;
     }
 
     getPosition() {
@@ -49,12 +68,42 @@ class GameEntityTransform {
         return this.scale;
     }
 
-    setScale(scale: number) {
+    setScale(scale: [x: number, y: number]) {
         this.scale = scale;
     }
 
-    adjustScale(scale: number) {
-        this.scale += scale;
+    /**
+     * Additively adjust the scale of the entity.
+     */
+    adjustScale(scale: [x: number, y: number]) {
+        add2DVectorTuples(this.scale, scale);
+    }
+
+    setDefaultScale(scale: [x: number, y: number]) {
+        this.defaultScale = scale;
+    }
+
+    /**
+     * Scale entity to a certain width and height.
+     */
+    setScaleRelativeToDimensions(dimensions: [width: number, height: number]) {
+        if (this.dimensions[0] !== 0 && this.dimensions[1] !== 0) {
+            this.scale = product2DVectorTuples(
+                this.scale,
+                product2DVectorTuples(dimensions, [
+                    1 / this.dimensions[0],
+                    1 / this.dimensions[1],
+                ])
+            );
+            console.log(this.scale);
+        }
+    }
+
+    /**
+     * Resets scale of entity to default scale.
+     */
+    resetScale() {
+        this.scale = this.defaultScale;
     }
 
     getRotation() {
@@ -115,7 +164,7 @@ export abstract class GameEntity extends GameEntityTransform {
         spriteSheetDatas = [],
     }: Partial<{
         position: [x: number, y: number];
-        scale: number;
+        scale: [x: number, y: number];
         rotation: number;
         spriteSheetDatas: SpriteSheetDetails[];
     }> = {}) {
@@ -156,6 +205,10 @@ export abstract class GameEntity extends GameEntityTransform {
 
         if (spriteSheetData) {
             this.activeSpriteSheetData = spriteSheetData;
+            this.setDimensions([
+                spriteSheetData.spriteSize.width,
+                spriteSheetData.spriteSize.height,
+            ]);
             this.activeSpriteQuadCoords = null;
         } else {
             throw new Error(

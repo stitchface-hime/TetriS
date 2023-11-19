@@ -46,7 +46,7 @@ export const GameCanvas = ({ game }: { game: Game }) => {
     };
 
     const drawSprite = () => {
-        const block = new Block([0, 0], game.getMatrix());
+        const block = new Block([9, 22], game.getMatrix());
         block.updateConnections();
         console.log(block.getConnections());
         block.setGameRenderer(game.getRenderer());
