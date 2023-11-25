@@ -55,8 +55,8 @@ export class DrawSprite extends ShaderProgram {
                     ? [drawData.scale, drawData.scale]
                     : drawData.scale;
 
-            this.resizeCanvas();
-            gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+            /* this.resizeCanvas();
+            gl.viewport(0, 0, gl.canvas.width, gl.canvas.height); */
 
             if (program && image && loaded) {
                 gl.useProgram(program);

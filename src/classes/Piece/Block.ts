@@ -36,12 +36,7 @@ export class Block extends GameEntity {
 
     protected renderer: DrawSprite = new DrawSprite();
 
-    constructor(
-        globalCoordinates: [x: number, y: number],
-        matrix: Matrix,
-        color: string = "",
-        coupledBlocks: Block[] = []
-    ) {
+    constructor(globalCoordinates: [x: number, y: number], matrix: Matrix, color: string = "", coupledBlocks: Block[] = []) {
         super({ spriteSheetDatas: [SpriteSheets.STANDARD_MINO] });
         this.setActiveSpriteSheetData(SpriteSheets.STANDARD_MINO.id);
 
@@ -140,9 +135,7 @@ export class Block extends GameEntity {
      * method on all its coupled blocks.
      */
     unsetCoupledBlock(blockToUnset: Block) {
-        this.coupledBlocks = this.coupledBlocks.filter(
-            (block) => block !== blockToUnset
-        );
+        this.coupledBlocks = this.coupledBlocks.filter((block) => block !== blockToUnset);
 
         // also update connection
         this.updateConnections();
@@ -169,10 +162,7 @@ export class Block extends GameEntity {
             const matrixColumns = this.matrix.getNumColumns();
 
             // Move the entity
-            this.setPosition([
-                this.activeCoordinates[0] * (playArea.width / matrixColumns),
-                this.activeCoordinates[1] * (playArea.height / matrixRows),
-            ]);
+            this.setPosition([this.activeCoordinates[0] * (playArea.width / matrixColumns), this.activeCoordinates[1] * (playArea.height / matrixRows)]);
         }
     }
 
@@ -184,10 +174,7 @@ export class Block extends GameEntity {
             const matrixColumns = this.matrix.getNumColumns();
 
             // Scale the entity
-            this.setScaleRelativeToDimensions([
-                playArea.width / matrixColumns,
-                playArea.height / matrixRows,
-            ]);
+            this.scaleToWidthHeight([playArea.width / matrixColumns, playArea.height / matrixRows]);
         }
     }
 
@@ -203,15 +190,8 @@ export class Block extends GameEntity {
         let unitsMoved = 0;
 
         if (activeCoordinates) {
-            for (
-                let i = activeCoordinates[1] - 1;
-                i >= activeCoordinates[1] - units;
-                i--
-            ) {
-                if (
-                    !this.matrix.hasBlockAt([activeCoordinates[0], i]) ||
-                    ignoreOtherBlocks
-                ) {
+            for (let i = activeCoordinates[1] - 1; i >= activeCoordinates[1] - units; i--) {
+                if (!this.matrix.hasBlockAt([activeCoordinates[0], i]) || ignoreOtherBlocks) {
                     unitsMoved += 1;
                 } else {
                     break;
@@ -231,11 +211,7 @@ export class Block extends GameEntity {
      * You can also choose to ignore other blocks when moving down. (e.g for when moving blocks down on line clears)
      */
     moveDown(units = 1, ignoreOtherBlocks = false) {
-        this.updateCoordinates([
-            this.activeCoordinates[0],
-            this.activeCoordinates[1] -
-                this.canMoveDown(units, ignoreOtherBlocks),
-        ]);
+        this.updateCoordinates([this.activeCoordinates[0], this.activeCoordinates[1] - this.canMoveDown(units, ignoreOtherBlocks)]);
     }
 
     /**
@@ -248,11 +224,7 @@ export class Block extends GameEntity {
         const activeCoordinates = this.activeCoordinates;
         let unitsMoved = 0;
 
-        for (
-            let i = activeCoordinates[0] - 1;
-            i >= activeCoordinates[0] - units;
-            i--
-        ) {
+        for (let i = activeCoordinates[0] - 1; i >= activeCoordinates[0] - units; i--) {
             if (!this.matrix.hasBlockAt([i, activeCoordinates[1]])) {
                 unitsMoved += 1;
             } else {
@@ -271,10 +243,7 @@ export class Block extends GameEntity {
      * Move the block left a specified number of units. (Default: 1 unit)
      */
     moveLeft(units = 1) {
-        this.updateCoordinates([
-            this.activeCoordinates[0] - this.canMoveLeft(units),
-            this.activeCoordinates[1],
-        ]);
+        this.updateCoordinates([this.activeCoordinates[0] - this.canMoveLeft(units), this.activeCoordinates[1]]);
     }
 
     /**
@@ -288,11 +257,7 @@ export class Block extends GameEntity {
         const activeCoordinates = this.activeCoordinates;
         let unitsMoved = 0;
 
-        for (
-            let i = activeCoordinates[0] + 1;
-            i <= activeCoordinates[0] + units;
-            i++
-        ) {
+        for (let i = activeCoordinates[0] + 1; i <= activeCoordinates[0] + units; i++) {
             if (!this.matrix.hasBlockAt([i, activeCoordinates[1]])) {
                 unitsMoved += 1;
             } else {
@@ -311,10 +276,7 @@ export class Block extends GameEntity {
      * Move the block right a specified number of units.
      */
     moveRight(units = 1) {
-        this.updateCoordinates([
-            this.activeCoordinates[0] + this.canMoveRight(units),
-            this.activeCoordinates[1],
-        ]);
+        this.updateCoordinates([this.activeCoordinates[0] + this.canMoveRight(units), this.activeCoordinates[1]]);
     }
 
     /**
@@ -324,10 +286,7 @@ export class Block extends GameEntity {
      * @returns a tuple containing the coordinates after potential translation
      * and whether or not the move would be successful.
      */
-    canTranslate(
-        xUnits = 0,
-        yUnits = 0
-    ): { newCoordinates: [x: number, y: number]; canTranslate: boolean } {
+    canTranslate(xUnits = 0, yUnits = 0): { newCoordinates: [x: number, y: number]; canTranslate: boolean } {
         let [newX, newY] = this.activeCoordinates;
 
         const potentialX = this.activeCoordinates[0] + xUnits;
@@ -347,10 +306,7 @@ export class Block extends GameEntity {
      * Translates the block from its current position a certain number of x or y units.
      */
     moveBlock(xUnits = 0, yUnits = 0) {
-        const { newCoordinates, canTranslate } = this.canTranslate(
-            xUnits,
-            yUnits
-        );
+        const { newCoordinates, canTranslate } = this.canTranslate(xUnits, yUnits);
 
         if (canTranslate) {
             this.updateCoordinates([...newCoordinates]);
@@ -361,9 +317,7 @@ export class Block extends GameEntity {
         console.log("Draw", this.gameRenderer, this.activeSpriteSheetData);
         this.updateSpriteScale();
         if (this.gameRenderer && this.activeSpriteSheetData) {
-            const sheet = await this.gameRenderer.load(
-                this.activeSpriteSheetData
-            );
+            const sheet = await this.gameRenderer.load(this.activeSpriteSheetData);
 
             if (this.activeSpriteQuadCoords) {
                 console.log("Draw");

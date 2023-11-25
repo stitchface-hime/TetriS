@@ -9,10 +9,12 @@ import { SpriteSheetDetails, SpriteSheet } from "src/shaders/types";
 class GameEntityTransform {
     protected defaultScale: [x: number, y: number] = [1, 1];
 
+    protected dimensions: [width: number, height: number] = [0, 0];
+
     /**
      * Width and height of the entity. (this is the default) TODO: should probably change name
      */
-    protected dimensions: [width: number, height: number] = [0, 0];
+    protected defaultDimensions: [width: number, height: number] = [0, 0];
 
     /**
      * Position of the bottom-left pixel of an entity within a scene
@@ -42,14 +44,11 @@ class GameEntityTransform {
     }
 
     getDimensions() {
-        return this.dimensions;
+        return this.defaultDimensions;
     }
 
     setDimensions(dimensions: number | [width: number, height: number]) {
-        this.dimensions =
-            typeof dimensions == "number"
-                ? [dimensions, dimensions]
-                : dimensions;
+        this.defaultDimensions = typeof dimensions == "number" ? [dimensions, dimensions] : dimensions;
     }
 
     getPosition() {
@@ -70,13 +69,14 @@ class GameEntityTransform {
 
     setScale(scale: [x: number, y: number]) {
         this.scale = scale;
+        this.dimensions = product2DVectorTuples(this.defaultDimensions, this.scale);
     }
 
     /**
      * Additively adjust the scale of the entity.
      */
     adjustScale(scale: [x: number, y: number]) {
-        add2DVectorTuples(this.scale, scale);
+        this.setScale(add2DVectorTuples(this.scale, scale));
     }
 
     setDefaultScale(scale: [x: number, y: number]) {
@@ -86,16 +86,11 @@ class GameEntityTransform {
     /**
      * Scale entity to a certain width and height.
      */
-    setScaleRelativeToDimensions(dimensions: [width: number, height: number]) {
-        if (this.dimensions[0] !== 0 && this.dimensions[1] !== 0) {
-            this.scale = product2DVectorTuples(
-                this.scale,
-                product2DVectorTuples(dimensions, [
-                    1 / this.dimensions[0],
-                    1 / this.dimensions[1],
-                ])
-            );
-            console.log(this.scale);
+    scaleToWidthHeight(dimensions: [width: number, height: number]) {
+        if (this.defaultDimensions[0] !== 0 && this.defaultDimensions[1] !== 0) {
+            this.dimensions;
+            this.setScale(product2DVectorTuples(this.scale, product2DVectorTuples(dimensions, [1 / this.defaultDimensions[0], 1 / this.defaultDimensions[1]])));
+            console.log(this.scale, this.dimensions);
         }
     }
 
@@ -169,18 +164,14 @@ export abstract class GameEntity extends GameEntityTransform {
         spriteSheetDatas: SpriteSheetDetails[];
     }> = {}) {
         super({ position, scale, rotation });
-        spriteSheetDatas.forEach((sheet) =>
-            this.registerSpriteSheetData(sheet)
-        );
+        spriteSheetDatas.forEach((sheet) => this.registerSpriteSheetData(sheet));
     }
 
     assignContextToRenderer(gl: WebGLRenderingContext) {
         if (this.renderer) {
             this.renderer.setWebGLRenderingContext(gl);
         } else {
-            throw new Error(
-                "Could not set assign context to renderer. Did you forget to set a renderer for this entity?"
-            );
+            throw new Error("Could not set assign context to renderer. Did you forget to set a renderer for this entity?");
         }
     }
 
@@ -205,15 +196,10 @@ export abstract class GameEntity extends GameEntityTransform {
 
         if (spriteSheetData) {
             this.activeSpriteSheetData = spriteSheetData;
-            this.setDimensions([
-                spriteSheetData.spriteSize.width,
-                spriteSheetData.spriteSize.height,
-            ]);
+            this.setDimensions([spriteSheetData.spriteSize.width, spriteSheetData.spriteSize.height]);
             this.activeSpriteQuadCoords = null;
         } else {
-            throw new Error(
-                "Could not set active sprite sheet data. Did you forget to register the sprite sheet first?"
-            );
+            throw new Error("Could not set active sprite sheet data. Did you forget to register the sprite sheet first?");
         }
     }
 
@@ -225,9 +211,7 @@ export abstract class GameEntity extends GameEntityTransform {
         if (this.spriteSheetDatas[name]) {
             delete this.spriteSheetDatas[name];
         } else {
-            throw new Error(
-                "Sprite sheet could not be found. Skipping operation."
-            );
+            throw new Error("Sprite sheet could not be found. Skipping operation.");
         }
     }
 
@@ -246,9 +230,7 @@ export abstract class GameEntity extends GameEntityTransform {
 
             this.setActiveSpriteByRowCol([row, column]);
         } else {
-            throw new Error(
-                "There is no active sprite sheet set. Did not set active sprite."
-            );
+            throw new Error("There is no active sprite sheet set. Did not set active sprite.");
         }
     }
 
@@ -266,9 +248,7 @@ export abstract class GameEntity extends GameEntityTransform {
 
             this.setActiveSpriteByUV([u, v]);
         } else {
-            throw new Error(
-                "There is no active sprite sheet set. Did not set active sprite."
-            );
+            throw new Error("There is no active sprite sheet set. Did not set active sprite.");
         }
     }
 
@@ -281,16 +261,9 @@ export abstract class GameEntity extends GameEntityTransform {
             const {
                 spriteSize: { width, height },
             } = this.activeSpriteSheetData;
-            this.activeSpriteQuadCoords = getRectangleCoords(
-                u,
-                v,
-                width / this.activeSpriteSheetData.width,
-                height / this.activeSpriteSheetData.height
-            );
+            this.activeSpriteQuadCoords = getRectangleCoords(u, v, width / this.activeSpriteSheetData.width, height / this.activeSpriteSheetData.height);
         } else {
-            throw new Error(
-                "There is no active sprite sheet set. Did not set active sprite."
-            );
+            throw new Error("There is no active sprite sheet set. Did not set active sprite.");
         }
     }
 
