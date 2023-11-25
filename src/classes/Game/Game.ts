@@ -8,7 +8,7 @@ import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
 import { PieceId } from "@data/index";
 import { GameIntervalKeys } from "./GameIntervalKeys";
 import { GameOverCode } from "./GameOverCode";
-import { GameRenderer } from "@classes/GameRenderer";
+import { GameRenderer } from "@classes/ShaderProgram/GameRenderer";
 
 export class Game {
     private numRows: number;
@@ -42,8 +42,7 @@ export class Game {
     private lowestGroundedRow = Infinity;
 
     // this should be extracted out
-    private autoDropFrameBaseline =
-        (0.8 - (this.level - 1) * 0.007) ** (this.level - 1) * 60;
+    private autoDropFrameBaseline = (0.8 - (this.level - 1) * 0.007) ** (this.level - 1) * 60;
 
     private autoDropFrameTarget = 60;
     private autoDropFrames = 0;
@@ -61,12 +60,7 @@ export class Game {
 
     private renderer = new GameRenderer();
 
-    constructor(
-        numRows: number,
-        numColumns: number,
-        pieceQueue: PieceQueue,
-        spawnCoordinates: [x: number, y: number]
-    ) {
+    constructor(numRows: number, numColumns: number, pieceQueue: PieceQueue, spawnCoordinates: [x: number, y: number]) {
         this.pieceFactory = new PieceFactory();
         this.numRows = numRows;
         this.numColumns = numColumns;
@@ -82,7 +76,7 @@ export class Game {
         // Could be reworked setting play area here seems lke it doesn't belong here
         this.renderer.setCanvas(canvas);
 
-        this.matrix.setPlayArea();
+        this.matrix.updatePlayArea();
 
         this.renderer.registerEntity(this.matrix);
     }
@@ -134,8 +128,7 @@ export class Game {
      */
     private triggerGroundedCheck(wasRotationMove = false) {
         if (this.activePiece) {
-            const lowestRowOccupiedByActivePiece =
-                this.activePiece.getBottomBoundRow();
+            const lowestRowOccupiedByActivePiece = this.activePiece.getBottomBoundRow();
 
             // Begin lock delay flow as soon as piece cannot move downwards
             // and reset the number of moves the player can move
@@ -143,8 +136,7 @@ export class Game {
             // it grounded on previously
             if (!this.activePiece?.canMoveDownTogether(1)) {
                 if (this.lowestGroundedRow > lowestRowOccupiedByActivePiece) {
-                    this.lowestGroundedRow =
-                        this.activePiece?.getBottomBoundRow();
+                    this.lowestGroundedRow = this.activePiece?.getBottomBoundRow();
                     // If the piece was not grounded by rotation or
                     // the piece was grounded via rotation but it has
                     // not been grounded before reset the number of available
@@ -157,10 +149,7 @@ export class Game {
                 this.autoLockFlow();
             }
 
-            if (
-                this.groundedMoves >= this.groundedMoveLimit &&
-                !this.activePiece.canMoveDownTogether(1)
-            ) {
+            if (this.groundedMoves >= this.groundedMoveLimit && !this.activePiece.canMoveDownTogether(1)) {
                 this.lockPiece();
             }
         }
@@ -199,10 +188,7 @@ export class Game {
             this.autoDropPiece(unitsToDrop);
         }
 
-        this.intervalManager.subscribe(
-            GameIntervalKeys.AUTO_DROP,
-            new Interval(1000 / 60, () => this.dropFlow(unitsToDrop), Infinity)
-        );
+        this.intervalManager.subscribe(GameIntervalKeys.AUTO_DROP, new Interval(1000 / 60, () => this.dropFlow(unitsToDrop), Infinity));
     }
 
     private resetAutoDrop() {
@@ -253,19 +239,8 @@ export class Game {
     private spawnPiece(pieceId?: PieceId) {
         let spawnSuccessful = false;
 
-        for (
-            let spawnAttempt = 0;
-            spawnAttempt < this.spawnRetries;
-            spawnAttempt++
-        ) {
-            const spawnedPiece = this.pieceFactory.makePiece(
-                [
-                    this.spawnCoordinates[0],
-                    this.spawnCoordinates[1] + spawnAttempt,
-                ],
-                this.matrix,
-                pieceId
-            );
+        for (let spawnAttempt = 0; spawnAttempt < this.spawnRetries; spawnAttempt++) {
+            const spawnedPiece = this.pieceFactory.makePiece([this.spawnCoordinates[0], this.spawnCoordinates[1] + spawnAttempt], this.matrix, pieceId);
 
             if (spawnedPiece) {
                 // Register block entities
@@ -273,16 +248,12 @@ export class Game {
                 this.renderer.registerEntities(spawnedPiece.getBlocks());
 
                 // Does the spawned piece overlap with any blocks in the matrix?
-                const pieceDoesNotOverlap = spawnedPiece
-                    .getBlocksCoordinates()
-                    .reduce(
-                        (noOverlap, blockCoordinates) =>
-                            // active piece should always have coordinates
-                            !!blockCoordinates &&
-                            noOverlap &&
-                            !this.matrix.hasBlockAt(blockCoordinates),
-                        true
-                    );
+                const pieceDoesNotOverlap = spawnedPiece.getBlocksCoordinates().reduce(
+                    (noOverlap, blockCoordinates) =>
+                        // active piece should always have coordinates
+                        !!blockCoordinates && noOverlap && !this.matrix.hasBlockAt(blockCoordinates),
+                    true
+                );
 
                 // Set the active piece regardless of overlap
                 this.activePiece = spawnedPiece;
@@ -329,8 +300,7 @@ export class Game {
      */
     getGhostPieceCoordinates(): [x: number, y: number][] {
         if (this.activePiece) {
-            const activePieceCoordinates =
-                this.activePiece.getBlocksCoordinates();
+            const activePieceCoordinates = this.activePiece.getBlocksCoordinates();
 
             const hardDropUnits = this.activePiece.getHardDropUnits();
 
@@ -403,13 +373,9 @@ export class Game {
      */
     private increaseLevelCheck() {
         // Increase level when lines meet a quota (should move this out)
-        if (
-            this.linesCleared % this.levelLineQuota === 0 &&
-            this.level < this.maxLevel
-        ) {
+        if (this.linesCleared % this.levelLineQuota === 0 && this.level < this.maxLevel) {
             this.level++;
-            this.autoDropFrameBaseline =
-                (0.8 - (this.level - 1) * 0.007) ** (this.level - 1) * 60;
+            this.autoDropFrameBaseline = (0.8 - (this.level - 1) * 0.007) ** (this.level - 1) * 60;
             this.autoDropFrameTarget = this.autoDropFrameBaseline;
         }
     }
@@ -440,14 +406,12 @@ export class Game {
      */
     private getRowsOccupiedByActivePiece() {
         if (this.activePiece) {
-            return this.activePiece
-                .getBlocksCoordinates()
-                .map((coordinates) => {
-                    if (coordinates) {
-                        return coordinates[1];
-                    }
-                    throw Error("Active piece should always have coordinates");
-                });
+            return this.activePiece.getBlocksCoordinates().map((coordinates) => {
+                if (coordinates) {
+                    return coordinates[1];
+                }
+                throw Error("Active piece should always have coordinates");
+            });
         }
         return [];
     }
@@ -457,10 +421,7 @@ export class Game {
         this.resetLockDelay();
         if (this.hasGrounded) {
             this.groundedMoves += 1;
-            console.log(
-                "Moves left before lock:",
-                this.groundedMoveLimit - this.groundedMoves
-            );
+            console.log("Moves left before lock:", this.groundedMoveLimit - this.groundedMoves);
         }
         this.triggerGroundedCheck(wasRotationMove);
     }

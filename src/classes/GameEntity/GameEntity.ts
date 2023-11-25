@@ -1,4 +1,4 @@
-import { GameRenderer } from "@classes/GameRenderer";
+import { GameRenderer } from "@classes/ShaderProgram/GameRenderer";
 import { DrawSprite } from "@classes/ShaderProgram";
 import { ShaderProgram } from "@classes/ShaderProgram/ShaderProgram";
 import { add2DVectorTuples } from "@utils/add2DVectorTuples";
@@ -12,7 +12,7 @@ class GameEntityTransform {
     protected dimensions: [width: number, height: number] = [0, 0];
 
     /**
-     * Width and height of the entity. (this is the default) TODO: should probably change name
+     * Width and height of the entity at scale 1.
      */
     protected defaultDimensions: [width: number, height: number] = [0, 0];
 
@@ -43,12 +43,20 @@ class GameEntityTransform {
         if (rotation !== undefined) this.rotation = rotation || this.rotation;
     }
 
-    getDimensions() {
+    getDefaultDimensions() {
         return this.defaultDimensions;
     }
 
-    setDimensions(dimensions: number | [width: number, height: number]) {
+    getDimensions() {
+        return this.dimensions;
+    }
+
+    /**
+     * Sets the dimensions of the entity. Also resets dimensions of entity to the new default.
+     */
+    setDefaultDimensions(dimensions: number | [width: number, height: number]) {
         this.defaultDimensions = typeof dimensions == "number" ? [dimensions, dimensions] : dimensions;
+        this.dimensions = this.defaultDimensions;
     }
 
     getPosition() {
@@ -88,9 +96,7 @@ class GameEntityTransform {
      */
     scaleToWidthHeight(dimensions: [width: number, height: number]) {
         if (this.defaultDimensions[0] !== 0 && this.defaultDimensions[1] !== 0) {
-            this.dimensions;
             this.setScale(product2DVectorTuples(this.scale, product2DVectorTuples(dimensions, [1 / this.defaultDimensions[0], 1 / this.defaultDimensions[1]])));
-            console.log(this.scale, this.dimensions);
         }
     }
 
@@ -196,7 +202,7 @@ export abstract class GameEntity extends GameEntityTransform {
 
         if (spriteSheetData) {
             this.activeSpriteSheetData = spriteSheetData;
-            this.setDimensions([spriteSheetData.spriteSize.width, spriteSheetData.spriteSize.height]);
+            this.setDefaultDimensions([spriteSheetData.spriteSize.width, spriteSheetData.spriteSize.height]);
             this.activeSpriteQuadCoords = null;
         } else {
             throw new Error("Could not set active sprite sheet data. Did you forget to register the sprite sheet first?");

@@ -3,11 +3,7 @@ import { ShaderProgram } from "../ShaderProgram";
 import { fragment } from "./fragment";
 import { vertex } from "./vertex";
 import { getRectangleCoords } from "@utils/index";
-import {
-    DEFAULT_MATRIX_BORDER_WIDTH,
-    DEFAULT_MATRIX_OPACITY,
-    MATRIX_BUFFER_ZONE_RATIO,
-} from "src/constants";
+import { DEFAULT_MATRIX_GRID_WIDTH, DEFAULT_MATRIX_GRID_OPACITY, MATRIX_BUFFER_ZONE_RATIO } from "src/constants";
 import { HexString } from "src/shaders/types";
 import { hexToRgb } from "@utils/hexToRgb";
 import { generateGrid } from "./data";
@@ -17,17 +13,12 @@ export class DebugFramebuffers extends ShaderProgram {
     private rows: number;
     private columns: number;
     // TODO: Magic numbers
-    private opacity = DEFAULT_MATRIX_OPACITY;
+    private opacity = DEFAULT_MATRIX_GRID_OPACITY;
     private borderWidth = 1;
     private borderColor: HexString = "#ffffff";
     private color: HexString = "#ffffff";
 
-    constructor(
-        gl: WebGLRenderingContext,
-        rows: number,
-        columns: number,
-        autoBuild = true
-    ) {
+    constructor(gl: WebGLRenderingContext, rows: number, columns: number, autoBuild = true) {
         super(vertex, fragment, gl, autoBuild);
         this.rows = rows;
         this.columns = columns;
@@ -51,18 +42,9 @@ export class DebugFramebuffers extends ShaderProgram {
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
 
         if (program) {
-            const positionLocation = gl.getAttribLocation(
-                program,
-                "a_position"
-            );
-            const texCoordLocation = gl.getAttribLocation(
-                program,
-                "a_texcoord"
-            );
-            const resolutionLocation = gl.getUniformLocation(
-                program,
-                "u_resolution"
-            );
+            const positionLocation = gl.getAttribLocation(program, "a_position");
+            const texCoordLocation = gl.getAttribLocation(program, "a_texcoord");
+            const resolutionLocation = gl.getUniformLocation(program, "u_resolution");
 
             const positionBuffer = gl.createBuffer();
             const texCoordBuffer = gl.createBuffer();
@@ -103,56 +85,18 @@ export class DebugFramebuffers extends ShaderProgram {
                 const data = new Uint8Array([255, 123, 255, 123]);
                 const alignment = 1;
                 gl.pixelStorei(gl.UNPACK_ALIGNMENT, alignment);
-                gl.texImage2D(
-                    gl.TEXTURE_2D,
-                    level,
-                    internalFormat,
-                    width,
-                    height,
-                    border,
-                    format,
-                    type,
-                    data
-                );
+                gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, width, height, border, format, type, data);
 
                 // set the filtering so we don't need mips and it's not filtered
-                gl.texParameteri(
-                    gl.TEXTURE_2D,
-                    gl.TEXTURE_MIN_FILTER,
-                    gl.NEAREST
-                );
-                gl.texParameteri(
-                    gl.TEXTURE_2D,
-                    gl.TEXTURE_MAG_FILTER,
-                    gl.NEAREST
-                );
-                gl.texParameteri(
-                    gl.TEXTURE_2D,
-                    gl.TEXTURE_WRAP_S,
-                    gl.CLAMP_TO_EDGE
-                );
-                gl.texParameteri(
-                    gl.TEXTURE_2D,
-                    gl.TEXTURE_WRAP_T,
-                    gl.CLAMP_TO_EDGE
-                );
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
                 // set the filtering so we don't need mips
-                gl.texParameteri(
-                    gl.TEXTURE_2D,
-                    gl.TEXTURE_MIN_FILTER,
-                    gl.LINEAR
-                );
-                gl.texParameteri(
-                    gl.TEXTURE_2D,
-                    gl.TEXTURE_WRAP_S,
-                    gl.CLAMP_TO_EDGE
-                );
-                gl.texParameteri(
-                    gl.TEXTURE_2D,
-                    gl.TEXTURE_WRAP_T,
-                    gl.CLAMP_TO_EDGE
-                );
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
             }
 
             const targetTexture = gl.createTexture();
@@ -167,34 +111,12 @@ export class DebugFramebuffers extends ShaderProgram {
                 const type = gl.UNSIGNED_BYTE;
                 const data = null;
 
-                gl.texImage2D(
-                    gl.TEXTURE_2D,
-                    level,
-                    internalFormat,
-                    canvas.width,
-                    canvas.height,
-                    border,
-                    format,
-                    type,
-                    data
-                );
+                gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, canvas.width, canvas.height, border, format, type, data);
 
                 // set the filtering so we don't need mips
-                gl.texParameteri(
-                    gl.TEXTURE_2D,
-                    gl.TEXTURE_MIN_FILTER,
-                    gl.LINEAR
-                );
-                gl.texParameteri(
-                    gl.TEXTURE_2D,
-                    gl.TEXTURE_WRAP_S,
-                    gl.CLAMP_TO_EDGE
-                );
-                gl.texParameteri(
-                    gl.TEXTURE_2D,
-                    gl.TEXTURE_WRAP_T,
-                    gl.CLAMP_TO_EDGE
-                );
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
             }
 
             // Create and bind the framebuffer
@@ -203,22 +125,10 @@ export class DebugFramebuffers extends ShaderProgram {
             console.log("draw");
 
             const attachmentPoint = gl.COLOR_ATTACHMENT0;
-            gl.framebufferTexture2D(
-                gl.FRAMEBUFFER,
-                attachmentPoint,
-                gl.TEXTURE_2D,
-                targetTexture,
-                0
-            );
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, targetTexture, 0);
 
             {
-                const gridlines = generateGrid(
-                    this.rows,
-                    this.columns,
-                    this.borderWidth,
-                    playArea.width,
-                    playArea.height
-                );
+                const gridlines = generateGrid(this.rows, this.columns, this.borderWidth, playArea.width, playArea.height);
                 // render to the texture stored in the frame buffer (targetTexture)
                 gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
 
@@ -234,39 +144,17 @@ export class DebugFramebuffers extends ShaderProgram {
 
                 gridlines.forEach((line) => {
                     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-                    gl.bufferData(
-                        gl.ARRAY_BUFFER,
-                        new Float32Array(line),
-                        gl.STATIC_DRAW
-                    );
+                    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(line), gl.STATIC_DRAW);
 
                     gl.enableVertexAttribArray(positionLocation);
                     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-                    gl.vertexAttribPointer(
-                        positionLocation,
-                        2,
-                        gl.FLOAT,
-                        false,
-                        0,
-                        0
-                    );
+                    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
 
                     gl.enableVertexAttribArray(texCoordLocation);
                     gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-                    gl.vertexAttribPointer(
-                        texCoordLocation,
-                        2,
-                        gl.FLOAT,
-                        true,
-                        0,
-                        0
-                    );
+                    gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, true, 0, 0);
 
-                    gl.uniform2f(
-                        resolutionLocation,
-                        canvas.clientWidth,
-                        canvas.clientHeight
-                    );
+                    gl.uniform2f(resolutionLocation, canvas.clientWidth, canvas.clientHeight);
 
                     // draw too framebuffer
                     gl.drawArrays(gl.TRIANGLES, 0, 6);
@@ -288,41 +176,17 @@ export class DebugFramebuffers extends ShaderProgram {
                 gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
                 gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-                gl.bufferData(
-                    gl.ARRAY_BUFFER,
-                    new Float32Array(
-                        getRectangleCoords(0, 0, canvas.width, canvas.height)
-                    ),
-                    gl.STATIC_DRAW
-                );
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(getRectangleCoords(0, 0, canvas.width, canvas.height)), gl.STATIC_DRAW);
 
                 gl.enableVertexAttribArray(positionLocation);
                 gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-                gl.vertexAttribPointer(
-                    positionLocation,
-                    2,
-                    gl.FLOAT,
-                    false,
-                    0,
-                    0
-                );
+                gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
 
                 gl.enableVertexAttribArray(texCoordLocation);
                 gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-                gl.vertexAttribPointer(
-                    texCoordLocation,
-                    2,
-                    gl.FLOAT,
-                    true,
-                    0,
-                    0
-                );
+                gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, true, 0, 0);
 
-                gl.uniform2f(
-                    resolutionLocation,
-                    canvas.clientWidth,
-                    canvas.clientHeight
-                );
+                gl.uniform2f(resolutionLocation, canvas.clientWidth, canvas.clientHeight);
 
                 gl.drawArrays(gl.TRIANGLES, 0, 6);
             }

@@ -11,12 +11,7 @@ export abstract class ShaderProgram {
     protected gl: WebGLRenderingContext | null = null;
     protected program: WebGLProgram | null = null;
 
-    constructor(
-        vertexSrc: string,
-        fragmentSrc: string,
-        gl: WebGLRenderingContext | null = null,
-        autoBuild = true
-    ) {
+    constructor(vertexSrc: string, fragmentSrc: string, gl: WebGLRenderingContext | null = null, autoBuild = true) {
         this.vertexSrc = vertexSrc;
         this.fragmentSrc = fragmentSrc;
 
@@ -29,6 +24,10 @@ export abstract class ShaderProgram {
         }
     }
 
+    getWebGLRenderingContext() {
+        return this.gl;
+    }
+
     setWebGLRenderingContext(gl: WebGLRenderingContext, autoBuild = true) {
         this.gl = gl;
 
@@ -37,65 +36,41 @@ export abstract class ShaderProgram {
         }
     }
 
-    private compileShader(
-        src: string,
-        type:
-            | WebGLRenderingContext["FRAGMENT_SHADER"]
-            | WebGLRenderingContext["VERTEX_SHADER"]
-    ) {
+    private compileShader(src: string, type: WebGLRenderingContext["FRAGMENT_SHADER"] | WebGLRenderingContext["VERTEX_SHADER"]) {
         if (this.gl) {
             const shader = this.gl.createShader(type);
             if (shader) {
                 this.gl.shaderSource(shader, src);
                 this.gl.compileShader(shader);
 
-                const ok = this.gl.getShaderParameter(
-                    shader,
-                    this.gl.COMPILE_STATUS
-                );
+                const ok = this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS);
 
                 if (!ok) {
                     throw new ShaderProgramError(
                         this.id,
-                        `Failed to compile shader of type ${type} (${
-                            type === this.gl.FRAGMENT_SHADER
-                                ? "fragment"
-                                : "vertex"
-                        }). ${this.gl.getShaderInfoLog(shader)}`
+                        `Failed to compile shader of type ${type} (${type === this.gl.FRAGMENT_SHADER ? "fragment" : "vertex"}). ${this.gl.getShaderInfoLog(
+                            shader
+                        )}`
                     );
                 }
                 return shader;
             } else {
-                throw new ShaderProgramError(
-                    this.id,
-                    `Failed to create shader of type ${type} (${
-                        type === this.gl.FRAGMENT_SHADER ? "fragment" : "vertex"
-                    }).`
-                );
+                throw new ShaderProgramError(this.id, `Failed to create shader of type ${type} (${type === this.gl.FRAGMENT_SHADER ? "fragment" : "vertex"}).`);
             }
         } else {
-            throw new ShaderProgramError(
-                this.id,
-                `Could not compile shader, no WebGL context.`
-            );
+            throw new ShaderProgramError(this.id, `Could not compile shader, no WebGL context.`);
         }
     }
 
     private compileVertexShader() {
         if (this.gl) {
-            this.vertexShader = this.compileShader(
-                this.vertexSrc,
-                this.gl.VERTEX_SHADER
-            );
+            this.vertexShader = this.compileShader(this.vertexSrc, this.gl.VERTEX_SHADER);
         }
     }
 
     private compileFragmentShader() {
         if (this.gl) {
-            this.fragmentShader = this.compileShader(
-                this.fragmentSrc,
-                this.gl.FRAGMENT_SHADER
-            );
+            this.fragmentShader = this.compileShader(this.fragmentSrc, this.gl.FRAGMENT_SHADER);
         }
     }
 
@@ -109,30 +84,18 @@ export abstract class ShaderProgram {
                     this.gl.attachShader(program, this.fragmentShader);
 
                     this.gl.linkProgram(program);
-                    const ok = this.gl.getProgramParameter(
-                        program,
-                        this.gl.LINK_STATUS
-                    );
+                    const ok = this.gl.getProgramParameter(program, this.gl.LINK_STATUS);
 
                     if (!ok) {
-                        throw new ShaderProgramError(
-                            this.id,
-                            `Failed to compile program.`
-                        );
+                        throw new ShaderProgramError(this.id, `Failed to compile program.`);
                     }
 
                     this.program = program;
                 } else {
-                    throw new ShaderProgramError(
-                        this.id,
-                        `Failed to compile program, shaders incomplete.`
-                    );
+                    throw new ShaderProgramError(this.id, `Failed to compile program, shaders incomplete.`);
                 }
             } else {
-                throw new ShaderProgramError(
-                    this.id,
-                    `Failed to create program.`
-                );
+                throw new ShaderProgramError(this.id, `Failed to create program.`);
             }
         }
     }

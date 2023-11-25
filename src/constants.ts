@@ -1,4 +1,5 @@
-export const DEFAULT_MATRIX_OPACITY = 0.5;
-export const DEFAULT_MATRIX_BORDER_WIDTH = 1;
+export const DEFAULT_MATRIX_GRID_OPACITY = 0.5;
+export const DEFAULT_MATRIX_GRID_WIDTH = 1;
+export const DEFAULT_MATRIX_BG_OPACITY = 1;
 
 export const MATRIX_BUFFER_ZONE_RATIO = 0.2;

@@ -1,5 +1,5 @@
 import { GameEntity } from "@classes/GameEntity/GameEntity";
-import { GameRenderer } from "@classes/GameRenderer";
+import { GameRenderer } from "@classes/ShaderProgram/GameRenderer";
 import { Block, Piece } from "@classes/Piece";
 import { DrawMatrix } from "@classes/ShaderProgram";
 import { isEqual2DVectorTuples } from "@utils/index";
@@ -38,14 +38,23 @@ export class Matrix extends GameEntity {
         this.activePiece = null;
     }
 
+    private updateDimensions() {
+        const canvas = this.gameRenderer?.getCanvas();
+
+        if (canvas) {
+            this.setDefaultDimensions([canvas.clientWidth, canvas.clientHeight]);
+        }
+    }
+
     setRenderer(renderer: DrawMatrix) {
         this.renderer = renderer;
     }
 
     /**
      * Sets the play area of the matrix, the game renderer must be set before calling this.
+     * Also updates the dimensions of this entity.
      */
-    setPlayArea() {
+    private updatePlayArea() {
         const canvas = this.gameRenderer?.getCanvas();
 
         if (canvas) {
@@ -54,10 +63,10 @@ export class Matrix extends GameEntity {
                 // height of matrix minus the buffer area above the rows
                 height: canvas.clientHeight * (1 - MATRIX_BUFFER_ZONE_RATIO),
             };
+
+            this.updateDimensions();
         } else {
-            throw new Error(
-                "Could not set play area. Did you forget to set a game renderer and set its canvas?"
-            );
+            throw new Error("Could not set play area. Did you forget to set a game renderer and set its canvas?");
         }
     }
 
@@ -71,9 +80,7 @@ export class Matrix extends GameEntity {
     /**
      * Transforms x-y coordinates to rows and columns.
      */
-    private translateToRowsColumns(
-        coordinates: [x: number, y: number]
-    ): [row: number, column: number] {
+    private translateToRowsColumns(coordinates: [x: number, y: number]): [row: number, column: number] {
         return [coordinates[1], coordinates[0]];
     }
 
@@ -81,9 +88,7 @@ export class Matrix extends GameEntity {
      * Transforms rows and columns coordinates to x-y coordinates.
      * Syntactical sugar - performs the same function as `translateToRowsColumns`.
      */
-    private translateToXY(
-        rowCol: [row: number, column: number]
-    ): [x: number, y: number] {
+    private translateToXY(rowCol: [row: number, column: number]): [x: number, y: number] {
         return this.translateToRowsColumns(rowCol);
     }
 
@@ -153,9 +158,7 @@ export class Matrix extends GameEntity {
         });
     }
 
-    private findBlockPredicate =
-        (coordinates: [x: number, y: number]) => (block: Block) =>
-            isEqual2DVectorTuples(block.getActiveCoordinates(), coordinates);
+    private findBlockPredicate = (coordinates: [x: number, y: number]) => (block: Block) => isEqual2DVectorTuples(block.getActiveCoordinates(), coordinates);
 
     getBlock(coordinates: [x: number, y: number]) {
         return this.blocks.find(this.findBlockPredicate(coordinates));
@@ -190,11 +193,7 @@ export class Matrix extends GameEntity {
         if (blockIdx !== -1) {
             const [block] = this.blocks.splice(blockIdx, 1);
 
-            block
-                .getCoupledBlocks()
-                .forEach((coupledBlock) =>
-                    coupledBlock.unsetCoupledBlock(block)
-                );
+            block.getCoupledBlocks().forEach((coupledBlock) => coupledBlock.unsetCoupledBlock(block));
             this.numCellsOccupied -= 1;
 
             return block;
@@ -214,9 +213,7 @@ export class Matrix extends GameEntity {
         const blocksCleared: Block[] = [];
         for (let rowIdx = from; rowIdx < to; rowIdx++) {
             for (let colIdx = 0; colIdx < this.numColumns; colIdx++) {
-                const block = this.getBlock(
-                    this.translateToXY([rowIdx, colIdx])
-                );
+                const block = this.getBlock(this.translateToXY([rowIdx, colIdx]));
 
                 if (block) {
                     const clearedBlock = this.clearBlock([colIdx, rowIdx]);
@@ -231,12 +228,7 @@ export class Matrix extends GameEntity {
     }
 
     private areCoordinatesOutOfBounds(coordinates: [x: number, y: number]) {
-        return (
-            coordinates[0] < 0 ||
-            coordinates[0] >= this.numColumns ||
-            coordinates[1] < 0 ||
-            coordinates[1] >= this.numRows
-        );
+        return coordinates[0] < 0 || coordinates[0] >= this.numColumns || coordinates[1] < 0 || coordinates[1] >= this.numRows;
     }
 
     /**
@@ -244,10 +236,7 @@ export class Matrix extends GameEntity {
      * A cell that is out of bounds is considered occupied.
      */
     hasBlockAt(coordinates: [x: number, y: number]) {
-        return (
-            this.areCoordinatesOutOfBounds(coordinates) ||
-            this.getBlock(coordinates) !== undefined
-        );
+        return this.areCoordinatesOutOfBounds(coordinates) || this.getBlock(coordinates) !== undefined;
     }
 
     /**
@@ -311,10 +300,7 @@ export class Matrix extends GameEntity {
      * array of row numbers to fill rows individually. (Debug only)
      */
     addBlockRows(rows: number | number[]) {
-        const setRows =
-            typeof rows === "number"
-                ? Array.from({ length: rows }, (_v, row) => row)
-                : rows;
+        const setRows = typeof rows === "number" ? Array.from({ length: rows }, (_v, row) => row) : rows;
 
         setRows.forEach((row) => {
             for (let col = 0; col < this.numColumns; col++) {
@@ -338,9 +324,7 @@ export class Matrix extends GameEntity {
         });
 
         this.blocks.forEach((block) => {
-            const [row, column] = this.translateToRowsColumns(
-                block.getActiveCoordinates()
-            );
+            const [row, column] = this.translateToRowsColumns(block.getActiveCoordinates());
 
             arrays[row][column] = block;
         });
@@ -362,17 +346,9 @@ export class Matrix extends GameEntity {
     printMatrix(showNonVisibleArea = false, showRowNumbers = false) {
         const matrixArrays = this.matrixToArrays();
 
-        const numRowsToPrint = showNonVisibleArea
-            ? this.numRows
-            : this.numVisibleRows;
+        const numRowsToPrint = showNonVisibleArea ? this.numRows : this.numVisibleRows;
 
-        const activePieceCoordinates = [
-            ...(this.activePiece
-                ? this.activePiece
-                      .getBlocks()
-                      .map((block) => block.getActiveCoordinates())
-                : []),
-        ];
+        const activePieceCoordinates = [...(this.activePiece ? this.activePiece.getBlocks().map((block) => block.getActiveCoordinates()) : [])];
 
         // reverse() reverses in-place
         const gridCopy = [...matrixArrays.slice(0, numRowsToPrint)];
@@ -384,10 +360,7 @@ export class Matrix extends GameEntity {
                     rowString += "⬛";
                 } else {
                     const activePieceOccupied = activePieceCoordinates.find(
-                        (coordinates) =>
-                            coordinates &&
-                            coordinates[0] === columnIdx &&
-                            coordinates[1] === numRowsToPrint - rowIdx - 1
+                        (coordinates) => coordinates && coordinates[0] === columnIdx && coordinates[1] === numRowsToPrint - rowIdx - 1
                     );
                     if (activePieceOccupied) {
                         rowString += "🟩";
@@ -408,6 +381,7 @@ export class Matrix extends GameEntity {
     }
 
     draw() {
+        this.updatePlayArea();
         this.renderer.draw();
     }
 }

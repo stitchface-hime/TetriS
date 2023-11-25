@@ -3,11 +3,7 @@ import { ShaderProgram } from "../ShaderProgram";
 import { fragment } from "./fragment";
 import { vertex } from "./vertex";
 import { getRectangleCoords } from "@utils/index";
-import {
-    DEFAULT_MATRIX_BORDER_WIDTH,
-    DEFAULT_MATRIX_OPACITY,
-    MATRIX_BUFFER_ZONE_RATIO,
-} from "src/constants";
+import { DEFAULT_MATRIX_GRID_WIDTH, DEFAULT_MATRIX_GRID_OPACITY, MATRIX_BUFFER_ZONE_RATIO } from "src/constants";
 import { HexString } from "src/shaders/types";
 import { hexToRgb } from "@utils/hexToRgb";
 
@@ -18,17 +14,12 @@ export class DebugProgram extends ShaderProgram {
     private rows: number;
     private columns: number;
     // TODO: Magic numbers
-    private opacity = DEFAULT_MATRIX_OPACITY;
-    private borderWidth = DEFAULT_MATRIX_BORDER_WIDTH;
+    private opacity = DEFAULT_MATRIX_GRID_OPACITY;
+    private borderWidth = DEFAULT_MATRIX_GRID_WIDTH;
     private borderColor: HexString = "#000000";
     private color: HexString = "#ffffff";
 
-    constructor(
-        gl: WebGLRenderingContext,
-        rows: number,
-        columns: number,
-        autoBuild = true
-    ) {
+    constructor(gl: WebGLRenderingContext, rows: number, columns: number, autoBuild = true) {
         super(vertex, fragment, gl, autoBuild);
         this.rows = rows;
         this.columns = columns;
@@ -54,58 +45,28 @@ export class DebugProgram extends ShaderProgram {
             gl.useProgram(program);
 
             try {
-                const positionLocation = gl.getAttribLocation(
-                    program,
-                    "a_position"
-                );
+                const positionLocation = gl.getAttribLocation(program, "a_position");
                 const positionBuffer = gl.createBuffer();
                 gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-                gl.bufferData(
-                    gl.ARRAY_BUFFER,
-                    new Float32Array(getRectangleCoords(0, 0, 150, 50)),
-                    gl.STATIC_DRAW
-                );
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(getRectangleCoords(0, 0, 150, 50)), gl.STATIC_DRAW);
                 //
-                const colorLocation = gl.getAttribLocation(
-                    program,
-                    "a_gridColor"
-                );
+                const colorLocation = gl.getAttribLocation(program, "a_gridColor");
                 const colorBuffer = gl.createBuffer();
                 gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
                 gl.bufferData(
                     gl.ARRAY_BUFFER,
-                    new Uint8Array([
-                        200, 70, 120, 255, 200, 70, 120, 255, 200, 70, 120, 255,
-                        80, 70, 200, 255, 80, 70, 200, 255, 80, 70, 200, 255,
-                    ]),
+                    new Uint8Array([200, 70, 120, 255, 200, 70, 120, 255, 200, 70, 120, 255, 80, 70, 200, 255, 80, 70, 200, 255, 80, 70, 200, 255]),
                     gl.STATIC_DRAW
                 );
-                console.log([
-                    ...hexToRgb(this.borderColor),
-                    256 * this.opacity - 1,
-                ]);
+                console.log([...hexToRgb(this.borderColor), 256 * this.opacity - 1]);
                 //
                 gl.enableVertexAttribArray(positionLocation);
                 gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-                gl.vertexAttribPointer(
-                    positionLocation,
-                    2,
-                    gl.FLOAT,
-                    false,
-                    0,
-                    0
-                );
+                gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
 
                 gl.enableVertexAttribArray(colorLocation);
                 gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-                gl.vertexAttribPointer(
-                    colorLocation,
-                    4,
-                    gl.UNSIGNED_BYTE,
-                    true,
-                    0,
-                    0
-                );
+                gl.vertexAttribPointer(colorLocation, 4, gl.UNSIGNED_BYTE, true, 0, 0);
 
                 /* const uniforms: ShaderUniformRecord = {
                     u_resolution: {
@@ -125,31 +86,18 @@ export class DebugProgram extends ShaderProgram {
                     getUniformSetters(uniforms, program, gl),
                     uniformData
                 ); */
-                const resolutionLocation = gl.getUniformLocation(
-                    program,
-                    "u_resolution"
-                );
-                gl.uniform2f(
-                    resolutionLocation,
-                    canvas.clientWidth,
-                    canvas.clientHeight
-                );
+                const resolutionLocation = gl.getUniformLocation(program, "u_resolution");
+                gl.uniform2f(resolutionLocation, canvas.clientWidth, canvas.clientHeight);
 
                 console.log(canvas.clientWidth, canvas.clientHeight);
 
                 console.log("Draw");
                 gl.drawArrays(gl.TRIANGLES, 0, 6);
             } catch (e) {
-                throw new ShaderProgramError(
-                    "debug",
-                    "Unable to set attribute data."
-                );
+                throw new ShaderProgramError("debug", "Unable to set attribute data.");
             }
         } else {
-            throw new ShaderProgramError(
-                "debug",
-                `Program not found. Did you forget to build first?`
-            );
+            throw new ShaderProgramError("debug", `Program not found. Did you forget to build first?`);
         }
     }
 

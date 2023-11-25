@@ -46,7 +46,7 @@ export const GameCanvas = ({ game }: { game: Game }) => {
     };
 
     const drawSprite = () => {
-        const block = new Block([9, 22], game.getMatrix());
+        /* const block = new Block([9, 22], game.getMatrix());
         block.updateConnections();
         console.log(block.getConnections());
         block.setGameRenderer(game.getRenderer());
@@ -55,9 +55,10 @@ export const GameCanvas = ({ game }: { game: Game }) => {
         console.log(
             block.getActiveSpriteQuadCoords(),
             block.getActiveSpriteSheetData()
-        );
+        ); */
 
-        block.draw();
+        game.getRenderer().draw();
+        console.log("Finish");
     };
 
     return (
