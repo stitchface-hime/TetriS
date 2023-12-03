@@ -169,7 +169,9 @@ export class GameRenderer extends ShaderProgram {
 
                 gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, canvas.clientWidth, canvas.clientHeight, border, format, type, data);
 
-                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                // Don't use linear as that requires MIPS
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
                 gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
@@ -177,18 +179,12 @@ export class GameRenderer extends ShaderProgram {
             });
 
             const fb = gl.createFramebuffer();
-            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-            /* const attachmentPoint = gl.COLOR_ATTACHMENT0;
-            gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, baseTextures[0], 0); */
+            gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+            const attachmentPoint = gl.COLOR_ATTACHMENT0;
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, baseTextures[0], 0);
 
-            //
+            // debugging
             let idx = 0;
-            //
-
-            console.log("Entities:", this.entities);
-
-            gl.clearColor(1, 0, 0.6, 0);
-            gl.clear(gl.COLOR_BUFFER_BIT);
 
             this.entities.forEach((entity) => {
                 if (idx === 0) {
@@ -197,96 +193,41 @@ export class GameRenderer extends ShaderProgram {
                     console.log("Entity:", entity, this.entities);
                     gl.bindTexture(gl.TEXTURE_2D, baseTextures[0]);
 
-                    // set framebuffer to point to t1
-                    //console.log("Hello");
-                    // gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, baseTextures[0], 0);
-                    //console.log("Hello1");
-
                     gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
 
                     entity.draw();
 
-                    // using framebuffers, draw t0 and t1 into t0
-                    /* {
-                        // draw into texture 0
-                        gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, baseTextures[0], 0);
-                        gl.bindTexture(gl.TEXTURE_2D, baseTextures[1]);
-
-                        gl.useProgram(program);
-
-                        const positionLocation = gl.getAttribLocation(program, "a_position");
-                        const texCoordLocation = gl.getAttribLocation(program, "a_textureCoord");
-                        const resolutionLocation = gl.getUniformLocation(program, "u_resolution");
-
-                        const positionBuffer = gl.createBuffer();
-                        const texCoordBuffer = gl.createBuffer();
-                        gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-                        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(getRectangleCoords(0, 0, canvas.clientWidth, canvas.clientHeight)), gl.STATIC_DRAW);
-
-                        // set framebuffer to point to t0
-                        console.log("Hello2");
-                        // gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, baseTextures[0], 0);
-                        console.log("Hello3");
-
-                        const level = 0;
-                        const internalFormat = gl.RGBA;
-                        const border = 0;
-                        const format = gl.RGBA;
-                        const type = gl.UNSIGNED_BYTE;
-                        const data = null;
-
-                        gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, canvas.clientWidth, canvas.clientHeight, border, format, type, data);
-
-                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
-                        gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
-                        gl.clearColor(1, 1, 1, 0);
-                        gl.clear(gl.COLOR_BUFFER_BIT);
-
-                        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-                        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(getRectangleCoords(0, 0, gl.canvas.width, gl.canvas.height)), gl.STATIC_DRAW);
-
-                        // enable arrays
-                        gl.enableVertexAttribArray(positionLocation);
-                        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-                        gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
-
-                        gl.enableVertexAttribArray(texCoordLocation);
-                        gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-                        gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, true, 0, 0);
-
-                        gl.uniform2f(resolutionLocation, canvas.clientWidth, canvas.clientHeight);
-                        console.log("Draw");
-                        gl.drawArrays(gl.TRIANGLES, 0, 6);
-                        console.log("Draw1");
-                    } */
+                    let data = new Uint8Array(canvas.clientWidth * canvas.clientHeight * 4);
+                    gl.readPixels(0, 0, canvas.clientWidth, canvas.clientHeight, gl.RGBA, gl.UNSIGNED_BYTE, data);
+                    console.log("After draw:", data);
                 }
             });
 
-            /* {
+            {
+                gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
                 gl.useProgram(program);
+                gl.bindTexture(gl.TEXTURE_2D, baseTextures[0]);
+
+                // clear main canvas
+                gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
+                gl.clearColor(0.8, 0.5, 0.8, 1); // clear to white
+                gl.clear(gl.COLOR_BUFFER_BIT);
 
                 const positionLocation = gl.getAttribLocation(program, "a_position");
                 const texCoordLocation = gl.getAttribLocation(program, "a_textureCoord");
                 const resolutionLocation = gl.getUniformLocation(program, "u_resolution");
+                // const colorLocation = gl.getUniformLocation(program, "u_color");
 
                 const positionBuffer = gl.createBuffer();
                 const texCoordBuffer = gl.createBuffer();
-                gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(getRectangleCoords(0, 0, canvas.clientWidth, canvas.clientHeight)), gl.STATIC_DRAW);
-
-                // set framebuffer to null to render to canvas
-                gl.bindFramebuffer(gl.FRAMEBUFFER, null);
-                gl.bindTexture(gl.TEXTURE_2D, baseTextures[0]);
-
-                // gl.viewport(0, 0, canvas.clientWidth / 2, canvas.clientHeight / 2);
-                gl.clearColor(1, 1, 1, 0); // clear to white
-                gl.clear(gl.COLOR_BUFFER_BIT);
 
                 gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(getRectangleCoords(0, 0, gl.canvas.width, gl.canvas.height)), gl.STATIC_DRAW);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(getRectangleCoords(0, 0, canvas.width, canvas.height)), gl.STATIC_DRAW);
+
+                gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(getRectangleCoords(0, 0, 1, 1)), gl.STATIC_DRAW);
+                console.log(getRectangleCoords(0, 0, 1, 1));
 
                 // enable arrays
                 gl.enableVertexAttribArray(positionLocation);
@@ -300,9 +241,7 @@ export class GameRenderer extends ShaderProgram {
                 gl.uniform2f(resolutionLocation, canvas.clientWidth, canvas.clientHeight);
 
                 gl.drawArrays(gl.TRIANGLES, 0, 6);
-            } */
-
-            console.log("Finish");
+            }
             return;
         } else {
             throw new Error("Failed to render, no canvas was set.");

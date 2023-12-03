@@ -6,6 +6,8 @@ export { getRectangleCoords } from "./getRectangleCoords";
 export { getMatrixAnchor } from "./getMatrixAnchor";
 export { getPlayAreaDimensions } from "./getPlayAreaDimensions";
 export { getUniformSetters } from "./getUniformSetters";
+export { hexToRgb } from "./hexToRgb";
+export { hexToClampf } from "./hexToClampf";
 export { isEqual2DVectorTuples } from "./isEqual2DVectorTuples";
 export { product2DVectorTuples } from "./product2DVectorTuples";
 export { setAttributeData } from "./setAttributeData";

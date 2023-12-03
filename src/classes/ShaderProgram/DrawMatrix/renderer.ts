@@ -2,10 +2,9 @@ import { ShaderProgramError } from "@classes/Error";
 import { ShaderProgram } from "../ShaderProgram";
 import { fragment } from "./fragment";
 import { vertex } from "./vertex";
-import { getRectangleCoords } from "@utils/index";
+import { hexToClampf, hexToRgb } from "@utils/index";
 import { DEFAULT_MATRIX_GRID_WIDTH, DEFAULT_MATRIX_GRID_OPACITY, MATRIX_BUFFER_ZONE_RATIO, DEFAULT_MATRIX_BG_OPACITY } from "src/constants";
 import { HexString } from "src/shaders/types";
-import { hexToRgb } from "@utils/hexToRgb";
 import { generateGrid } from "./data";
 
 export class DrawMatrix extends ShaderProgram {
@@ -15,11 +14,11 @@ export class DrawMatrix extends ShaderProgram {
     private rows: number;
     private columns: number;
     // TODO: Magic numbers
-    private borderOpacity = DEFAULT_MATRIX_GRID_OPACITY;
+    private borderOpacity = 1;
     private borderWidth = DEFAULT_MATRIX_GRID_WIDTH;
     private borderColor: HexString = "#ffffff";
     private bgOpacity = DEFAULT_MATRIX_BG_OPACITY;
-    private bgColor: HexString = "#000000";
+    private bgColor: HexString = "#123456";
 
     constructor(rows: number, columns: number) {
         super(vertex, fragment);
@@ -50,7 +49,8 @@ export class DrawMatrix extends ShaderProgram {
 
             if (program) {
                 gl.useProgram(program);
-                gl.clearColor(...hexToRgb(this.bgColor), this.bgOpacity);
+                console.log(hexToClampf(this.bgColor));
+                gl.clearColor(...hexToClampf(this.bgColor), this.bgOpacity);
                 gl.clear(gl.COLOR_BUFFER_BIT);
                 try {
                     const gridlines = generateGrid(this.rows, this.columns, this.borderWidth, playArea.width, playArea.height);
