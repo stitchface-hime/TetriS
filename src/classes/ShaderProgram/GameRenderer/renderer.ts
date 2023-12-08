@@ -91,6 +91,7 @@ export class GameRenderer extends ShaderProgram {
 
         if (gl) {
             this.entities.add(entity);
+            entity.setGameRenderer(this);
             entity.assignContextToRenderer(gl);
         } else {
             throw new Error("Failed to register entity, unable to obtain rendering context.");
@@ -146,15 +147,57 @@ export class GameRenderer extends ShaderProgram {
      * Renders the scene with the given entities, entities are drawn in order.
      * Entities at the front are drawn first.
      */
-    draw() {
+    async draw() {
         const gl = this.getRenderingContext();
         const program = this.program;
 
         if (gl && program) {
+            const renderToTexture = (fb: WebGLFramebuffer | null, sourceTexture: WebGLTexture | WebGLTexture[] | null, targetTexture: WebGLTexture | null) => {
+                gl.useProgram(program);
+
+                gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, targetTexture, 0);
+
+                gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
+
+                const positionLocation = gl.getAttribLocation(program, "a_position");
+                const texCoordLocation = gl.getAttribLocation(program, "a_textureCoord");
+                const resolutionLocation = gl.getUniformLocation(program, "u_resolution");
+
+                const positionBuffer = gl.createBuffer();
+                const texCoordBuffer = gl.createBuffer();
+
+                gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(getRectangleCoords(0, 0, canvas.width, canvas.height)), gl.STATIC_DRAW);
+
+                gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+                gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(getRectangleCoords(0, 0, 1, 1)), gl.STATIC_DRAW);
+
+                // enable arrays
+                gl.enableVertexAttribArray(positionLocation);
+                gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+                gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+                gl.enableVertexAttribArray(texCoordLocation);
+                gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+                gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, true, 0, 0);
+
+                gl.uniform2f(resolutionLocation, canvas.clientWidth, canvas.clientHeight);
+
+                if (sourceTexture) {
+                    const sourceTextures = !Array.isArray(sourceTexture) ? [sourceTexture] : sourceTexture;
+
+                    sourceTextures.forEach((texture) => {
+                        gl.bindTexture(gl.TEXTURE_2D, texture);
+                        gl.drawArrays(gl.TRIANGLES, 0, 6);
+                    });
+                }
+            };
+
             const canvas = gl.canvas as HTMLCanvasElement;
 
-            // [t0: texture to render to canvas, t1: texture containing sprite to render]
-            const baseTextures = [gl.createTexture(), gl.createTexture()] as const;
+            // [t0: texture to render to canvas, t1: texture containing sprite to render, t2: final texture]
+            const baseTextures = [gl.createTexture(), gl.createTexture(), gl.createTexture()] as const;
 
             baseTextures.forEach((_texture, idx) => {
                 gl.bindTexture(gl.TEXTURE_2D, baseTextures[idx]);
@@ -181,38 +224,29 @@ export class GameRenderer extends ShaderProgram {
             const fb = gl.createFramebuffer();
             gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
             const attachmentPoint = gl.COLOR_ATTACHMENT0;
-            gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, baseTextures[0], 0);
 
-            // debugging
-            let idx = 0;
+            const entityArray = Array.from(this.entities);
 
-            this.entities.forEach((entity) => {
-                if (idx === 0) {
-                    // Draw into texture 0
-                    idx++;
-                    console.log("Entity:", entity, this.entities);
-                    gl.bindTexture(gl.TEXTURE_2D, baseTextures[0]);
+            for (let i = 0; i < entityArray.length; i++) {
+                renderToTexture(fb, baseTextures[2], baseTextures[0]);
 
-                    gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
+                // render to texture 1
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, baseTextures[1], 0);
 
-                    entity.draw();
+                await entityArray[i].draw();
 
-                    let data = new Uint8Array(canvas.clientWidth * canvas.clientHeight * 4);
-                    gl.readPixels(0, 0, canvas.clientWidth, canvas.clientHeight, gl.RGBA, gl.UNSIGNED_BYTE, data);
-                    console.log("After draw:", data);
-                }
-            });
+                // render textures 0 and 1 into texture 2
+                renderToTexture(fb, [baseTextures[0], baseTextures[1]], baseTextures[2]);
+            }
 
             {
                 gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
                 gl.useProgram(program);
-                gl.bindTexture(gl.TEXTURE_2D, baseTextures[0]);
+                gl.bindTexture(gl.TEXTURE_2D, baseTextures[2]);
 
                 // clear main canvas
                 gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
-                gl.clearColor(0.8, 0.5, 0.8, 1); // clear to white
-                gl.clear(gl.COLOR_BUFFER_BIT);
 
                 const positionLocation = gl.getAttribLocation(program, "a_position");
                 const texCoordLocation = gl.getAttribLocation(program, "a_textureCoord");
@@ -227,7 +261,6 @@ export class GameRenderer extends ShaderProgram {
 
                 gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
                 gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(getRectangleCoords(0, 0, 1, 1)), gl.STATIC_DRAW);
-                console.log(getRectangleCoords(0, 0, 1, 1));
 
                 // enable arrays
                 gl.enableVertexAttribArray(positionLocation);
@@ -239,12 +272,26 @@ export class GameRenderer extends ShaderProgram {
                 gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, true, 0, 0);
 
                 gl.uniform2f(resolutionLocation, canvas.clientWidth, canvas.clientHeight);
-
                 gl.drawArrays(gl.TRIANGLES, 0, 6);
             }
             return;
         } else {
             throw new Error("Failed to render, no canvas was set.");
+        }
+    }
+
+    /**
+     * Loads the current contents of the framebuffer into an array and logs the bytes in the console.
+     * Can add a custom message with the debug log à la `console.log`.
+     */
+    private debugTexture(message?: any, ...other: any[]) {
+        const gl = this.getRenderingContext();
+        if (gl) {
+            const canvas = gl.canvas as HTMLCanvasElement;
+
+            let data = new Uint8Array(canvas.clientWidth * canvas.clientHeight * 4);
+            gl.readPixels(0, 0, canvas.clientWidth, canvas.clientHeight, gl.RGBA, gl.UNSIGNED_BYTE, data);
+            console.log(message, ...other, data);
         }
     }
 }

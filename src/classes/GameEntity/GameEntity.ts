@@ -96,7 +96,7 @@ class GameEntityTransform {
      */
     scaleToWidthHeight(dimensions: [width: number, height: number]) {
         if (this.defaultDimensions[0] !== 0 && this.defaultDimensions[1] !== 0) {
-            this.setScale(product2DVectorTuples(this.scale, product2DVectorTuples(dimensions, [1 / this.defaultDimensions[0], 1 / this.defaultDimensions[1]])));
+            this.setScale(product2DVectorTuples(dimensions, [1 / this.defaultDimensions[0], 1 / this.defaultDimensions[1]]));
         }
     }
 
@@ -286,5 +286,5 @@ export abstract class GameEntity extends GameEntityTransform {
     /**
      * Draws the game entity's sprite if provided.
      */
-    abstract draw(): void;
+    abstract draw(): Promise<void>;
 }

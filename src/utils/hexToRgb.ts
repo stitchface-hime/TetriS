@@ -6,8 +6,6 @@ import { HexString } from "src/shaders/types";
 export const hexToRgb = (hex: HexString): [r: number, g: number, b: number] => {
     const components = [hex.substring(1, 3), hex.substring(3, 5), hex.substring(5, 7)];
 
-    console.log(components, hex);
-
     const result = components.map((component) => Number(`0x${component}`)) as [r: number, g: number, b: number];
 
     if (result.findIndex((component) => Number.isNaN(component)) !== -1) {

@@ -58,16 +58,15 @@ export const GameCanvas = ({ game }: { game: Game }) => {
         ); */
 
         game.getRenderer().draw();
-        console.log("Finish");
     };
 
     return (
-        <>
-            <canvas className={classes.scene} ref={canvasRef} />{" "}
+        <div className={classes.canvasContainer}>
+            <canvas className={classes.scene} ref={canvasRef} /> <div className={classes.text}>Canvas</div>
             {/* <button onClick={set}>Set rederer</button>{" "}
             <button onClick={draw}>Draw</button>
             <button onClick={loadSheet}>Load sheet</button> */}
             <button onClick={drawSprite}>Draw sprite</button>
-        </>
+        </div>
     );
 };

@@ -1,9 +1,9 @@
 import { GameEntity } from "@classes/GameEntity/GameEntity";
-import { GameRenderer } from "@classes/ShaderProgram/GameRenderer";
 import { Block, Piece } from "@classes/Piece";
 import { DrawMatrix } from "@classes/ShaderProgram";
 import { isEqual2DVectorTuples } from "@utils/index";
-import { MATRIX_BUFFER_ZONE_RATIO } from "src/constants";
+import { DEFAULT_MATRIX_BG_OPACITY, DEFAULT_MATRIX_GRID_WIDTH, MATRIX_BUFFER_ZONE_RATIO } from "src/constants";
+import { HexString } from "src/shaders/types";
 
 export class Matrix extends GameEntity {
     private blocks: Block[] = [];
@@ -27,14 +27,22 @@ export class Matrix extends GameEntity {
      * When constructing the matrix, the matrix will have twice the number of rows
      * you specify to account for blocks above the visible part of the matrix.
      */
-    constructor(numRows: number, numColumns: number) {
+    constructor(
+        numRows: number,
+        numColumns: number,
+        borderOpacity = 1,
+        borderWidth = DEFAULT_MATRIX_GRID_WIDTH,
+        borderColor: HexString = "#ff00ff",
+        bgOpacity = DEFAULT_MATRIX_BG_OPACITY,
+        bgColor: HexString = "#123456"
+    ) {
         super();
         this.numRows = numRows * 2;
         this.numVisibleRows = numRows;
         this.numColumns = numColumns;
         this.numCellsOccupied = 0;
 
-        this.renderer = new DrawMatrix(this.numVisibleRows, this.numColumns);
+        this.renderer = new DrawMatrix(this.numVisibleRows, this.numColumns, borderOpacity, borderWidth, borderColor, bgOpacity, bgColor);
         this.activePiece = null;
     }
 
@@ -54,7 +62,7 @@ export class Matrix extends GameEntity {
      * Sets the play area of the matrix, the game renderer must be set before calling this.
      * Also updates the dimensions of this entity.
      */
-    private updatePlayArea() {
+    updatePlayArea() {
         const canvas = this.gameRenderer?.getCanvas();
 
         if (canvas) {
@@ -380,7 +388,7 @@ export class Matrix extends GameEntity {
         console.log("\n");
     }
 
-    draw() {
+    async draw() {
         this.updatePlayArea();
         this.renderer.draw();
     }

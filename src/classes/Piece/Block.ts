@@ -50,6 +50,8 @@ export class Block extends GameEntity {
         this.associatedPiece = undefined;
         this.connections = 0;
 
+        this.renderer = new DrawSprite();
+
         this.updateCoordinates(this.activeCoordinates);
     }
 
@@ -162,7 +164,10 @@ export class Block extends GameEntity {
             const matrixColumns = this.matrix.getNumColumns();
 
             // Move the entity
-            this.setPosition([this.activeCoordinates[0] * (playArea.width / matrixColumns), this.activeCoordinates[1] * (playArea.height / matrixRows)]);
+            this.setPosition([
+                Math.trunc(this.activeCoordinates[0] * (playArea.width / matrixColumns)),
+                Math.trunc(this.activeCoordinates[1] * (playArea.height / matrixRows)),
+            ]);
         }
     }
 
@@ -314,13 +319,11 @@ export class Block extends GameEntity {
     }
 
     async draw() {
-        console.log("Draw", this.gameRenderer, this.activeSpriteSheetData);
         this.updateSpriteScale();
         if (this.gameRenderer && this.activeSpriteSheetData) {
             const sheet = await this.gameRenderer.load(this.activeSpriteSheetData);
 
             if (this.activeSpriteQuadCoords) {
-                console.log("Draw");
                 this.renderer?.drawSprite(
                     {
                         anchor: this.position,

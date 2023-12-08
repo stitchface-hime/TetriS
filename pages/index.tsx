@@ -9,24 +9,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { GameCanvas } from "src/components/GameCanvas";
 
 const showConnections = false;
-const connectionChar = [
-    "•",
-    "╴",
-    "╷",
-    "┐",
-    "╶",
-    "─",
-    "┌",
-    "┬",
-    "╵",
-    "┘",
-    "│",
-    "┤",
-    "└",
-    "┴",
-    "└",
-    "┼",
-];
+const connectionChar = ["•", "╴", "╷", "┐", "╶", "─", "┌", "┬", "╵", "┘", "│", "┤", "└", "┴", "└", "┼"];
 
 const getBlockColor = (game: Game | null, block: Block | null) => {
     if (block) {
@@ -37,18 +20,10 @@ const getBlockColor = (game: Game | null, block: Block | null) => {
 };
 
 const getChar = (block: Block | null) => {
-    return block
-        ? showConnections
-            ? connectionChar[block.getConnections()]
-            : "◼"
-        : "◻";
+    return block ? (showConnections ? connectionChar[block.getConnections()] : "◼") : "◻";
 };
 
-const generateBlock = (
-    cell: [number, number],
-    game: Game | null,
-    block: Block | null
-) => {
+const generateBlock = (cell: [number, number], game: Game | null, block: Block | null) => {
     return (
         <td
             key={`cell-${cell[1]}-${cell[0]}`}
@@ -89,9 +64,7 @@ const gameSetup = (game: Game) => {
 const getTime = (timer: Stopwatch) => {
     const data = timer.getRunTimeData();
 
-    return `${data.minutes.toString().padStart(2, "0")}:${data.seconds
-        .toString()
-        .padStart(2, "0")}.${data.milliseconds.toString().padStart(3, "0")}`;
+    return `${data.minutes.toString().padStart(2, "0")}:${data.seconds.toString().padStart(2, "0")}.${data.milliseconds.toString().padStart(3, "0")}`;
 };
 
 const App: React.FC = () => {
@@ -100,6 +73,7 @@ const App: React.FC = () => {
     // const timer = useRef(new Stopwatch());
 
     const gameInstance = useRef<Game | null>(null);
+    const [revealTable, setRevealTable] = useState(false);
 
     // Re-render once every frame.
     const tick = useCallback(() => {
@@ -173,28 +147,16 @@ const App: React.FC = () => {
 
     if (gameInstance.current) {
         const game = gameInstance.current;
-        const {
-            level,
-            gravity,
-            autoDrop,
-            autoDropFrameTarget,
-            lockDelay,
-            groundedMoves,
-            blocks,
-            linesCleared,
-            holdPieceId,
-            canHold,
-        } = game.debugDetails();
+        const { level, gravity, autoDrop, autoDropFrameTarget, lockDelay, groundedMoves, blocks, linesCleared, holdPieceId, canHold } = game.debugDetails();
 
         const ghostCoordinates = game.getGhostPieceCoordinates();
         return (
             <div style={{ fontFamily: "monospace" }}>
-                <table>
-                    <tbody>
-                        {[...new Array(game.getNumVisibleRows() + 1)].map(
-                            (_, rowIdx) => {
-                                const rowNo =
-                                    game.getNumVisibleRows() + 1 - rowIdx - 1;
+                {revealTable ? (
+                    <table>
+                        <tbody>
+                            {[...new Array(game.getNumVisibleRows() + 1)].map((_, rowIdx) => {
+                                const rowNo = game.getNumVisibleRows() + 1 - rowIdx - 1;
                                 return (
                                     <tr
                                         key={`row-${rowNo}`}
@@ -202,65 +164,33 @@ const App: React.FC = () => {
                                             lineHeight: "0.75rem",
                                         }}
                                     >
-                                        {[
-                                            ...new Array(
-                                                game.getMatrix().getNumColumns()
-                                            ),
-                                        ].map((_, colIdx) => {
-                                            const coords: [number, number] = [
-                                                colIdx,
-                                                rowNo,
-                                            ];
-                                            let block =
-                                                game
-                                                    .getMatrix()
-                                                    .getBlock(coords) || null;
+                                        {[...new Array(game.getMatrix().getNumColumns())].map((_, colIdx) => {
+                                            const coords: [number, number] = [colIdx, rowNo];
+                                            let block = game.getMatrix().getBlock(coords) || null;
 
                                             if (!block) {
                                                 block =
                                                     game
                                                         .getActivePiece()
                                                         ?.getBlocks()
-                                                        .find((block) =>
-                                                            isEqual2DVectorTuples(
-                                                                block.getActiveCoordinates(),
-                                                                coords
-                                                            )
-                                                        ) || null;
+                                                        .find((block) => isEqual2DVectorTuples(block.getActiveCoordinates(), coords)) || null;
                                             }
 
                                             if (!block) {
-                                                block = ghostCoordinates?.find(
-                                                    (ghostCoords) =>
-                                                        isEqual2DVectorTuples(
-                                                            coords,
-                                                            ghostCoords
-                                                        )
-                                                )
-                                                    ? new Block(
-                                                          coords,
-                                                          game.getMatrix(),
-                                                          `${game
-                                                              .getActivePiece()
-                                                              ?.getBlocks()[0]
-                                                              .getColor()}80`
-                                                      )
+                                                block = ghostCoordinates?.find((ghostCoords) => isEqual2DVectorTuples(coords, ghostCoords))
+                                                    ? new Block(coords, game.getMatrix(), `${game.getActivePiece()?.getBlocks()[0].getColor()}80`)
                                                     : null;
                                             }
 
-                                            return generateBlock(
-                                                [colIdx, rowIdx],
-                                                game,
-                                                block
-                                            );
+                                            return generateBlock([colIdx, rowIdx], game, block);
                                         })}
                                         {rowNo}
                                     </tr>
                                 );
-                            }
-                        )}
-                    </tbody>
-                </table>
+                            })}
+                        </tbody>
+                    </table>
+                ) : null}
                 <div>
                     <div>Level {level}</div>
                     <div>Lines: {linesCleared}</div>
@@ -275,12 +205,10 @@ const App: React.FC = () => {
                     <div>Hold: {holdPieceId}</div>
                     <div>Can hold: {`${canHold}`}</div>
                 </div>
+                <button onClick={() => setRevealTable((prev) => !prev)}>Reveal playfield as table</button>
                 <button
                     onClick={() => {
-                        console.log(
-                            "Blocks in game:",
-                            game.getMatrix().getBlocks()
-                        );
+                        console.log("Blocks in game:", game.getMatrix().getBlocks());
                     }}
                 >
                     Get blocks

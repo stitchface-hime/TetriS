@@ -112,7 +112,7 @@ export class Game {
                 }
             }
         }
-        // this.renderer.renderScene();
+        this.renderer.draw();
     }
 
     private resetGroundedState() {
