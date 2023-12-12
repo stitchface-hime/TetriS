@@ -13,3 +13,4 @@ export { product2DVectorTuples } from "./product2DVectorTuples";
 export { setAttributeData } from "./setAttributeData";
 export { setUniformData } from "./setUniformData";
 export { randomizeArray } from "./randomizeArray";
+export { warnIfNotInteger } from "./warnIfNotInteger";

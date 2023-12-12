@@ -6,34 +6,37 @@ import { getRectangleCoords, hexToClampf, hexToRgb } from "@utils/index";
 import { DEFAULT_MATRIX_GRID_WIDTH, DEFAULT_MATRIX_GRID_OPACITY, MATRIX_BUFFER_ZONE_RATIO, DEFAULT_MATRIX_BG_OPACITY } from "src/constants";
 import { HexString } from "src/shaders/types";
 import { generateGrid } from "./data";
+import { Matrix } from "@classes/Matrix";
 
+interface RenderMatrixConfig {
+    borderOpacity: number;
+    borderWidth: number;
+    borderColor: HexString;
+    bgOpacity: number;
+    bgColor: HexString;
+}
 export class DrawMatrix extends ShaderProgram {
-    /**
-     * Number of visible rows in the matrix.
-     */
-    private rows: number;
-    private columns: number;
-    // TODO: Magic numbers
-    private borderOpacity = 1;
-    private borderWidth = DEFAULT_MATRIX_GRID_WIDTH;
-    private borderColor: HexString = "#ff00ff";
-    private bgOpacity = DEFAULT_MATRIX_BG_OPACITY;
-    private bgColor: HexString = "#123456";
+    private matrix: Matrix;
 
-    constructor(rows: number, columns: number, borderOpacity: number, borderWidth: number, borderColor: HexString, bgOpacity: number, bgColor: HexString) {
+    private config: RenderMatrixConfig = {
+        borderOpacity: 1,
+        borderWidth: DEFAULT_MATRIX_GRID_WIDTH,
+        borderColor: "#ffffff",
+        bgOpacity: DEFAULT_MATRIX_BG_OPACITY,
+        bgColor: "#123456",
+    };
+
+    constructor(matrix: Matrix, config?: RenderMatrixConfig) {
         super(vertex, fragment);
-        this.rows = rows;
-        this.columns = columns;
-
-        this.borderOpacity = borderOpacity;
-        this.borderWidth = borderWidth;
-        this.borderColor = borderColor;
-        this.bgOpacity = bgOpacity;
-        this.bgColor = bgColor;
+        this.matrix = matrix;
+        this.config = {
+            ...this.config,
+            ...config,
+        };
     }
 
     getBorderWidth() {
-        return this.borderWidth;
+        return this.config.borderWidth;
     }
 
     draw() {
@@ -41,13 +44,7 @@ export class DrawMatrix extends ShaderProgram {
         if (gl) {
             const program = this.program;
             const canvas = gl.canvas as HTMLCanvasElement;
-            const playArea = {
-                width: canvas.clientWidth,
-                // height of matrix minus the buffer area above the rows
-                height: canvas.clientHeight * (1 - MATRIX_BUFFER_ZONE_RATIO),
-                // height of matrix including the buffer zone
-                trueHeight: canvas.clientHeight,
-            };
+            const playArea = this.matrix.getPlayArea();
 
             // set viewport
             this.resizeCanvas();
@@ -57,7 +54,14 @@ export class DrawMatrix extends ShaderProgram {
                 gl.useProgram(program);
                 try {
                     const matrixBg = getRectangleCoords(0, 0, canvas.clientWidth, canvas.clientHeight);
-                    const gridlines = generateGrid(this.rows, this.columns, this.borderWidth, playArea.width, playArea.height);
+                    // gridlines generated overflow
+                    const gridlines = generateGrid(
+                        this.matrix.getNumVisibleRows(),
+                        this.matrix.getNumColumns(),
+                        this.config.borderWidth,
+                        playArea.width,
+                        playArea.height
+                    );
 
                     const positionLocation = gl.getAttribLocation(program, "a_position");
                     const colorLocation = gl.getAttribLocation(program, "a_gridColor");
@@ -70,7 +74,11 @@ export class DrawMatrix extends ShaderProgram {
                     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
                     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(matrixBg), gl.STATIC_DRAW);
                     gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-                    gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(new Array(6).fill([...hexToRgb(this.bgColor), this.bgOpacity * 255]).flat()), gl.STATIC_DRAW);
+                    gl.bufferData(
+                        gl.ARRAY_BUFFER,
+                        new Uint8Array(new Array(6).fill([...hexToRgb(this.config.bgColor), this.config.bgOpacity * 255]).flat()),
+                        gl.STATIC_DRAW
+                    );
 
                     gl.enableVertexAttribArray(positionLocation);
                     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
@@ -92,7 +100,7 @@ export class DrawMatrix extends ShaderProgram {
                         gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
                         gl.bufferData(
                             gl.ARRAY_BUFFER,
-                            new Uint8Array(new Array(6).fill([...hexToRgb(this.borderColor), this.borderOpacity * 255]).flat()),
+                            new Uint8Array(new Array(6).fill([...hexToRgb(this.config.borderColor), this.config.borderOpacity * 255]).flat()),
                             gl.STATIC_DRAW
                         );
 
@@ -118,10 +126,10 @@ export class DrawMatrix extends ShaderProgram {
     }
 
     setOpacity(opacity: number) {
-        this.borderOpacity = opacity;
+        this.config.borderOpacity = opacity;
     }
 
     setColor(color: HexString) {
-        this.bgColor = color;
+        this.config.bgColor = color;
     }
 }

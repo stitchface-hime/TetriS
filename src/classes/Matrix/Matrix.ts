@@ -1,9 +1,8 @@
 import { GameEntity } from "@classes/GameEntity/GameEntity";
 import { Block, Piece } from "@classes/Piece";
 import { DrawMatrix } from "@classes/ShaderProgram";
-import { isEqual2DVectorTuples } from "@utils/index";
-import { DEFAULT_MATRIX_BG_OPACITY, DEFAULT_MATRIX_GRID_WIDTH, MATRIX_BUFFER_ZONE_RATIO } from "src/constants";
-import { HexString } from "src/shaders/types";
+import { SpriteSheets } from "@data/SpriteSheets";
+import { isEqual2DVectorTuples, warnIfNotInteger } from "@utils/index";
 
 export class Matrix extends GameEntity {
     private blocks: Block[] = [];
@@ -19,7 +18,10 @@ export class Matrix extends GameEntity {
      * The play area of the game. This is the area in the scene
      * where gridlines will be rendered.
      */
-    private playArea: { width: number; height: number } | null = null;
+    private playArea: { width: number; height: number } = {
+        width: 0,
+        height: 0,
+    };
 
     protected renderer: DrawMatrix;
 
@@ -27,22 +29,14 @@ export class Matrix extends GameEntity {
      * When constructing the matrix, the matrix will have twice the number of rows
      * you specify to account for blocks above the visible part of the matrix.
      */
-    constructor(
-        numRows: number,
-        numColumns: number,
-        borderOpacity = 1,
-        borderWidth = DEFAULT_MATRIX_GRID_WIDTH,
-        borderColor: HexString = "#ff00ff",
-        bgOpacity = DEFAULT_MATRIX_BG_OPACITY,
-        bgColor: HexString = "#123456"
-    ) {
+    constructor(numRows: number, numColumns: number, renderer?: DrawMatrix) {
         super();
         this.numRows = numRows * 2;
         this.numVisibleRows = numRows;
         this.numColumns = numColumns;
         this.numCellsOccupied = 0;
 
-        this.renderer = new DrawMatrix(this.numVisibleRows, this.numColumns, borderOpacity, borderWidth, borderColor, bgOpacity, bgColor);
+        this.renderer = renderer || new DrawMatrix(this);
         this.activePiece = null;
     }
 
@@ -67,9 +61,9 @@ export class Matrix extends GameEntity {
 
         if (canvas) {
             this.playArea = {
-                width: canvas.clientWidth,
+                width: warnIfNotInteger(SpriteSheets.STANDARD_MINO.spriteSize.width * this.numColumns),
                 // height of matrix minus the buffer area above the rows
-                height: canvas.clientHeight * (1 - MATRIX_BUFFER_ZONE_RATIO),
+                height: warnIfNotInteger(SpriteSheets.STANDARD_MINO.spriteSize.height * this.numVisibleRows),
             };
 
             this.updateDimensions();
