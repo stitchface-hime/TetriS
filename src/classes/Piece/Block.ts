@@ -34,9 +34,9 @@ export class Block extends GameEntity {
      */
     private associatedPiece: Piece | undefined;
 
-    protected renderer: DrawSprite = new DrawSprite();
+    protected renderer: DrawSprite;
 
-    constructor(globalCoordinates: [x: number, y: number], matrix: Matrix, color: string = "", coupledBlocks: Block[] = []) {
+    constructor(globalCoordinates: [x: number, y: number], matrix: Matrix, renderer: DrawSprite, color: string = "", coupledBlocks: Block[] = []) {
         super({ spriteSheetDatas: [SpriteSheets.STANDARD_MINO] });
         this.setActiveSpriteSheetData(SpriteSheets.STANDARD_MINO.id);
 
@@ -50,7 +50,7 @@ export class Block extends GameEntity {
         this.associatedPiece = undefined;
         this.connections = 0;
 
-        this.renderer = new DrawSprite();
+        this.renderer = renderer;
 
         this.updateCoordinates(this.activeCoordinates);
     }

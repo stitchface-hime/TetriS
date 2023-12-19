@@ -39,8 +39,8 @@ interface DrawArgs {
 }
 
 export class DrawSprite extends ShaderProgram {
-    constructor() {
-        super(vertex, fragment);
+    constructor(gl: WebGLRenderingContext) {
+        super(vertex, fragment, gl);
     }
 
     drawSprite(drawData: DrawData, sheet: SpriteSheet) {

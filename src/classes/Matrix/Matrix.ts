@@ -1,6 +1,6 @@
 import { GameEntity } from "@classes/GameEntity/GameEntity";
 import { Block, Piece } from "@classes/Piece";
-import { DrawMatrix } from "@classes/ShaderProgram";
+import { DrawMatrix, DrawSprite } from "@classes/ShaderProgram";
 import { SpriteSheets } from "@data/SpriteSheets";
 import { isEqual2DVectorTuples, warnIfNotInteger } from "@utils/index";
 
@@ -29,19 +29,21 @@ export class Matrix extends GameEntity {
      * When constructing the matrix, the matrix will have twice the number of rows
      * you specify to account for blocks above the visible part of the matrix.
      */
-    constructor(numRows: number, numColumns: number, renderer?: DrawMatrix) {
+    constructor(numRows: number, numColumns: number, renderer: DrawMatrix) {
         super();
         this.numRows = numRows * 2;
         this.numVisibleRows = numRows;
         this.numColumns = numColumns;
         this.numCellsOccupied = 0;
 
-        this.renderer = renderer || new DrawMatrix(this);
+        this.renderer = renderer;
+        this.renderer.setMatrix(this);
+
         this.activePiece = null;
     }
 
     private updateDimensions() {
-        const canvas = this.gameRenderer?.getCanvas();
+        const canvas = this.renderer.getWebGLRenderingContext().canvas as HTMLCanvasElement;
 
         if (canvas) {
             this.setDefaultDimensions([canvas.clientWidth, canvas.clientHeight]);
@@ -57,7 +59,7 @@ export class Matrix extends GameEntity {
      * Also updates the dimensions of this entity.
      */
     updatePlayArea() {
-        const canvas = this.gameRenderer?.getCanvas();
+        const canvas = this.renderer.getWebGLRenderingContext().canvas as HTMLCanvasElement;
 
         if (canvas) {
             this.playArea = {
@@ -282,7 +284,7 @@ export class Matrix extends GameEntity {
      */
     addBlocksByCoordinates(coordinatesList: [x: number, y: number][]) {
         coordinatesList.forEach((coordinates) => {
-            this.addBlock(new Block(coordinates, this));
+            this.addBlock(new Block(coordinates, this, new DrawSprite(this.renderer.getWebGLRenderingContext())));
             this.numCellsOccupied += 1;
         });
     }
@@ -306,7 +308,7 @@ export class Matrix extends GameEntity {
 
         setRows.forEach((row) => {
             for (let col = 0; col < this.numColumns; col++) {
-                this.addBlock(new Block(this.translateToXY([row, col]), this));
+                this.addBlock(new Block(this.translateToXY([row, col]), this, new DrawSprite(this.renderer.getWebGLRenderingContext())));
             }
         });
     }

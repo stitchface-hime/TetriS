@@ -124,5 +124,5 @@ export abstract class DrawableEntity {
     /**
      * Draws the game entity's sprite if provided.
      */
-    abstract draw(): Promise<void>;
+    abstract draw(gl: WebGLRenderingContext): Promise<void>;
 }

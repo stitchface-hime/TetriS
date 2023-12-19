@@ -4,8 +4,9 @@
 }
 
 .scene {
-    height: calc(80vh + 20vh);
-    width: calc(80vh / 2);
+    height: 100vh;
+    width: 100vw;
+    background-color: bisque;
     
 }
 

@@ -37,8 +37,6 @@ export abstract class GameEntity extends DrawableEntity {
 
     protected activeSpriteQuadCoords: number[] | null = null;
 
-    protected gameRenderer: GameRenderer | null = null;
-
     /* protected animationCycles: Record<string, number[]> = {};
 
     protected animation: SpriteAnimation | null = {}; */
@@ -64,10 +62,6 @@ export abstract class GameEntity extends DrawableEntity {
         } else {
             throw new Error("Could not set assign context to renderer. Did you forget to set a renderer for this entity?");
         }
-    }
-
-    setGameRenderer(renderer: GameRenderer) {
-        this.gameRenderer = renderer;
     }
 
     getActiveSpriteQuadCoords() {

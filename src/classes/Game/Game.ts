@@ -8,9 +8,11 @@ import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
 import { PieceId } from "@data/index";
 import { GameIntervalKeys } from "./GameIntervalKeys";
 import { GameOverCode } from "./GameOverCode";
-import { GameRenderer } from "@classes/ShaderProgram/GameRenderer";
+import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
+import { GroupRenderer } from "@classes/ShaderProgram/GroupRenderer";
+import { DrawMatrix } from "@classes/ShaderProgram";
 
-export class Game {
+export class Game extends GroupEntity {
     private numRows: number;
     private numColumns: number;
 
@@ -58,32 +60,28 @@ export class Game {
     private gamePaused = false;
     private gameOver = false;
 
-    private renderer = new GameRenderer();
+    protected renderer: GroupRenderer;
 
-    constructor(numRows: number, numColumns: number, pieceQueue: PieceQueue, spawnCoordinates: [x: number, y: number]) {
+    constructor(numRows: number, numColumns: number, pieceQueue: PieceQueue, spawnCoordinates: [x: number, y: number], renderer: GroupRenderer) {
+        super(renderer);
         this.pieceFactory = new PieceFactory();
         this.numRows = numRows;
         this.numColumns = numColumns;
+        this.renderer = renderer;
 
-        this.matrix = new Matrix(numRows, numColumns);
-        this.matrix.setGameRenderer(this.renderer);
+        this.matrix = new Matrix(numRows, numColumns, new DrawMatrix(this.renderer.getWebGLRenderingContext()));
+        // not ideal - probably don't want group entity as the renderer for a game anymore... unless we want ui to also appear in the screen?
+        renderer.setEntitiesRef(new Set([this.matrix]));
 
         this.nextQueue = pieceQueue;
         this.spawnCoordinates = spawnCoordinates;
     }
 
-    setCanvas(canvas: HTMLCanvasElement) {
-        // Could be reworked setting play area here seems lke it doesn't belong here
-        this.renderer.setCanvas(canvas);
-
-        this.matrix.updatePlayArea();
-
-        this.renderer.registerEntity(this.matrix);
-    }
-
     /* Game flow methods */
 
-    run() {
+    run(gl: WebGLRenderingContext) {
+        this.renderer.setWebGLRenderingContext(gl);
+
         // TODO: This is still testing
         if (!this.intervalManager.getInterval(GameIntervalKeys.RUN)) {
             this.intervalManager.subscribe(
@@ -92,7 +90,7 @@ export class Game {
                     1000 / 60,
                     () => {
                         // this.rerender();
-                        this.tick();
+                        this.tick(gl);
                     },
                     Infinity
                 )
@@ -100,10 +98,14 @@ export class Game {
         }
     }
 
+    halt() {
+        this.intervalManager.unsubscribe(GameIntervalKeys.RUN);
+    }
+
     /**
      * Ticks the game and decides what happens in the given frame.
      */
-    tick() {
+    tick(gl: WebGLRenderingContext) {
         if (!this.gameOver) {
             if (!this.activePiece) {
                 const spawnSuccessful = this.spawnNextPiece();
@@ -245,7 +247,7 @@ export class Game {
             if (spawnedPiece) {
                 // Register block entities
                 // TODO: Disable register Block entities
-                this.renderer.registerEntities(spawnedPiece.getBlocks());
+                this.addMultiple(spawnedPiece.getBlocks());
 
                 // Does the spawned piece overlap with any blocks in the matrix?
                 const pieceDoesNotOverlap = spawnedPiece.getBlocksCoordinates().reduce(
@@ -384,7 +386,7 @@ export class Game {
      * Clears a line from the matrix at a given row.
      */
     private clearLine(row: number) {
-        this.renderer.unregisterEntities(this.matrix.clearRows(row));
+        this.removeMultiple(this.matrix.clearRows(row));
 
         this.matrix.shiftRowsDown(row, 1);
         this.linesCleared++;
@@ -474,7 +476,7 @@ export class Game {
     hold() {
         if (this.canHold && this.activePiece !== null) {
             // take blocks out of play
-            this.renderer.unregisterEntities(this.activePiece.getBlocks());
+            this.addMultiple(this.activePiece.getBlocks());
 
             if (this.holdPieceId === null) {
                 // when hold piece is null, hold current piece and spawn a new piece

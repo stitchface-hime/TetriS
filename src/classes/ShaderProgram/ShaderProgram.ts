@@ -8,18 +8,16 @@ export abstract class ShaderProgram {
     private vertexShader: WebGLShader | null = null;
     private fragmentShader: WebGLShader | null = null;
 
-    protected gl: WebGLRenderingContext | null = null;
+    protected gl: WebGLRenderingContext;
     protected program: WebGLProgram | null = null;
 
-    constructor(vertexSrc: string, fragmentSrc: string, gl: WebGLRenderingContext | null = null, autoBuild = true) {
+    constructor(vertexSrc: string, fragmentSrc: string, gl: WebGLRenderingContext, autoBuild = true) {
         this.vertexSrc = vertexSrc;
         this.fragmentSrc = fragmentSrc;
-
-        if (gl) {
-            this.gl = gl;
-        }
+        this.gl = gl;
 
         if (autoBuild && gl) {
+            console.log("Build");
             this.build();
         }
     }
@@ -37,6 +35,7 @@ export abstract class ShaderProgram {
     }
 
     private compileShader(src: string, type: WebGLRenderingContext["FRAGMENT_SHADER"] | WebGLRenderingContext["VERTEX_SHADER"]) {
+        console.log("In here,", this.gl);
         if (this.gl) {
             const shader = this.gl.createShader(type);
             if (shader) {

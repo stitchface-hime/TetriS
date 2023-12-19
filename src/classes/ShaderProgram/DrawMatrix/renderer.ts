@@ -16,7 +16,7 @@ interface RenderMatrixConfig {
     bgColor: HexString;
 }
 export class DrawMatrix extends ShaderProgram {
-    private matrix: Matrix;
+    private matrix: Matrix | null = null;
 
     private config: RenderMatrixConfig = {
         borderOpacity: 1,
@@ -26,13 +26,16 @@ export class DrawMatrix extends ShaderProgram {
         bgColor: "#123456",
     };
 
-    constructor(matrix: Matrix, config?: RenderMatrixConfig) {
-        super(vertex, fragment);
-        this.matrix = matrix;
+    constructor(gl: WebGLRenderingContext, config?: RenderMatrixConfig) {
+        super(vertex, fragment, gl);
         this.config = {
             ...this.config,
             ...config,
         };
+    }
+
+    setMatrix(matrix: Matrix) {
+        this.matrix = matrix;
     }
 
     getBorderWidth() {
@@ -41,7 +44,8 @@ export class DrawMatrix extends ShaderProgram {
 
     draw() {
         const gl = this.gl;
-        if (gl) {
+
+        if (gl && this.matrix) {
             const program = this.program;
             const canvas = gl.canvas as HTMLCanvasElement;
             const playArea = this.matrix.getPlayArea();

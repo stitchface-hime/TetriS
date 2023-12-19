@@ -3,11 +3,11 @@ import { GameRenderer } from "@classes/ShaderProgram";
 import { GroupRenderer } from "@classes/ShaderProgram/GroupRenderer";
 
 export class GroupEntity extends DrawableEntity {
-    private entities: Set<DrawableEntity> = new Set();
+    protected entities: Set<DrawableEntity> = new Set();
 
-    constructor() {
+    constructor(renderer: GroupRenderer) {
         super();
-        this.renderer = new GroupRenderer(this.entities);
+        this.renderer = renderer;
     }
 
     add(entity: DrawableEntity) {
