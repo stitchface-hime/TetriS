@@ -37,13 +37,13 @@ export interface ShaderAttributeData<T> {
     data: T[];
 }
 
-export type ShaderAttributeDataRecord = Record<
-    string,
-    ShaderAttributeData<number>
->;
+export type ShaderAttributeDataRecord = Record<string, ShaderAttributeData<number>>;
 
 export type ShaderUniformDataRecord = Record<string, number[]>;
 
+/**
+ * Details of the sprite sheet that you want to load.
+ */
 export interface SpriteSheetDetails {
     id: string;
     src: string;

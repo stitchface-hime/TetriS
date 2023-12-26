@@ -1,4 +1,4 @@
-import { GameEntity } from "@classes/GameEntity";
+import { SpritedEntity } from "@classes/SpritedEntity";
 import { ShaderProgram } from "@classes/ShaderProgram/ShaderProgram";
 import { getRectangleCoords } from "@utils/getRectangleCoords";
 import { SpriteSheet, SpriteSheetDetails } from "src/shaders/types";
@@ -8,7 +8,7 @@ import { fragment } from "./fragment";
 export class GameRenderer extends ShaderProgram {
     private spriteSheets: Record<string, SpriteSheet> = {};
 
-    private entities: Set<GameEntity> = new Set();
+    private entities: Set<SpritedEntity> = new Set();
     private canvas: HTMLCanvasElement | null = null;
 
     constructor() {
@@ -86,7 +86,7 @@ export class GameRenderer extends ShaderProgram {
      * Registers an entity within the game. Does nothing if you register
      * an entity with the same reference more than once.
      */
-    registerEntity(entity: GameEntity) {
+    registerEntity(entity: SpritedEntity) {
         const gl = this.canvas?.getContext("webgl");
 
         if (gl) {
@@ -102,7 +102,7 @@ export class GameRenderer extends ShaderProgram {
     /**
      * Register multiple entities.
      */
-    registerEntities(entities: GameEntity[]) {
+    registerEntities(entities: SpritedEntity[]) {
         entities.forEach((entity) => {
             this.registerEntity(entity);
         });
@@ -112,7 +112,7 @@ export class GameRenderer extends ShaderProgram {
      * Unregisters an entity from the game using its own reference.
      * Returns true if successfully found and removed, false if it doesn't exist.
      */
-    unregisterEntity(entity: GameEntity) {
+    unregisterEntity(entity: SpritedEntity) {
         const deleted = this.entities.delete(entity);
         return deleted;
 
@@ -122,7 +122,7 @@ export class GameRenderer extends ShaderProgram {
     /**
      * Unregisters multiple entities.
      */
-    unregisterEntities(entities: GameEntity[]) {
+    unregisterEntities(entities: SpritedEntity[]) {
         entities.forEach((entity) => this.unregisterEntity(entity));
     }
 

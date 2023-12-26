@@ -1,3 +1,4 @@
+import { Matrix } from "@classes/Matrix";
 import { PieceId } from "../../data/PieceId";
 import { Block } from "./Block";
 import {
@@ -7,6 +8,9 @@ import {
     WallKickPositionOffsetTestData,
     type RotationPositionAdjustMap,
 } from "./Piece.types";
+import { HexString } from "src/shaders/types";
+import { DrawSprite } from "@classes/ShaderProgram";
+import { drawSprite } from "src/shaders/drawSprite/renderer";
 
 export abstract class Piece {
     protected blocks: Block[];
@@ -15,20 +19,22 @@ export abstract class Piece {
      * 0 is the the initial rotation.
      */
     protected rotationState: 0 | 1 | 2 | 3;
-    protected static id: PieceId | null = null;
+    protected id: PieceId | null = null;
+    protected color: HexString;
     protected readonly clockwiseRotationMap: RotationPositionAdjustMap;
     protected readonly antiClockwiseRotationMap: RotationPositionAdjustMap;
     protected readonly clockwiseWallKickOffsetData: WallKickPositionOffsetTestData;
     protected readonly antiClockwiseWallKickOffsetData: WallKickPositionOffsetTestData;
-    protected static color: string = "#000000";
 
     constructor(
         blocks: Block[],
         clockwiseRotationMap: RotationPositionAdjustMap,
         antiClockwiseRotationMap: RotationPositionAdjustMap,
         clockwiseWallKickOffsetData: WallKickPositionOffsetTestData,
-        antiClockwiseWallKickOffsetData: WallKickPositionOffsetTestData
+        antiClockwiseWallKickOffsetData: WallKickPositionOffsetTestData,
+        color: HexString = "#000000"
     ) {
+        this.color = color;
         this.blocks = blocks;
         this.blocks.forEach((block) => {
             block.registerPiece(this);
@@ -60,14 +66,7 @@ export abstract class Piece {
      * Gets the piece id.
      */
     getId() {
-        return Piece.id;
-    }
-
-    /**
-     * Gets the piece color.
-     */
-    getColor() {
-        return Piece.color;
+        return this.id;
     }
 
     // Movement methods
@@ -76,30 +75,21 @@ export abstract class Piece {
      * Checks if the piece can move down all blocks together a specified number of units.
      */
     canMoveDownTogether(units = 1) {
-        return this.blocks.reduce(
-            (canMove, block) => canMove && block.canMoveDown(units) === units,
-            true
-        );
+        return this.blocks.reduce((canMove, block) => canMove && block.canMoveDown(units) === units, true);
     }
 
     /**
      * Checks if the piece can move down all blocks together a specified number of units.
      */
     private canMoveLeftTogether(units = 1) {
-        return this.blocks.reduce(
-            (canMove, block) => canMove && block.canMoveLeft(units) === units,
-            true
-        );
+        return this.blocks.reduce((canMove, block) => canMove && block.canMoveLeft(units) === units, true);
     }
 
     /**
      * Checks if the piece can move down all blocks together a specified number of units.
      */
     private canMoveRightTogether(units = 1) {
-        return this.blocks.reduce(
-            (canMove, block) => canMove && block.canMoveRight(units) === units,
-            true
-        );
+        return this.blocks.reduce((canMove, block) => canMove && block.canMoveRight(units) === units, true);
     }
 
     /**
@@ -113,9 +103,7 @@ export abstract class Piece {
                 if (activeCoordinates) {
                     return activeCoordinates[1];
                 }
-                throw new Error(
-                    "This is only callable if the piece is active!"
-                );
+                throw new Error("This is only callable if the piece is active!");
             })
         );
     }
@@ -221,34 +209,22 @@ export abstract class Piece {
                 // keep testing the different wall kick offsets until rotation is successful
                 if (!chosenWallKickOffset) {
                     // determine if we can translate a block to match the piece's rotation
-                    const canRotate = this.blocks.reduce(
-                        (canRotate, block, blockIdx) => {
-                            const blockPositionAdjust:
-                                | RotationBlockPositionAdjust
-                                | undefined = rotationStateAdjust[blockIdx];
+                    const canRotate = this.blocks.reduce((canRotate, block, blockIdx) => {
+                        const blockPositionAdjust: RotationBlockPositionAdjust | undefined = rotationStateAdjust[blockIdx];
 
-                            try {
-                                if (blockPositionAdjust) {
-                                    return (
-                                        canRotate &&
-                                        block.canTranslate(
-                                            blockPositionAdjust[0] +
-                                                wallKickOffset[0],
-                                            blockPositionAdjust[1] +
-                                                wallKickOffset[1]
-                                        ).canTranslate
-                                    );
-                                }
-                                throw new Error(
-                                    `Block position adjustment not found for block ${blockIdx} when checking rotation for ${this}`
+                        try {
+                            if (blockPositionAdjust) {
+                                return (
+                                    canRotate &&
+                                    block.canTranslate(blockPositionAdjust[0] + wallKickOffset[0], blockPositionAdjust[1] + wallKickOffset[1]).canTranslate
                                 );
-                            } catch (error) {
-                                console.error(error);
-                                return false;
                             }
-                        },
-                        true
-                    );
+                            throw new Error(`Block position adjustment not found for block ${blockIdx} when checking rotation for ${this}`);
+                        } catch (error) {
+                            console.error(error);
+                            return false;
+                        }
+                    }, true);
                     // when a rotation is successful, store the successful wall kick offset
                     if (canRotate) {
                         return wallKickOffset;
@@ -270,17 +246,11 @@ export abstract class Piece {
      * by translating the blocks in the piece.
      * @returns `true` if rotation successful, `false` otherwise
      */
-    private rotate(
-        rotationStateAdjustMap: RotationPositionAdjustMap,
-        wallKickOffsetTestData: WallKickPositionOffsetTestData
-    ): boolean {
+    private rotate(rotationStateAdjustMap: RotationPositionAdjustMap, wallKickOffsetTestData: WallKickPositionOffsetTestData): boolean {
         const rotationStateAdjust = rotationStateAdjustMap[this.rotationState];
         const wallKickOffsetTest = wallKickOffsetTestData[this.rotationState];
 
-        const wallKickOffset = this.determineWallKick(
-            rotationStateAdjust,
-            wallKickOffsetTest
-        );
+        const wallKickOffset = this.determineWallKick(rotationStateAdjust, wallKickOffsetTest);
 
         // if they can, shift the position of the blocks to rotate the piece
         if (wallKickOffset) {
@@ -288,14 +258,9 @@ export abstract class Piece {
                 const blockPositionAdjust = rotationStateAdjust[blockIdx];
                 try {
                     if (blockPositionAdjust) {
-                        block.moveBlock(
-                            blockPositionAdjust[0] + wallKickOffset[0],
-                            blockPositionAdjust[1] + wallKickOffset[1]
-                        );
+                        block.moveBlock(blockPositionAdjust[0] + wallKickOffset[0], blockPositionAdjust[1] + wallKickOffset[1]);
                     } else {
-                        throw new Error(
-                            `Block position adjustment not found for block ${blockIdx} when rotating ${this}`
-                        );
+                        throw new Error(`Block position adjustment not found for block ${blockIdx} when rotating ${this}`);
                     }
                 } catch (error) {
                     console.error(error);
@@ -330,10 +295,7 @@ export abstract class Piece {
      * @returns `true` if rotation successful, `false` otherwise
      */
     rotateClockwise(): boolean {
-        const rotationSuccess = this.rotate(
-            this.clockwiseRotationMap,
-            this.clockwiseWallKickOffsetData
-        );
+        const rotationSuccess = this.rotate(this.clockwiseRotationMap, this.clockwiseWallKickOffsetData);
 
         if (rotationSuccess) {
             this.incrementRotationState();
@@ -348,10 +310,7 @@ export abstract class Piece {
      * @returns `true` if rotation successful, `false` otherwise
      */
     rotateAntiClockwise(): boolean {
-        const rotationSuccess = this.rotate(
-            this.antiClockwiseRotationMap,
-            this.antiClockwiseWallKickOffsetData
-        );
+        const rotationSuccess = this.rotate(this.antiClockwiseRotationMap, this.antiClockwiseWallKickOffsetData);
 
         if (rotationSuccess) {
             this.decrementRotationState();

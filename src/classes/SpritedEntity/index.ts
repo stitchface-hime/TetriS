@@ -1,0 +1,1 @@
+export { SpritedEntity } from "./SpritedEntity";

@@ -1,10 +1,12 @@
-import { GameEntity } from "@classes/GameEntity/GameEntity";
+import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
 import { Block, Piece } from "@classes/Piece";
 import { DrawMatrix, DrawSprite } from "@classes/ShaderProgram";
+import { GroupRenderer } from "@classes/ShaderProgram/GroupRenderer";
+import { SpriteLoader } from "@classes/SpriteLoader";
 import { SpriteSheets } from "@data/SpriteSheets";
 import { isEqual2DVectorTuples, warnIfNotInteger } from "@utils/index";
 
-export class Matrix extends GameEntity {
+export class Matrix extends GroupEntity {
     private blocks: Block[] = [];
     private numRows: number;
     private numVisibleRows: number;
@@ -23,21 +25,23 @@ export class Matrix extends GameEntity {
         height: 0,
     };
 
-    protected renderer: DrawMatrix;
+    private spriteLoader: SpriteLoader;
+
+    protected renderer: GroupRenderer;
 
     /**
      * When constructing the matrix, the matrix will have twice the number of rows
      * you specify to account for blocks above the visible part of the matrix.
      */
-    constructor(numRows: number, numColumns: number, renderer: DrawMatrix) {
-        super();
+    constructor(numRows: number, numColumns: number, renderer: GroupRenderer, spriteLoader: SpriteLoader) {
+        super(renderer);
         this.numRows = numRows * 2;
         this.numVisibleRows = numRows;
         this.numColumns = numColumns;
         this.numCellsOccupied = 0;
 
         this.renderer = renderer;
-        this.renderer.setMatrix(this);
+        this.spriteLoader = spriteLoader;
 
         this.activePiece = null;
     }
@@ -48,10 +52,6 @@ export class Matrix extends GameEntity {
         if (canvas) {
             this.setDefaultDimensions([canvas.clientWidth, canvas.clientHeight]);
         }
-    }
-
-    setRenderer(renderer: DrawMatrix) {
-        this.renderer = renderer;
     }
 
     /**
@@ -198,6 +198,7 @@ export class Matrix extends GameEntity {
             const [block] = this.blocks.splice(blockIdx, 1);
 
             block.getCoupledBlocks().forEach((coupledBlock) => coupledBlock.unsetCoupledBlock(block));
+            this.entities.delete(block);
             this.numCellsOccupied -= 1;
 
             return block;
@@ -254,6 +255,7 @@ export class Matrix extends GameEntity {
         }
 
         this.blocks.push(block);
+        this.entities.add(block);
         this.numCellsOccupied += 1;
     }
 
@@ -284,7 +286,7 @@ export class Matrix extends GameEntity {
      */
     addBlocksByCoordinates(coordinatesList: [x: number, y: number][]) {
         coordinatesList.forEach((coordinates) => {
-            this.addBlock(new Block(coordinates, this, new DrawSprite(this.renderer.getWebGLRenderingContext())));
+            this.addBlock(new Block(new DrawSprite(this.renderer.getWebGLRenderingContext(), this.spriteLoader), coordinates, this));
             this.numCellsOccupied += 1;
         });
     }
@@ -308,7 +310,7 @@ export class Matrix extends GameEntity {
 
         setRows.forEach((row) => {
             for (let col = 0; col < this.numColumns; col++) {
-                this.addBlock(new Block(this.translateToXY([row, col]), this, new DrawSprite(this.renderer.getWebGLRenderingContext())));
+                this.addBlock(new Block(new DrawSprite(this.renderer.getWebGLRenderingContext(), this.spriteLoader), this.translateToXY([row, col]), this));
             }
         });
     }

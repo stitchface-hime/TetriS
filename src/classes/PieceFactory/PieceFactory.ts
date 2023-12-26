@@ -1,13 +1,6 @@
 import { Matrix } from "@classes/Matrix";
-import {
-    I_Tetromino,
-    J_Tetromino,
-    L_Tetromino,
-    O_Tetromino,
-    S_Tetromino,
-    T_Tetromino,
-    Z_Tetromino,
-} from "@classes/Piece/Tetromino";
+import { I_Tetromino, J_Tetromino, L_Tetromino, O_Tetromino, S_Tetromino, T_Tetromino, Z_Tetromino } from "@classes/Piece/Tetromino";
+import { DrawSprite } from "@classes/ShaderProgram";
 import { PieceId } from "@data/index";
 
 const pieceLookUp = {
@@ -24,15 +17,11 @@ export class PieceFactory {
     /**
      * Creates a piece using its piece id in the supplied matrix at specific coordinates.
      */
-    makePiece(
-        originCoordinates: [x: number, y: number],
-        matrix: Matrix,
-        id?: PieceId
-    ) {
+    makePiece(originCoordinates: [x: number, y: number], matrix: Matrix, renderer: DrawSprite, id?: PieceId) {
         if (id === undefined) {
             return null;
         }
 
-        return new pieceLookUp[id](originCoordinates, matrix);
+        return new pieceLookUp[id](originCoordinates, renderer, matrix);
     }
 }

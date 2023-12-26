@@ -1,5 +1,4 @@
 import { DrawableEntity } from "@classes/DrawableEntity";
-import { GameRenderer } from "@classes/ShaderProgram";
 import { GroupRenderer } from "@classes/ShaderProgram/GroupRenderer";
 
 export class GroupEntity extends DrawableEntity {

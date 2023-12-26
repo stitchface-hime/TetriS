@@ -2,11 +2,11 @@ import { Matrix } from "@classes/Matrix";
 import { PieceId } from "@data/index";
 import { Block } from "../../Block";
 import { Tetromino } from "../Tetromino";
-import {
-    J_antiClockwiseWallKickPositionOffsetData,
-    J_clockwiseWallKickPositionOffsetData,
-} from "../Tetromino.wallkick";
+import { J_antiClockwiseWallKickPositionOffsetData, J_clockwiseWallKickPositionOffsetData } from "../Tetromino.wallkick";
 import * as Rotation from "./J_Tetromino.rotation";
+import { Tuple } from "src/types";
+import { DrawSprite } from "@classes/ShaderProgram";
+import { HexString } from "src/shaders/types";
 
 /**
  * The J tetromino. Below is its initial state:
@@ -20,20 +20,23 @@ import * as Rotation from "./J_Tetromino.rotation";
 
 export class J_Tetromino extends Tetromino {
     protected static id = PieceId.TETROMINO_J;
-    protected static override color = "#0058b5";
+    protected static color: HexString = "#0058b5";
 
-    constructor(originCoordinates: [x: number, y: number], matrix: Matrix) {
+    constructor(originCoordinates: [x: number, y: number], renderer: DrawSprite, matrix: Matrix) {
         const [originX, originY] = originCoordinates;
 
-        const blocks: [Block, Block, Block, Block] = [
-            new Block([originX, originY], matrix, J_Tetromino.color), // 0
-            new Block([originX - 1, originY], matrix, J_Tetromino.color), // 1
-            new Block([originX - 1, originY + 1], matrix, J_Tetromino.color), // 2
-            new Block([originX + 1, originY], matrix, J_Tetromino.color), // 3
+        const blockCoordinates: Tuple<[number, number], 4> = [
+            [originX, originY],
+            [originX - 1, originY],
+            [originX - 1, originY + 1],
+            [originX + 1, originY],
         ];
 
         super(
-            blocks,
+            blockCoordinates,
+            renderer,
+            matrix,
+            J_Tetromino.color,
             Rotation.clockwiseRotationMap,
             Rotation.antiClockwiseRotationMap,
             J_clockwiseWallKickPositionOffsetData,
@@ -52,16 +55,10 @@ export class J_Tetromino extends Tetromino {
         for (let i = 0; i < this.blocks.length; i++) {
             switch (i) {
                 case 0:
-                    this.blocks[i].setCoupledBlocks([
-                        this.blocks[1],
-                        this.blocks[3],
-                    ]);
+                    this.blocks[i].setCoupledBlocks([this.blocks[1], this.blocks[3]]);
                     break;
                 case 1:
-                    this.blocks[i].setCoupledBlocks([
-                        this.blocks[0],
-                        this.blocks[2],
-                    ]);
+                    this.blocks[i].setCoupledBlocks([this.blocks[0], this.blocks[2]]);
                     break;
                 case 2:
                     this.blocks[i].setCoupledBlocks([this.blocks[1]]);

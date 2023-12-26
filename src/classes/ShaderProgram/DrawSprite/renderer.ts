@@ -2,7 +2,8 @@ import { ShaderProgram } from "../ShaderProgram";
 import { getRectangleCoords } from "@utils/index";
 import { vertex } from "./vertex";
 import { fragment } from "./fragment";
-import { SpriteSheet } from "src/shaders/types";
+import { SpriteSheet, SpriteSheetDetails } from "src/shaders/types";
+import { SpriteLoader } from "@classes/SpriteLoader";
 
 interface SpriteSheetImage extends SpriteSheetLoadData {
     image: HTMLImageElement | null;
@@ -39,12 +40,17 @@ interface DrawArgs {
 }
 
 export class DrawSprite extends ShaderProgram {
-    constructor(gl: WebGLRenderingContext) {
+    private spriteLoader: SpriteLoader;
+
+    constructor(gl: WebGLRenderingContext, spriteLoader: SpriteLoader) {
         super(vertex, fragment, gl);
+        this.spriteLoader = spriteLoader;
     }
 
-    drawSprite(drawData: DrawData, sheet: SpriteSheet) {
+    async draw(drawData: DrawData, sheetDetails: SpriteSheetDetails) {
+        const sheet = await this.spriteLoader.load(sheetDetails);
         const gl = this.gl;
+
         if (gl) {
             const { spriteSize, image, loaded } = sheet;
             const program = this.program;
@@ -109,7 +115,7 @@ export class DrawSprite extends ShaderProgram {
         }
     }
 
-    drawFromSheet({ spriteSheet, drawData }: DrawArgs) {
+    /* private drawFromSheet({ spriteSheet, drawData }: DrawArgs) {
         drawData.forEach((data) => {
             this.drawSprite(data, spriteSheet);
         });
@@ -117,5 +123,5 @@ export class DrawSprite extends ShaderProgram {
 
     draw(sheets: DrawArgs[]) {
         sheets.forEach((sheet) => this.drawFromSheet(sheet));
-    }
+    } */
 }

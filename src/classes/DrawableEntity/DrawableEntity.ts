@@ -25,17 +25,21 @@ export abstract class DrawableEntity {
      */
     protected rotation = 0;
 
-    protected renderer: ShaderProgram | null = null;
+    protected renderer: ShaderProgram | null;
 
-    constructor({
-        position,
-        scale,
-        rotation,
-    }: Partial<{
-        position: [x: number, y: number];
-        scale: [x: number, y: number];
-        rotation: number;
-    }> = {}) {
+    constructor(
+        {
+            position,
+            scale,
+            rotation,
+        }: Partial<{
+            position: [x: number, y: number];
+            scale: [x: number, y: number];
+            rotation: number;
+        }> = {},
+        renderer: ShaderProgram | null = null
+    ) {
+        this.renderer = renderer;
         if (position !== undefined) this.setPosition(position);
         if (scale !== undefined) this.scale = scale || this.scale;
         if (rotation !== undefined) this.rotation = rotation || this.rotation;
@@ -124,5 +128,5 @@ export abstract class DrawableEntity {
     /**
      * Draws the game entity's sprite if provided.
      */
-    abstract draw(gl: WebGLRenderingContext): Promise<void>;
+    abstract draw(): Promise<void>;
 }

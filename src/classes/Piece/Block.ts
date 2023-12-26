@@ -1,15 +1,15 @@
 import { Matrix } from "@classes/Matrix";
 import { Piece } from "./Piece";
 import { Connection } from "@data/Connection";
-import { GameEntity } from "@classes/GameEntity/GameEntity";
 import { SpriteSheets } from "@data/SpriteSheets";
 import { DrawSprite } from "@classes/ShaderProgram";
+import { SpritedEntity } from "@classes/SpritedEntity";
 
 /**
  * A block is a single unit that takes up one cell in the matrix.
  * It can be connected to one or more other blocks to form a piece.
  */
-export class Block extends GameEntity {
+export class Block extends SpritedEntity {
     /**
      * The coordinates of the block in the matrix.
      * NOTE: `x` refers to columns and `y` refers to the rows!
@@ -34,10 +34,8 @@ export class Block extends GameEntity {
      */
     private associatedPiece: Piece | undefined;
 
-    protected renderer: DrawSprite;
-
-    constructor(globalCoordinates: [x: number, y: number], matrix: Matrix, renderer: DrawSprite, color: string = "", coupledBlocks: Block[] = []) {
-        super({ spriteSheetDatas: [SpriteSheets.STANDARD_MINO] });
+    constructor(renderer: DrawSprite, globalCoordinates: [x: number, y: number], matrix: Matrix, color: string = "", coupledBlocks: Block[] = []) {
+        super(renderer, { spriteSheetDatas: [SpriteSheets.STANDARD_MINO] });
         this.setActiveSpriteSheetData(SpriteSheets.STANDARD_MINO.id);
 
         this.activeCoordinates = globalCoordinates;
@@ -157,6 +155,7 @@ export class Block extends GameEntity {
      */
     private updateCoordinates(coordinates: [x: number, y: number]) {
         this.activeCoordinates = coordinates;
+        console.log("Matrix:", this.matrix);
         const playArea = this.matrix.getPlayArea();
 
         if (playArea) {
@@ -171,7 +170,7 @@ export class Block extends GameEntity {
         }
     }
 
-    private updateSpriteScale() {
+    /*  private updateSpriteScale() {
         const playArea = this.matrix.getPlayArea();
 
         if (playArea) {
@@ -181,7 +180,7 @@ export class Block extends GameEntity {
             // Scale the entity
             this.scaleToWidthHeight([playArea.width / matrixColumns, playArea.height / matrixRows]);
         }
-    }
+    } */
 
     /**
      * Determines if the block can move down a specified number of units (default: 1 unit).
@@ -316,26 +315,5 @@ export class Block extends GameEntity {
         if (canTranslate) {
             this.updateCoordinates([...newCoordinates]);
         }
-    }
-
-    async draw() {
-        this.updateSpriteScale();
-        if (this.gameRenderer && this.activeSpriteSheetData) {
-            const sheet = await this.gameRenderer.load(this.activeSpriteSheetData);
-
-            if (this.activeSpriteQuadCoords) {
-                this.renderer?.drawSprite(
-                    {
-                        anchor: this.position,
-                        scale: this.scale,
-                        textureCoordinates: this.activeSpriteQuadCoords,
-                    },
-                    sheet
-                );
-            }
-        } else {
-            console.log("Failed to draw");
-        }
-        // location and offset
     }
 }

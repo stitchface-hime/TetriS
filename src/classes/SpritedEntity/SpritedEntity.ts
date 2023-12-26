@@ -1,10 +1,6 @@
-import { GameRenderer } from "@classes/ShaderProgram/GameRenderer";
 import { DrawSprite } from "@classes/ShaderProgram";
-import { ShaderProgram } from "@classes/ShaderProgram/ShaderProgram";
-import { add2DVectorTuples } from "@utils/add2DVectorTuples";
 import { getRectangleCoords } from "@utils/getRectangleCoords";
-import { product2DVectorTuples } from "@utils/index";
-import { SpriteSheetDetails, SpriteSheet } from "src/shaders/types";
+import { SpriteSheetDetails } from "src/shaders/types";
 import { DrawableEntity } from "@classes/DrawableEntity";
 
 /* interface AnimationFrame {
@@ -27,32 +23,38 @@ class SpriteAnimation {
 
 }
  */
-export abstract class GameEntity extends DrawableEntity {
+export abstract class SpritedEntity extends DrawableEntity {
     /**
      * The sprite sheets that will be used when drawing this entity to the scene.
      */
-    protected spriteSheetDatas: Record<string, SpriteSheetDetails> = {};
+    private spriteSheetDatas: Record<string, SpriteSheetDetails> = {};
 
-    protected activeSpriteSheetData: SpriteSheetDetails | null = null;
+    private activeSpriteSheetData: SpriteSheetDetails | null = null;
 
-    protected activeSpriteQuadCoords: number[] | null = null;
+    private activeSpriteQuadCoords: number[] | null = null;
+
+    protected renderer: DrawSprite;
 
     /* protected animationCycles: Record<string, number[]> = {};
 
     protected animation: SpriteAnimation | null = {}; */
 
-    constructor({
-        position,
-        scale,
-        rotation,
-        spriteSheetDatas = [],
-    }: Partial<{
-        position: [x: number, y: number];
-        scale: [x: number, y: number];
-        rotation: number;
-        spriteSheetDatas: SpriteSheetDetails[];
-    }> = {}) {
+    constructor(
+        renderer: DrawSprite,
+        {
+            position,
+            scale,
+            rotation,
+            spriteSheetDatas = [],
+        }: Partial<{
+            position: [x: number, y: number];
+            scale: [x: number, y: number];
+            rotation: number;
+            spriteSheetDatas: SpriteSheetDetails[];
+        }> = {}
+    ) {
         super({ position, scale, rotation });
+        this.renderer = renderer;
         spriteSheetDatas.forEach((sheet) => this.registerSpriteSheetData(sheet));
     }
 
@@ -152,13 +154,20 @@ export abstract class GameEntity extends DrawableEntity {
         }
     }
 
-    /*     setActiveSpriteSize(px: number) {
+    async draw(): Promise<void> {
         if (this.activeSpriteSheetData) {
-            const { spriteSize } = this.activeSpriteSheetData;
-
-            if (spriteSize.width !== 0 && spriteSize.height !== 0) {
-                this.setScale(px / spriteSize.width);
+            if (this.activeSpriteQuadCoords) {
+                this.renderer?.draw(
+                    {
+                        anchor: this.position,
+                        scale: this.scale,
+                        textureCoordinates: this.activeSpriteQuadCoords,
+                    },
+                    this.activeSpriteSheetData
+                );
             }
+        } else {
+            console.log("Failed to draw");
         }
-    } */
+    }
 }

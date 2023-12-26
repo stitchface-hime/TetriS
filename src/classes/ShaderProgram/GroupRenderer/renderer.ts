@@ -1,7 +1,5 @@
-import { GameEntity } from "@classes/GameEntity";
 import { ShaderProgram } from "@classes/ShaderProgram/ShaderProgram";
 import { getRectangleCoords } from "@utils/getRectangleCoords";
-import { SpriteSheet, SpriteSheetDetails } from "src/shaders/types";
 import { vertex } from "./vertex";
 import { fragment } from "./fragment";
 import { DrawableEntity } from "@classes/DrawableEntity";
@@ -115,7 +113,7 @@ export class GroupRenderer extends ShaderProgram {
                     // render to texture 1
                     gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, baseTextures[1], 0);
 
-                    await entityArray[i].draw(gl);
+                    await entityArray[i].draw();
 
                     // render textures 0 and 1 into texture 2
                     renderToTexture(fb, [baseTextures[0], baseTextures[1]], baseTextures[2]);
