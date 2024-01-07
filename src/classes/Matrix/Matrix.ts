@@ -1,10 +1,11 @@
 import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
+import { MatrixBackground } from "@classes/MatrixBackground/MatrixBackground";
 import { Block, Piece } from "@classes/Piece";
-import { DrawMatrix, DrawSprite } from "@classes/ShaderProgram";
-import { GroupRenderer } from "@classes/ShaderProgram/GroupRenderer";
+import { GroupRenderer, DrawSprite, DrawMatrix } from "@classes/ShaderProgram";
 import { SpriteLoader } from "@classes/SpriteLoader";
 import { SpriteSheets } from "@data/SpriteSheets";
 import { isEqual2DVectorTuples, warnIfNotInteger } from "@utils/index";
+import { NATIVE_RESOLUTION_H, NATIVE_RESOLUTION_W } from "src/constants";
 
 export class Matrix extends GroupEntity {
     private blocks: Block[] = [];
@@ -29,56 +30,45 @@ export class Matrix extends GroupEntity {
 
     protected renderer: GroupRenderer;
 
+    private background: MatrixBackground;
+
+    private visibleDimensions: [width: number, height: number];
+
     /**
      * When constructing the matrix, the matrix will have twice the number of rows
      * you specify to account for blocks above the visible part of the matrix.
      */
     constructor(numRows: number, numColumns: number, renderer: GroupRenderer, spriteLoader: SpriteLoader) {
         super(renderer);
+
         this.numRows = numRows * 2;
         this.numVisibleRows = numRows;
         this.numColumns = numColumns;
+        this.visibleDimensions = [
+            warnIfNotInteger(SpriteSheets.STANDARD_MINO.spriteSize.width * this.numColumns),
+            warnIfNotInteger(SpriteSheets.STANDARD_MINO.spriteSize.height * this.numVisibleRows),
+        ];
+
+        this.dimensions = [this.visibleDimensions[0], warnIfNotInteger((NATIVE_RESOLUTION_H + this.visibleDimensions[1]) * 0.5)];
+        this.position = [warnIfNotInteger((NATIVE_RESOLUTION_W - this.dimensions[0]) * 0.5), warnIfNotInteger(NATIVE_RESOLUTION_H - this.dimensions[1])];
+
+        console.log(this.position, NATIVE_RESOLUTION_H, this.dimensions[1]);
+
         this.numCellsOccupied = 0;
 
         this.renderer = renderer;
+
         this.spriteLoader = spriteLoader;
+        this.background = new MatrixBackground(this, new DrawMatrix(this.renderer.getWebGLRenderingContext()));
 
         this.activePiece = null;
     }
 
-    private updateDimensions() {
-        const canvas = this.renderer.getWebGLRenderingContext().canvas as HTMLCanvasElement;
-
-        if (canvas) {
-            this.setDefaultDimensions([canvas.clientWidth, canvas.clientHeight]);
-        }
-    }
-
     /**
-     * Sets the play area of the matrix, the game renderer must be set before calling this.
-     * Also updates the dimensions of this entity.
+     * Gets the visible dimensions within the matrix. Useful for positioning blocks within the matrix.
      */
-    updatePlayArea() {
-        const canvas = this.renderer.getWebGLRenderingContext().canvas as HTMLCanvasElement;
-
-        if (canvas) {
-            this.playArea = {
-                width: warnIfNotInteger(SpriteSheets.STANDARD_MINO.spriteSize.width * this.numColumns),
-                // height of matrix minus the buffer area above the rows
-                height: warnIfNotInteger(SpriteSheets.STANDARD_MINO.spriteSize.height * this.numVisibleRows),
-            };
-
-            this.updateDimensions();
-        } else {
-            throw new Error("Could not set play area. Did you forget to set a game renderer and set its canvas?");
-        }
-    }
-
-    /**
-     * Gets the play area. Useful for positioning blocks within the matrix.
-     */
-    getPlayArea() {
-        return this.playArea;
+    getVisibleDimensions() {
+        return this.visibleDimensions;
     }
 
     /**
@@ -198,7 +188,7 @@ export class Matrix extends GroupEntity {
             const [block] = this.blocks.splice(blockIdx, 1);
 
             block.getCoupledBlocks().forEach((coupledBlock) => coupledBlock.unsetCoupledBlock(block));
-            this.entities.delete(block);
+            this.removeEntity(block);
             this.numCellsOccupied -= 1;
 
             return block;
@@ -255,7 +245,7 @@ export class Matrix extends GroupEntity {
         }
 
         this.blocks.push(block);
-        this.entities.add(block);
+        this.addEntity(block);
         this.numCellsOccupied += 1;
     }
 
@@ -387,7 +377,6 @@ export class Matrix extends GroupEntity {
     }
 
     async draw() {
-        this.updatePlayArea();
-        this.renderer.draw();
+        this.renderer.draw(this, [this.background, ...this.blocks]);
     }
 }

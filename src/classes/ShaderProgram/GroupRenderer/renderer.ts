@@ -4,13 +4,9 @@ import { vertex } from "./vertex";
 import { fragment } from "./fragment";
 import { DrawableEntity } from "@classes/DrawableEntity";
 import { MAX_ERROR_BEFORE_SUPPRESS } from "src/constants";
+import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
 
 export class GroupRenderer extends ShaderProgram {
-    /**
-     * A reference to the entities set of a GroupEntity.
-     */
-    private entitiesRef: Set<DrawableEntity> | null = null;
-
     private drawErrorCount = 0;
 
     constructor(gl: WebGLRenderingContext) {
@@ -18,16 +14,13 @@ export class GroupRenderer extends ShaderProgram {
         super(vertex, fragment, gl);
     }
 
-    setEntitiesRef(entitiesRef: Set<DrawableEntity>) {
-        this.entitiesRef = entitiesRef;
-    }
-
-    async draw() {
+    async draw(groupEntity: GroupEntity, entities: DrawableEntity[]) {
         const program = this.program;
         const gl = this.gl;
 
         if (gl && program) {
-            if (this.entitiesRef) {
+            if (entities) {
+                console.log("Proceeding to draw entities");
                 const renderToTexture = (
                     fb: WebGLFramebuffer | null,
                     sourceTexture: WebGLTexture | WebGLTexture[] | null,
@@ -105,15 +98,14 @@ export class GroupRenderer extends ShaderProgram {
                 gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
                 const attachmentPoint = gl.COLOR_ATTACHMENT0;
 
-                const entityArray = Array.from(this.entitiesRef);
-
-                for (let i = 0; i < entityArray.length; i++) {
+                for (let i = 0; i < entities.length; i++) {
+                    console.log("Drawing from group:", entities[i]);
                     renderToTexture(fb, baseTextures[2], baseTextures[0]);
 
                     // render to texture 1
                     gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, baseTextures[1], 0);
 
-                    await entityArray[i].draw();
+                    await entities[i].draw();
 
                     // render textures 0 and 1 into texture 2
                     renderToTexture(fb, [baseTextures[0], baseTextures[1]], baseTextures[2]);

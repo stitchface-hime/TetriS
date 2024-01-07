@@ -155,19 +155,17 @@ export class Block extends SpritedEntity {
      */
     private updateCoordinates(coordinates: [x: number, y: number]) {
         this.activeCoordinates = coordinates;
-        console.log("Matrix:", this.matrix);
-        const playArea = this.matrix.getPlayArea();
+        // console.log("Matrix:", this.matrix);
+        const [matrixWidth, matrixHeight] = this.matrix.getVisibleDimensions();
 
-        if (playArea) {
-            const matrixRows = this.matrix.getNumVisibleRows();
-            const matrixColumns = this.matrix.getNumColumns();
+        const matrixRows = this.matrix.getNumVisibleRows();
+        const matrixColumns = this.matrix.getNumColumns();
 
-            // Move the entity
-            this.setPosition([
-                Math.trunc(this.activeCoordinates[0] * (playArea.width / matrixColumns)),
-                Math.trunc(this.activeCoordinates[1] * (playArea.height / matrixRows)),
-            ]);
-        }
+        // Move the entity
+        this.setPosition([
+            Math.trunc(this.activeCoordinates[0] * (matrixWidth / matrixColumns)),
+            Math.trunc(this.activeCoordinates[1] * (matrixHeight / matrixRows)),
+        ]);
     }
 
     /*  private updateSpriteScale() {

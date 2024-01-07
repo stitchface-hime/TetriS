@@ -5,7 +5,7 @@ type SpriteSheetKey = "STANDARD_MINO";
 export const SpriteSheets: Record<SpriteSheetKey, SpriteSheetDetails> = {
     STANDARD_MINO: {
         id: "standard_mino",
-        src: "/mino_sprites_light.png",
+        src: "/mino_sprites_light_36.png",
         width: 128,
         height: 128,
         spriteSize: {

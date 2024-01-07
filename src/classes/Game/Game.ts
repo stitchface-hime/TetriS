@@ -8,9 +8,10 @@ import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
 import { PieceId } from "@data/index";
 import { GameIntervalKeys } from "./GameIntervalKeys";
 import { GameOverCode } from "./GameOverCode";
-import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
 import { GroupRenderer } from "@classes/ShaderProgram/GroupRenderer";
-import { DrawMatrix } from "@classes/ShaderProgram";
+import { DrawMatrix, DrawSprite } from "@classes/ShaderProgram";
+import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
+import { SpriteLoader } from "@classes/SpriteLoader";
 
 export class Game extends GroupEntity {
     private numRows: number;
@@ -61,17 +62,30 @@ export class Game extends GroupEntity {
     private gameOver = false;
 
     protected renderer: GroupRenderer;
+    private spriteLoader: SpriteLoader;
 
-    constructor(numRows: number, numColumns: number, pieceQueue: PieceQueue, spawnCoordinates: [x: number, y: number], renderer: GroupRenderer) {
+    constructor(
+        numRows: number,
+        numColumns: number,
+        pieceQueue: PieceQueue,
+        spawnCoordinates: [x: number, y: number],
+        renderer: GroupRenderer,
+        spriteLoader: SpriteLoader
+    ) {
         super(renderer);
         this.pieceFactory = new PieceFactory();
         this.numRows = numRows;
         this.numColumns = numColumns;
         this.renderer = renderer;
 
-        this.matrix = new Matrix(numRows, numColumns, new DrawMatrix(this.renderer.getWebGLRenderingContext()));
+        this.spriteLoader = spriteLoader;
+        this.matrix = new Matrix(numRows, numColumns, new GroupRenderer(this.renderer.getWebGLRenderingContext()), spriteLoader);
+
+        const canvas = this.renderer.getWebGLRenderingContext().canvas as HTMLCanvasElement;
+        this.dimensions = [canvas.clientWidth, canvas.clientHeight];
+        this.position = [0, 0];
+
         // not ideal - probably don't want group entity as the renderer for a game anymore... unless we want ui to also appear in the screen?
-        renderer.setEntitiesRef(new Set([this.matrix]));
 
         this.nextQueue = pieceQueue;
         this.spawnCoordinates = spawnCoordinates;
@@ -83,7 +97,7 @@ export class Game extends GroupEntity {
         this.renderer.setWebGLRenderingContext(gl);
 
         // TODO: This is still testing
-        if (!this.intervalManager.getInterval(GameIntervalKeys.RUN)) {
+        /* if (!this.intervalManager.getInterval(GameIntervalKeys.RUN)) {
             this.intervalManager.subscribe(
                 GameIntervalKeys.RUN,
                 new Interval(
@@ -95,7 +109,9 @@ export class Game extends GroupEntity {
                     Infinity
                 )
             );
-        }
+        } */
+
+        this.tick(gl);
     }
 
     halt() {
@@ -114,7 +130,7 @@ export class Game extends GroupEntity {
                 }
             }
         }
-        this.renderer.draw();
+        this.renderer.draw(this, [this.matrix]);
     }
 
     private resetGroundedState() {
@@ -242,12 +258,17 @@ export class Game extends GroupEntity {
         let spawnSuccessful = false;
 
         for (let spawnAttempt = 0; spawnAttempt < this.spawnRetries; spawnAttempt++) {
-            const spawnedPiece = this.pieceFactory.makePiece([this.spawnCoordinates[0], this.spawnCoordinates[1] + spawnAttempt], this.matrix, pieceId);
+            const spawnedPiece = this.pieceFactory.makePiece(
+                [this.spawnCoordinates[0], this.spawnCoordinates[1] + spawnAttempt],
+                this.matrix,
+                new DrawSprite(this.renderer.getWebGLRenderingContext(), this.spriteLoader),
+                pieceId
+            );
 
             if (spawnedPiece) {
                 // Register block entities
                 // TODO: Disable register Block entities
-                this.addMultiple(spawnedPiece.getBlocks());
+                this.addMultipleEntities(spawnedPiece.getBlocks());
 
                 // Does the spawned piece overlap with any blocks in the matrix?
                 const pieceDoesNotOverlap = spawnedPiece.getBlocksCoordinates().reduce(
@@ -476,7 +497,7 @@ export class Game extends GroupEntity {
     hold() {
         if (this.canHold && this.activePiece !== null) {
             // take blocks out of play
-            this.addMultiple(this.activePiece.getBlocks());
+            this.addMultipleEntities(this.activePiece.getBlocks());
 
             if (this.holdPieceId === null) {
                 // when hold piece is null, hold current piece and spawn a new piece

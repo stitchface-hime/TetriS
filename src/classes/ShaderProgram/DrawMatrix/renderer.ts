@@ -1,12 +1,13 @@
 import { ShaderProgramError } from "@classes/Error";
-import { ShaderProgram } from "../ShaderProgram";
-import { fragment } from "./fragment";
-import { vertex } from "./vertex";
-import { getRectangleCoords, hexToClampf, hexToRgb } from "@utils/index";
-import { DEFAULT_MATRIX_GRID_WIDTH, DEFAULT_MATRIX_GRID_OPACITY, MATRIX_BUFFER_ZONE_RATIO, DEFAULT_MATRIX_BG_OPACITY } from "src/constants";
+import { getRectangleCoords, hexToRgb } from "@utils/index";
+import { DEFAULT_MATRIX_GRID_WIDTH, DEFAULT_MATRIX_BG_OPACITY } from "src/constants";
 import { HexString } from "src/shaders/types";
 import { generateGrid } from "./data";
 import { Matrix } from "@classes/Matrix";
+import { GroupRenderer } from "../GroupRenderer";
+import { ShaderProgram } from "../ShaderProgram";
+import { vertex } from "./vertex";
+import { fragment } from "./fragment";
 
 interface RenderMatrixConfig {
     borderOpacity: number;
@@ -42,13 +43,13 @@ export class DrawMatrix extends ShaderProgram {
         return this.config.borderWidth;
     }
 
-    draw() {
+    async draw() {
         const gl = this.gl;
-
+        console.log(gl, this.matrix);
         if (gl && this.matrix) {
             const program = this.program;
             const canvas = gl.canvas as HTMLCanvasElement;
-            const playArea = this.matrix.getPlayArea();
+            const [matrixWidth, matrixHeight] = this.matrix.getVisibleDimensions();
 
             // set viewport
             this.resizeCanvas();
@@ -57,14 +58,14 @@ export class DrawMatrix extends ShaderProgram {
             if (program) {
                 gl.useProgram(program);
                 try {
-                    const matrixBg = getRectangleCoords(0, 0, canvas.clientWidth, canvas.clientHeight);
+                    const matrixBg = getRectangleCoords(0, 0, ...this.matrix.getDimensions());
                     // gridlines generated overflow
                     const gridlines = generateGrid(
                         this.matrix.getNumVisibleRows(),
                         this.matrix.getNumColumns(),
                         this.config.borderWidth,
-                        playArea.width,
-                        playArea.height
+                        matrixWidth,
+                        matrixHeight
                     );
 
                     const positionLocation = gl.getAttribLocation(program, "a_position");

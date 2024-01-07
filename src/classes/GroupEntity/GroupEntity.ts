@@ -2,30 +2,36 @@ import { DrawableEntity } from "@classes/DrawableEntity";
 import { GroupRenderer } from "@classes/ShaderProgram/GroupRenderer";
 
 export class GroupEntity extends DrawableEntity {
-    protected entities: Set<DrawableEntity> = new Set();
+    protected entities: DrawableEntity[] = [];
 
     constructor(renderer: GroupRenderer) {
         super();
         this.renderer = renderer;
     }
 
-    add(entity: DrawableEntity) {
-        this.entities.add(entity);
+    addEntity(entity: DrawableEntity) {
+        if (!this.entities.includes(entity)) {
+            this.entities.push(entity);
+        }
     }
 
-    addMultiple(entities: DrawableEntity[]) {
+    addMultipleEntities(entities: DrawableEntity[]) {
         entities.forEach((entity) => {
-            this.add(entity);
+            this.addEntity(entity);
         });
     }
 
-    remove(entity: DrawableEntity) {
-        return this.entities.delete(entity);
+    removeEntity(entity: DrawableEntity) {
+        const index = this.entities.indexOf(entity);
+
+        if (index !== -1) {
+            return this.entities.splice(index)[0];
+        }
     }
 
     removeMultiple(entities: DrawableEntity[]) {
         entities.forEach((entity) => {
-            this.remove(entity);
+            this.removeEntity(entity);
         });
     }
 

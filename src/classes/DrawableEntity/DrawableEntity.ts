@@ -1,3 +1,4 @@
+import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
 import { ShaderProgram } from "@classes/ShaderProgram/ShaderProgram";
 import { add2DVectorTuples } from "@utils/add2DVectorTuples";
 import { product2DVectorTuples } from "@utils/product2DVectorTuples";
@@ -27,6 +28,8 @@ export abstract class DrawableEntity {
 
     protected renderer: ShaderProgram | null;
 
+    private parent: GroupEntity | null = null;
+
     constructor(
         {
             position,
@@ -43,6 +46,14 @@ export abstract class DrawableEntity {
         if (position !== undefined) this.setPosition(position);
         if (scale !== undefined) this.scale = scale || this.scale;
         if (rotation !== undefined) this.rotation = rotation || this.rotation;
+    }
+
+    setParent(parent: GroupEntity) {
+        this.parent = parent;
+    }
+
+    unsetParent() {
+        this.parent = null;
     }
 
     setRenderer(renderer: ShaderProgram) {
