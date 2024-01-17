@@ -8,6 +8,7 @@ import { GroupRenderer } from "../GroupRenderer";
 import { ShaderProgram } from "../ShaderProgram";
 import { vertex } from "./vertex";
 import { fragment } from "./fragment";
+import { MatrixBackground } from "@classes/MatrixBackground";
 
 interface RenderMatrixConfig {
     borderOpacity: number;
@@ -45,28 +46,24 @@ export class DrawMatrix extends ShaderProgram {
 
     async draw() {
         const gl = this.gl;
-        console.log(gl, this.matrix);
         if (gl && this.matrix) {
             const program = this.program;
             const canvas = gl.canvas as HTMLCanvasElement;
-            const [matrixWidth, matrixHeight] = this.matrix.getVisibleDimensions();
+            const visibleDimensions = this.matrix.getVisibleDimensions();
+            const dimensions = this.matrix.getDimensions();
+
+            //gl.bindFramebuffer(gl.FRAMEBUFFER, destFb);
 
             // set viewport
             this.resizeCanvas();
-            gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+            gl.viewport(0, 0, ...dimensions);
 
             if (program) {
                 gl.useProgram(program);
                 try {
                     const matrixBg = getRectangleCoords(0, 0, ...this.matrix.getDimensions());
                     // gridlines generated overflow
-                    const gridlines = generateGrid(
-                        this.matrix.getNumVisibleRows(),
-                        this.matrix.getNumColumns(),
-                        this.config.borderWidth,
-                        matrixWidth,
-                        matrixHeight
-                    );
+                    const gridlines = generateGrid(this.matrix.getNumVisibleRows(), this.matrix.getNumColumns(), this.config.borderWidth, ...visibleDimensions);
 
                     const positionLocation = gl.getAttribLocation(program, "a_position");
                     const colorLocation = gl.getAttribLocation(program, "a_gridColor");
@@ -93,7 +90,7 @@ export class DrawMatrix extends ShaderProgram {
                     gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
                     gl.vertexAttribPointer(colorLocation, 4, gl.UNSIGNED_BYTE, true, 0, 0);
 
-                    gl.uniform2f(resolutionLocation, canvas.clientWidth, canvas.clientHeight);
+                    gl.uniform2f(resolutionLocation, ...dimensions);
 
                     gl.drawArrays(gl.TRIANGLES, 0, 6);
 
@@ -117,7 +114,7 @@ export class DrawMatrix extends ShaderProgram {
                         gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
                         gl.vertexAttribPointer(colorLocation, 4, gl.UNSIGNED_BYTE, true, 0, 0);
 
-                        gl.uniform2f(resolutionLocation, canvas.clientWidth, canvas.clientHeight);
+                        gl.uniform2f(resolutionLocation, ...dimensions);
 
                         gl.drawArrays(gl.TRIANGLES, 0, 6);
                     });

@@ -17,7 +17,6 @@ export abstract class ShaderProgram {
         this.gl = gl;
 
         if (autoBuild && gl) {
-            console.log("Build");
             this.build();
         }
     }
@@ -35,7 +34,6 @@ export abstract class ShaderProgram {
     }
 
     private compileShader(src: string, type: WebGLRenderingContext["FRAGMENT_SHADER"] | WebGLRenderingContext["VERTEX_SHADER"]) {
-        console.log("In here,", this.gl);
         if (this.gl) {
             const shader = this.gl.createShader(type);
             if (shader) {

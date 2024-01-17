@@ -4,6 +4,7 @@ import { vertex } from "./vertex";
 import { fragment } from "./fragment";
 import { SpriteSheet, SpriteSheetDetails } from "src/shaders/types";
 import { SpriteLoader } from "@classes/SpriteLoader";
+import { SpritedEntity } from "@classes/SpritedEntity";
 
 interface SpriteSheetImage extends SpriteSheetLoadData {
     image: HTMLImageElement | null;
@@ -47,18 +48,17 @@ export class DrawSprite extends ShaderProgram {
         this.spriteLoader = spriteLoader;
     }
 
-    async draw(drawData: DrawData, sheetDetails: SpriteSheetDetails) {
-        const sheet = await this.spriteLoader.load(sheetDetails);
+    async draw(entity: SpritedEntity, textureCoordinates: number[], spriteSheetDetails: SpriteSheetDetails, destFb: WebGLFramebuffer | null) {
+        const sheet = await this.spriteLoader.load(spriteSheetDetails);
         const gl = this.gl;
-
         if (gl) {
-            const { spriteSize, image, loaded } = sheet;
+            const { image, loaded } = sheet;
             const program = this.program;
-            const canvas = gl.canvas as HTMLCanvasElement;
-            const scale: [x: number, y: number] = typeof drawData.scale === "number" ? [drawData.scale, drawData.scale] : drawData.scale;
+            const dimensions = entity.getDimensions();
 
+            // gl.bindFramebuffer(gl.FRAMEBUFFER, destFb);
             this.resizeCanvas();
-            gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
+            gl.viewport(0, 0, ...dimensions);
 
             if (program && image && loaded) {
                 gl.useProgram(program);
@@ -71,11 +71,10 @@ export class DrawSprite extends ShaderProgram {
                 const textureCoordBuffer = gl.createBuffer();
 
                 const drawCoord = getRectangleCoords(
-                    drawData.anchor[0],
-                    drawData.anchor[1],
+                    0,
+                    0,
                     // temp - need to also consider the size of the sprite being drawn here
-                    spriteSize.width * scale[0],
-                    spriteSize.height * scale[1]
+                    ...dimensions
                 );
 
                 gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
@@ -86,7 +85,7 @@ export class DrawSprite extends ShaderProgram {
                 gl.bufferData(
                     gl.ARRAY_BUFFER,
                     // prettier-ignore
-                    new Float32Array(drawData.textureCoordinates),
+                    new Float32Array(textureCoordinates),
                     gl.STATIC_DRAW
                 );
 
@@ -108,20 +107,10 @@ export class DrawSprite extends ShaderProgram {
                 gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
                 gl.vertexAttribPointer(textureCoordLocation, 2, gl.FLOAT, false, 0, 0);
 
-                gl.uniform2f(resolutionLocation, canvas.clientWidth, canvas.clientHeight);
+                gl.uniform2f(resolutionLocation, ...dimensions);
 
                 gl.drawArrays(gl.TRIANGLES, 0, 6);
             }
         }
     }
-
-    /* private drawFromSheet({ spriteSheet, drawData }: DrawArgs) {
-        drawData.forEach((data) => {
-            this.drawSprite(data, spriteSheet);
-        });
-    }
-
-    draw(sheets: DrawArgs[]) {
-        sheets.forEach((sheet) => this.drawFromSheet(sheet));
-    } */
 }

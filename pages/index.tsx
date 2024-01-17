@@ -5,6 +5,7 @@ import { Block } from "@classes/Piece";
 
 import { Bag } from "@classes/PieceQueue";
 import { Stopwatch } from "@classes/TimeMeasure";
+import { SpriteSheets } from "@data/SpriteSheets";
 import { isEqual2DVectorTuples } from "@utils/isEqual2DVectorTuples";
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -21,10 +22,31 @@ const App: React.FC = () => {
         }
     };
 
+    const loadImage = async () => {
+        const image = await new Promise<HTMLImageElement>((resolve) => {
+            const image = new Image();
+            image.src = SpriteSheets.STANDARD_MINO.src;
+
+            image.onload = async () => {
+                console.log("done");
+                resolve(image);
+            };
+        });
+
+        return image;
+    };
+
+    const x = async () => {
+        console.log("HI");
+        await loadImage();
+        console.log("Bye");
+    };
+
     return (
         <div>
             <GameCanvas ref={canvasRef} />
             <button onClick={start}>Start</button>
+            <button onClick={x}>Load an image</button>
         </div>
     );
 };

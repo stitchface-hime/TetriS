@@ -23,7 +23,6 @@ export class Main {
 
     private run() {
         if (this.gl) {
-            console.log(this.gl);
             this.game?.run(this.gl);
             this.runStatus = RunStatus.RUNNING;
         }
@@ -38,7 +37,6 @@ export class Main {
 
     start() {
         if (!this.game && this.gl) {
-            console.log(this.gl);
             this.game = new Game(...Standard.getConfig(), new GroupRenderer(this.gl), this.spriteLoader);
             this.gameController = new GameController(this.game);
             this.gameController.listen();

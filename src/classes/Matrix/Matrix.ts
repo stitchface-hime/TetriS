@@ -1,3 +1,4 @@
+import { Game } from "@classes/Game";
 import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
 import { MatrixBackground } from "@classes/MatrixBackground/MatrixBackground";
 import { Block, Piece } from "@classes/Piece";
@@ -38,7 +39,7 @@ export class Matrix extends GroupEntity {
      * When constructing the matrix, the matrix will have twice the number of rows
      * you specify to account for blocks above the visible part of the matrix.
      */
-    constructor(numRows: number, numColumns: number, renderer: GroupRenderer, spriteLoader: SpriteLoader) {
+    constructor(numRows: number, numColumns: number, game: Game, renderer: GroupRenderer, spriteLoader: SpriteLoader) {
         super(renderer);
 
         this.numRows = numRows * 2;
@@ -49,19 +50,24 @@ export class Matrix extends GroupEntity {
             warnIfNotInteger(SpriteSheets.STANDARD_MINO.spriteSize.height * this.numVisibleRows),
         ];
 
-        this.dimensions = [this.visibleDimensions[0], warnIfNotInteger((NATIVE_RESOLUTION_H + this.visibleDimensions[1]) * 0.5)];
-        this.position = [warnIfNotInteger((NATIVE_RESOLUTION_W - this.dimensions[0]) * 0.5), warnIfNotInteger(NATIVE_RESOLUTION_H - this.dimensions[1])];
-
-        console.log(this.position, NATIVE_RESOLUTION_H, this.dimensions[1]);
+        this.setDefaultDimensions([this.visibleDimensions[0], warnIfNotInteger((NATIVE_RESOLUTION_H + this.visibleDimensions[1]) * 0.5)]);
+        this.setParent(game);
+        this.setRelativePosition([
+            warnIfNotInteger((NATIVE_RESOLUTION_W - this.getDimensions()[0]) * 0.5),
+            warnIfNotInteger(NATIVE_RESOLUTION_H - this.getDimensions()[1]),
+        ]);
 
         this.numCellsOccupied = 0;
 
         this.renderer = renderer;
 
         this.spriteLoader = spriteLoader;
-        this.background = new MatrixBackground(this, new DrawMatrix(this.renderer.getWebGLRenderingContext()));
 
         this.activePiece = null;
+
+        // Background for the matrix
+        this.background = new MatrixBackground(this, new DrawMatrix(this.renderer.getWebGLRenderingContext()));
+        this.background.setParent(this);
     }
 
     /**
@@ -376,7 +382,8 @@ export class Matrix extends GroupEntity {
         console.log("\n");
     }
 
-    async draw() {
-        this.renderer.draw(this, [this.background, ...this.blocks]);
+    async draw(destFb: WebGLFramebuffer | null = null) {
+        console.log(this.activePiece?.getBlocks() || []);
+        await this.renderer.draw(this, [this.background, this.activePiece!.getBlocks()[0]], destFb);
     }
 }

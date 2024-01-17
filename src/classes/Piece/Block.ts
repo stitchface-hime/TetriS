@@ -39,6 +39,7 @@ export class Block extends SpritedEntity {
         this.setActiveSpriteSheetData(SpriteSheets.STANDARD_MINO.id);
 
         this.activeCoordinates = globalCoordinates;
+        this.setParent(matrix);
         this.matrix = matrix;
         this.color = color;
 
@@ -162,7 +163,7 @@ export class Block extends SpritedEntity {
         const matrixColumns = this.matrix.getNumColumns();
 
         // Move the entity
-        this.setPosition([
+        this.setRelativePosition([
             Math.trunc(this.activeCoordinates[0] * (matrixWidth / matrixColumns)),
             Math.trunc(this.activeCoordinates[1] * (matrixHeight / matrixRows)),
         ]);

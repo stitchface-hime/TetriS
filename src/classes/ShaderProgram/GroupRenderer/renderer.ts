@@ -5,33 +5,70 @@ import { fragment } from "./fragment";
 import { DrawableEntity } from "@classes/DrawableEntity";
 import { MAX_ERROR_BEFORE_SUPPRESS } from "src/constants";
 import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
+import { hexToRgb } from "@utils/hexToRgb";
+import { Tuple } from "src/types";
 
 export class GroupRenderer extends ShaderProgram {
     private drawErrorCount = 0;
 
     constructor(gl: WebGLRenderingContext) {
-        console.log("Creating group shader");
         super(vertex, fragment, gl);
     }
 
-    async draw(groupEntity: GroupEntity, entities: DrawableEntity[]) {
+    private prepareTexture = (gl: WebGLRenderingContext, texture: WebGLTexture | null, dimensions: [width: number, height: number]) => {
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+
+        const level = 0;
+        const internalFormat = gl.RGBA;
+        const border = 0;
+        const format = gl.RGBA;
+        const type = gl.UNSIGNED_BYTE;
+        const data = null;
+
+        gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, ...dimensions, border, format, type, data);
+
+        // Don't use linear as that requires MIPS
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+        //
+    };
+
+    async draw(groupEntity: GroupEntity, entities: DrawableEntity[], destFb: WebGLFramebuffer | null = null) {
         const program = this.program;
         const gl = this.gl;
+        const dimensions = groupEntity.getDimensions();
+
+        console.log("Rendering:", groupEntity.constructor.name, dimensions);
+        this.resizeCanvas();
+        gl.viewport(0, 0, ...dimensions);
 
         if (gl && program) {
             if (entities) {
-                console.log("Proceeding to draw entities");
                 const renderToTexture = (
-                    fb: WebGLFramebuffer | null,
-                    sourceTexture: WebGLTexture | WebGLTexture[] | null,
-                    targetTexture: WebGLTexture | null
+                    // each texture should have its own position and dimensions
+                    src: {
+                        texture: WebGLTexture | null;
+                        position: [x: number, y: number];
+                        dimensions: [width: number, height: number];
+                    },
+                    dest: {
+                        texture: WebGLTexture | null;
+                        dimensions: [width: number, height: number];
+                    }
                 ) => {
+                    // We are drawing and overriding the source texture(s) over the destination texture
                     gl.useProgram(program);
 
+                    const fb = gl.createFramebuffer();
                     gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
-                    gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, targetTexture, 0);
+                    const attachmentPoint = gl.COLOR_ATTACHMENT0;
 
-                    gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
+                    gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, dest.texture, 0);
+
+                    gl.viewport(0, 0, ...dest.dimensions);
 
                     const positionLocation = gl.getAttribLocation(program, "a_position");
                     const texCoordLocation = gl.getAttribLocation(program, "a_textureCoord");
@@ -40,9 +77,12 @@ export class GroupRenderer extends ShaderProgram {
                     const positionBuffer = gl.createBuffer();
                     const texCoordBuffer = gl.createBuffer();
 
-                    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-                    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(getRectangleCoords(0, 0, canvas.width, canvas.height)), gl.STATIC_DRAW);
+                    gl.uniform2f(resolutionLocation, ...dest.dimensions);
 
+                    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+                    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(getRectangleCoords(...src.position, ...src.dimensions)), gl.STATIC_DRAW);
+
+                    // Draw the entire texture (texCoord: [0, 0, 1, 1]) into the rectangle
                     gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
                     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(getRectangleCoords(0, 0, 1, 1)), gl.STATIC_DRAW);
 
@@ -55,81 +95,108 @@ export class GroupRenderer extends ShaderProgram {
                     gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
                     gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, true, 0, 0);
 
-                    gl.uniform2f(resolutionLocation, canvas.clientWidth, canvas.clientHeight);
-
-                    if (sourceTexture) {
-                        const sourceTextures = !Array.isArray(sourceTexture) ? [sourceTexture] : sourceTexture;
-
-                        sourceTextures.forEach((texture) => {
-                            gl.bindTexture(gl.TEXTURE_2D, texture);
-                            gl.drawArrays(gl.TRIANGLES, 0, 6);
-                        });
-                    }
+                    gl.bindTexture(gl.TEXTURE_2D, src.texture);
+                    gl.drawArrays(gl.TRIANGLES, 0, 6);
                 };
 
-                const canvas = gl.canvas as HTMLCanvasElement;
+                // [t0: intermediate result, t1: final result, t2: sprite]
+                // t0 + t2 = t1
+                const baseTextures: [accumulator: WebGLTexture | null, result: WebGLTexture | null, sprite: WebGLTexture | null] = [
+                    gl.createTexture(),
+                    gl.createTexture(),
+                    gl.createTexture(),
+                ] as const;
 
-                // [t0: texture to render to canvas, t1: texture containing sprite to render, t2: final texture]
-                const baseTextures = [gl.createTexture(), gl.createTexture(), gl.createTexture()] as const;
-
-                baseTextures.forEach((_texture, idx) => {
-                    gl.bindTexture(gl.TEXTURE_2D, baseTextures[idx]);
-
-                    // prepare t0
-                    const level = 0;
-                    const internalFormat = gl.RGBA;
-                    const border = 0;
-                    const format = gl.RGBA;
-                    const type = gl.UNSIGNED_BYTE;
-                    const data = null;
-
-                    gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, canvas.clientWidth, canvas.clientHeight, border, format, type, data);
-
-                    // Don't use linear as that requires MIPS
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-                    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-
-                    //
-                });
+                for (let i = 0; i < baseTextures.length - 1; i++) {
+                    this.prepareTexture(gl, baseTextures[i], groupEntity.getDimensions());
+                }
 
                 const fb = gl.createFramebuffer();
                 gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
                 const attachmentPoint = gl.COLOR_ATTACHMENT0;
 
                 for (let i = 0; i < entities.length; i++) {
-                    console.log("Drawing from group:", entities[i]);
-                    renderToTexture(fb, baseTextures[2], baseTextures[0]);
+                    const entity = entities[i];
+                    // render final result into intermediate so we can perform an addition to this texture and the sprite
+                    renderToTexture(
+                        {
+                            texture: baseTextures[1],
+                            position: [0, 0],
+                            dimensions: groupEntity.getDimensions(),
+                        },
+                        {
+                            texture: baseTextures[0],
+                            dimensions: groupEntity.getDimensions(),
+                        }
+                    );
 
-                    // render to texture 1
-                    gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, baseTextures[1], 0);
+                    this.prepareTexture(gl, baseTextures[2], entity.getDimensions());
 
-                    await entities[i].draw();
+                    // render to texture 2, which contains the sub-entity
+                    gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, baseTextures[2], 0);
 
-                    // render textures 0 and 1 into texture 2
-                    renderToTexture(fb, [baseTextures[0], baseTextures[1]], baseTextures[2]);
+                    console.log("Begin drawing", entity.constructor.name);
+                    await entity.draw(fb);
+                    console.log("End drawing", entity.constructor.name);
+                    console.log("Framebuffer status", gl.checkFramebufferStatus(gl.FRAMEBUFFER));
+
+                    /* gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+                    gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, baseTextures[2], 0); */
+                    this.debugTextureSplitIntoPx(entities[i].getDimensions(), entity.constructor.name, "Texture in framebuffer");
+
+                    // render textures 0 and 2 into texture 1
+                    renderToTexture(
+                        {
+                            texture: baseTextures[0],
+                            position: [0, 0],
+                            dimensions: groupEntity.getDimensions(),
+                        },
+                        {
+                            texture: baseTextures[1],
+                            dimensions: groupEntity.getDimensions(),
+                        }
+                    );
+
+                    gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, baseTextures[2], 0);
+                    this.debugTexture(entity.getDimensions(), "After rendering pass");
+
+                    console.log("Rendering", entity.constructor.name, "into final texture");
+                    renderToTexture(
+                        {
+                            texture: baseTextures[2],
+                            position: entity.getRelativePosition(),
+                            dimensions: entity.getDimensions(),
+                        },
+                        {
+                            texture: baseTextures[1],
+                            dimensions: groupEntity.getDimensions(),
+                        }
+                    );
+
+                    gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, baseTextures[2], 0);
+                    this.debugTexture(entity.getDimensions(), "After rendering pass final");
                 }
 
+                gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, baseTextures[1], 0);
+                this.debugTexture(dimensions, "Final texture");
+
+                console.log("Completed rendering all sub entities", groupEntity.constructor.name);
+
                 {
-                    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+                    gl.bindTexture(gl.TEXTURE_2D, baseTextures[1]);
 
                     gl.useProgram(program);
-                    gl.bindTexture(gl.TEXTURE_2D, baseTextures[2]);
-
-                    // clear main canvas
-                    gl.viewport(0, 0, canvas.clientWidth, canvas.clientHeight);
 
                     const positionLocation = gl.getAttribLocation(program, "a_position");
                     const texCoordLocation = gl.getAttribLocation(program, "a_textureCoord");
                     const resolutionLocation = gl.getUniformLocation(program, "u_resolution");
-                    // const colorLocation = gl.getUniformLocation(program, "u_color");
 
                     const positionBuffer = gl.createBuffer();
                     const texCoordBuffer = gl.createBuffer();
 
+                    // Render the final result
                     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-                    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(getRectangleCoords(0, 0, canvas.width, canvas.height)), gl.STATIC_DRAW);
+                    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(getRectangleCoords(0, 0, ...dimensions)), gl.STATIC_DRAW);
 
                     gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
                     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(getRectangleCoords(0, 0, 1, 1)), gl.STATIC_DRAW);
@@ -143,10 +210,11 @@ export class GroupRenderer extends ShaderProgram {
                     gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
                     gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, true, 0, 0);
 
-                    gl.uniform2f(resolutionLocation, canvas.clientWidth, canvas.clientHeight);
+                    gl.uniform2f(resolutionLocation, ...dimensions);
                     gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+                    // this.debugTextureSplitIntoPx(dimensions, "Final", "Texture in framebuffer");
                 }
-                return;
             } else {
                 this.drawErrorCount++;
 
@@ -170,17 +238,53 @@ export class GroupRenderer extends ShaderProgram {
     }
 
     /**
-     * Loads the current contents of the framebuffer into an array and logs the bytes in the console.
-     * Can add a custom message with the debug log à la `console.log`.
+     * Loads the current contents of the currently bound framebuffer into an array and returns the bytes.
      */
-    private debugTexture(message?: any, ...other: any[]) {
+    private getBytes = (dimensions: [width: number, height: number]) => {
         const gl = this.gl;
         if (gl) {
-            const canvas = gl.canvas as HTMLCanvasElement;
+            let data = new Uint8Array(dimensions[0] * dimensions[1] * 4);
+            gl.readPixels(0, 0, dimensions[0], dimensions[1], gl.RGBA, gl.UNSIGNED_BYTE, data);
 
-            let data = new Uint8Array(canvas.clientWidth * canvas.clientHeight * 4);
-            gl.readPixels(0, 0, canvas.clientWidth, canvas.clientHeight, gl.RGBA, gl.UNSIGNED_BYTE, data);
-            console.log(message, ...other, data);
+            return data;
         }
+    };
+
+    /**
+     * Loads the current contents of the currently bound framebuffer into an array and returns the pixels
+     * as tuples of 4 bytes.
+     */
+    private getPixels = (dimensions: [width: number, height: number]) => {
+        const gl = this.gl;
+        if (gl) {
+            let data = new Uint8Array(dimensions[0] * dimensions[1] * 4);
+            let parsedData: Tuple<number, 4>[] = [];
+
+            gl.readPixels(0, 0, dimensions[0], dimensions[1], gl.RGBA, gl.UNSIGNED_BYTE, data);
+
+            for (let i = 0; i < data.length; i += 4) {
+                parsedData.push([data[i], data[i + 1], data[i + 2], data[i + 3]]);
+            }
+
+            return parsedData;
+        }
+    };
+
+    /**
+     * Loads the current contents of the framebuffer into an array and logs the bytes in the console.
+     * Can add a custom message with the debug log à la `console.log`.
+     * Index 0 starts from the bottom of the texture.
+     */
+    private debugTexture(dimensions: [width: number, height: number], message?: any, ...other: any[]) {
+        console.log(message, ...other, this.getBytes(dimensions));
+    }
+
+    /**
+     * Loads the current contents of the framebuffer into an array and logs the bytes in the console.
+     * Can add a custom message with the debug log à la `console.log`.
+     * Index 0 starts from the bottom of the texture.
+     */
+    private debugTextureSplitIntoPx(dimensions: [width: number, height: number], message?: any, ...other: any[]) {
+        console.log(message, ...other, this.getPixels(dimensions));
     }
 }

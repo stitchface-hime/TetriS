@@ -79,11 +79,12 @@ export class Game extends GroupEntity {
         this.renderer = renderer;
 
         this.spriteLoader = spriteLoader;
-        this.matrix = new Matrix(numRows, numColumns, new GroupRenderer(this.renderer.getWebGLRenderingContext()), spriteLoader);
+        this.matrix = new Matrix(numRows, numColumns, this, new GroupRenderer(this.renderer.getWebGLRenderingContext()), spriteLoader);
+        this.addEntity(this.matrix);
 
         const canvas = this.renderer.getWebGLRenderingContext().canvas as HTMLCanvasElement;
-        this.dimensions = [canvas.clientWidth, canvas.clientHeight];
-        this.position = [0, 0];
+        this.setDefaultDimensions([canvas.clientWidth, canvas.clientHeight]);
+        this.setPosition([0, 0]);
 
         // not ideal - probably don't want group entity as the renderer for a game anymore... unless we want ui to also appear in the screen?
 
@@ -93,7 +94,7 @@ export class Game extends GroupEntity {
 
     /* Game flow methods */
 
-    run(gl: WebGLRenderingContext) {
+    async run(gl: WebGLRenderingContext) {
         this.renderer.setWebGLRenderingContext(gl);
 
         // TODO: This is still testing
@@ -111,7 +112,7 @@ export class Game extends GroupEntity {
             );
         } */
 
-        this.tick(gl);
+        await this.tick(gl);
     }
 
     halt() {
@@ -121,7 +122,7 @@ export class Game extends GroupEntity {
     /**
      * Ticks the game and decides what happens in the given frame.
      */
-    tick(gl: WebGLRenderingContext) {
+    async tick(gl: WebGLRenderingContext) {
         if (!this.gameOver) {
             if (!this.activePiece) {
                 const spawnSuccessful = this.spawnNextPiece();
@@ -130,7 +131,7 @@ export class Game extends GroupEntity {
                 }
             }
         }
-        this.renderer.draw(this, [this.matrix]);
+        await this.renderer.draw(this, this.entities);
     }
 
     private resetGroundedState() {
@@ -268,7 +269,7 @@ export class Game extends GroupEntity {
             if (spawnedPiece) {
                 // Register block entities
                 // TODO: Disable register Block entities
-                this.addMultipleEntities(spawnedPiece.getBlocks());
+                // this.addMultipleEntities(spawnedPiece.getBlocks());
 
                 // Does the spawned piece overlap with any blocks in the matrix?
                 const pieceDoesNotOverlap = spawnedPiece.getBlocksCoordinates().reduce(

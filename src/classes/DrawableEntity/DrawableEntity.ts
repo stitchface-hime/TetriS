@@ -4,27 +4,34 @@ import { add2DVectorTuples } from "@utils/add2DVectorTuples";
 import { product2DVectorTuples } from "@utils/product2DVectorTuples";
 
 export abstract class DrawableEntity {
-    protected defaultScale: [x: number, y: number] = [1, 1];
+    private defaultScale: [x: number, y: number] = [1, 1];
 
-    protected dimensions: [width: number, height: number] = [0, 0];
+    private dimensions: [width: number, height: number] = [0, 0];
 
     /**
      * Width and height of the entity at scale 1.
      */
-    protected defaultDimensions: [width: number, height: number] = [0, 0];
+    private defaultDimensions: [width: number, height: number] = [0, 0];
 
     /**
-     * Position of the bottom-left pixel of an entity within a scene
+     * Position of the bottom-left pixel of an entity within the canvas
      */
-    protected position: [x: number, y: number] = [0, 0];
+    private position: [x: number, y: number] = [0, 0];
+
+    /**
+     * Position of the bottom-left pixel of an entity relative to the bottom-left pixel of the parent.
+     * Otherwise this value is equal to `position`.
+     */
+    private relativePosition: [x: number, y: number] = [0, 0];
+
     /**
      * Scale of the entity within a scene.
      */
-    protected scale: [x: number, y: number] = this.defaultScale;
+    private scale: [x: number, y: number] = this.defaultScale;
     /**
      * Rotation of the entity in degrees within a scene.
      */
-    protected rotation = 0;
+    private rotation = 0;
 
     protected renderer: ShaderProgram | null;
 
@@ -48,12 +55,18 @@ export abstract class DrawableEntity {
         if (rotation !== undefined) this.rotation = rotation || this.rotation;
     }
 
+    getParent() {
+        return this.parent;
+    }
+
     setParent(parent: GroupEntity) {
         this.parent = parent;
+        this.relativePosition = add2DVectorTuples(this.position, [-this.parent.position[0], -this.parent.position[1]]);
     }
 
     unsetParent() {
         this.parent = null;
+        this.relativePosition = this.position;
     }
 
     setRenderer(renderer: ShaderProgram) {
@@ -64,6 +77,9 @@ export abstract class DrawableEntity {
         return this.defaultDimensions;
     }
 
+    /**
+     * Gets the dimensions of the entity including any scaling that has occurred.
+     */
     getDimensions() {
         return this.dimensions;
     }
@@ -80,12 +96,25 @@ export abstract class DrawableEntity {
         return this.position;
     }
 
+    getRelativePosition() {
+        return this.relativePosition;
+    }
+
     setPosition(position: [x: number, y: number]) {
         this.position = position;
+        // TODO: need to update relative position too!!!
+    }
+
+    setRelativePosition(relativePosition: [x: number, y: number]) {
+        if (this.parent) {
+            this.relativePosition = relativePosition;
+            this.position = add2DVectorTuples(this.parent.position, relativePosition);
+        }
     }
 
     translate(position: [x: number, y: number]) {
         this.position = add2DVectorTuples(this.position, position);
+        this.relativePosition = this.parent ? add2DVectorTuples(this.relativePosition, position) : this.position;
     }
 
     getScale() {
@@ -137,7 +166,7 @@ export abstract class DrawableEntity {
     }
 
     /**
-     * Draws the game entity's sprite if provided.
+     * Draws the entity.
      */
-    abstract draw(): Promise<void>;
+    abstract draw(framebuffer: WebGLFramebuffer | null): Promise<void>;
 }
