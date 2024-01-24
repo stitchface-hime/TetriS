@@ -382,8 +382,8 @@ export class Matrix extends GroupEntity {
         console.log("\n");
     }
 
-    async draw(destFb: WebGLFramebuffer | null = null) {
+    async draw(destTexture: WebGLTexture | null) {
         console.log(this.activePiece?.getBlocks() || []);
-        await this.renderer.draw(this, [this.background, this.activePiece!.getBlocks()[0]], destFb);
+        await this.renderer.draw(destTexture, this, [this.background, this.activePiece!.getBlocks()[0]]);
     }
 }

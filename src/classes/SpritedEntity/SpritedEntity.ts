@@ -154,10 +154,10 @@ export abstract class SpritedEntity extends DrawableEntity {
         }
     }
 
-    async draw(framebuffer: WebGLFramebuffer | null = null): Promise<void> {
+    async draw(destTexture: WebGLTexture | null): Promise<void> {
         if (this.activeSpriteSheetData) {
             if (this.activeSpriteQuadCoords) {
-                await this.renderer?.draw(this, this.activeSpriteQuadCoords, this.activeSpriteSheetData, framebuffer);
+                await this.renderer?.draw(destTexture, this, this.activeSpriteQuadCoords, this.activeSpriteSheetData);
             }
         } else {
             console.log("Failed to draw");

@@ -48,15 +48,20 @@ export class DrawSprite extends ShaderProgram {
         this.spriteLoader = spriteLoader;
     }
 
-    async draw(entity: SpritedEntity, textureCoordinates: number[], spriteSheetDetails: SpriteSheetDetails, destFb: WebGLFramebuffer | null) {
+    async draw(destTexture: WebGLTexture | null, entity: SpritedEntity, textureCoordinates: number[], spriteSheetDetails: SpriteSheetDetails) {
         const sheet = await this.spriteLoader.load(spriteSheetDetails);
         const gl = this.gl;
+
+        const fb = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+        const attachmentPoint = gl.COLOR_ATTACHMENT0;
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, destTexture, 0);
+
         if (gl) {
             const { image, loaded } = sheet;
             const program = this.program;
             const dimensions = entity.getDimensions();
 
-            // gl.bindFramebuffer(gl.FRAMEBUFFER, destFb);
             this.resizeCanvas();
             gl.viewport(0, 0, ...dimensions);
 

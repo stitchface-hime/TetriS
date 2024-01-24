@@ -166,7 +166,7 @@ export abstract class DrawableEntity {
     }
 
     /**
-     * Draws the entity.
+     * Draw the entity to a destination texture.
      */
-    abstract draw(framebuffer: WebGLFramebuffer | null): Promise<void>;
+    abstract draw(destTexture: WebGLTexture | null): Promise<void>;
 }

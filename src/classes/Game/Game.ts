@@ -131,7 +131,6 @@ export class Game extends GroupEntity {
                 }
             }
         }
-        await this.renderer.draw(this, this.entities);
     }
 
     private resetGroundedState() {
@@ -531,6 +530,10 @@ export class Game extends GroupEntity {
         this.intervalManager.unsubscribeAll();
         // Debugging feature
         console.log("Game over:", code);
+    }
+
+    async draw(destTexture: WebGLTexture | null) {
+        await this.renderer.draw(destTexture, this, this.entities);
     }
 
     // Game methods

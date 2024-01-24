@@ -1,8 +1,9 @@
 import { DrawableEntity } from "@classes/DrawableEntity";
 import { GroupRenderer } from "@classes/ShaderProgram/GroupRenderer";
 
-export class GroupEntity extends DrawableEntity {
+export abstract class GroupEntity extends DrawableEntity {
     protected entities: DrawableEntity[] = [];
+    protected renderer: GroupRenderer | null;
 
     constructor(renderer: GroupRenderer) {
         super();
@@ -35,7 +36,8 @@ export class GroupEntity extends DrawableEntity {
         });
     }
 
-    async draw() {
-        this.renderer?.draw();
-    }
+    // TODO: Multi vs group renderer
+    // Group renderer renders everything in a quad but with no overflow
+    // Multi renderer renders everything but allows overflow
+    abstract draw(destTexture: WebGLTexture | null): Promise<void>;
 }

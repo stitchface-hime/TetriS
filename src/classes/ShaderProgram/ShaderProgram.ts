@@ -124,5 +124,8 @@ export abstract class ShaderProgram {
         return this.program;
     }
 
-    abstract draw(...args: any[]): void;
+    /**
+     * Draw to a specified texture.
+     */
+    abstract draw(destTexture: WebGLTexture | null, ...args: any[]): Promise<void>;
 }
