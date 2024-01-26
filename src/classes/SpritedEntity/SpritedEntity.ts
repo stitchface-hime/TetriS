@@ -131,7 +131,7 @@ export abstract class SpritedEntity extends DrawableEntity {
             const totalRows = Math.ceil(height / spriteSize.height);
             const totalCols = Math.ceil(width / spriteSize.width);
             const u = column / totalCols;
-            const v = (totalRows - row - 1) / totalRows;
+            const v = row / totalRows;
 
             this.setActiveSpriteByUV([u, v]);
         } else {

@@ -37,7 +37,7 @@ export class GroupRenderer extends ShaderProgram {
     };
 
     async draw(destTexture: WebGLTexture | null, groupEntity: GroupEntity, entities: DrawableEntity[]) {
-        console.log("Rendering:", groupEntity.constructor.name);
+        console.log("========== Rendering:", groupEntity.constructor.name);
         const program = this.program;
         const gl = this.gl;
         const dimensions = groupEntity.getDimensions();
@@ -131,12 +131,9 @@ export class GroupRenderer extends ShaderProgram {
                     this.prepareTexture(gl, baseTextures[2], entity.getDimensions());
 
                     // render to texture 2, which contains the sub-entity
-                    gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, baseTextures[2], 0);
                     console.log("Begin drawing", entity.constructor.name);
                     await entity.draw(baseTextures[2]);
                     console.log("End drawing", entity.constructor.name);
-                    gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, baseTextures[2], 0);
-                    this.debugTexture([...entity.getDimensions()], "After drawing subentity", entity.constructor.name);
 
                     // render textures 0 and 2 into texture 1
                     renderToTexture(
@@ -152,7 +149,7 @@ export class GroupRenderer extends ShaderProgram {
                     );
 
                     gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, baseTextures[0], 0);
-                    this.debugTexture([...entity.getDimensions()], "In accumulator");
+                    this.debugTexture([...groupEntity.getDimensions()], "In accumulator");
 
                     console.log("Rendering", entity.constructor.name, "into final texture");
                     renderToTexture(
@@ -167,9 +164,9 @@ export class GroupRenderer extends ShaderProgram {
                         }
                     );
                 }
-                console.log("Finished drawing all subentities, returning...");
                 gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, baseTextures[1], 0);
                 this.debugTexture(dimensions, "Final texture");
+                console.log("======= Finished drawing all subentities, returning...");
             } else {
                 this.drawErrorCount++;
 

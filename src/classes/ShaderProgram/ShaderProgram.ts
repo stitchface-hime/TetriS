@@ -1,5 +1,7 @@
 import { ShaderProgramError } from "@classes/Error";
 
+// TODO: Ought to split shader program into two types
+// one that renders to texture and one that renders directly to canvas
 export abstract class ShaderProgram {
     private id = "shader-program";
     private vertexSrc: string;

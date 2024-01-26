@@ -3,6 +3,11 @@ import { GameController } from "@classes/GameController";
 import { RunStatus } from "./types";
 import { GroupRenderer } from "@classes/ShaderProgram/GroupRenderer";
 import { SpriteLoader } from "@classes/SpriteLoader";
+import { MainRenderer } from "@classes/ShaderProgram/MainRenderer/renderer";
+import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
+import { MainIntervalKeys } from "./MainIntervalKeys";
+import { Interval } from "@classes/TimeMeasure";
+import { FRAME_MS } from "src/constants";
 
 export class Main {
     private game: Game | null = null;
@@ -10,15 +15,26 @@ export class Main {
     private spriteLoader = new SpriteLoader();
     private gameController: GameController | null = null;
     private runStatus: RunStatus = RunStatus.STOPPED;
+    private renderer: MainRenderer | null = null;
+    private intervalManager = new IntervalManager();
 
     constructor(canvas?: HTMLCanvasElement) {
         if (canvas) {
             this.setWebGLRenderingContext(canvas);
+            if (this.gl) {
+                this.renderer = new MainRenderer(this.gl);
+            }
         }
     }
 
+    /**
+     * Sets the rendering context for the main program. This also assigns a renderer to main.
+     */
     setWebGLRenderingContext(canvas: HTMLCanvasElement) {
         this.gl = canvas.getContext("webgl");
+        if (this.gl) {
+            this.renderer = new MainRenderer(this.gl);
+        }
     }
 
     private run() {
@@ -37,15 +53,9 @@ export class Main {
         }
     }
 
-    async start() {
-        if (!this.game && this.gl) {
+    async draw() {
+        if (this.gl && this.game) {
             const canvas = this.gl.canvas as HTMLCanvasElement;
-
-            this.game = new Game(...Standard.getConfig(), new GroupRenderer(this.gl), this.spriteLoader);
-            this.gameController = new GameController(this.game);
-            this.gameController.listen();
-            this.run();
-
             const mainTexture = this.gl.createTexture();
 
             this.gl.bindTexture(this.gl.TEXTURE_2D, mainTexture);
@@ -67,20 +77,23 @@ export class Main {
             // draw to main texture
             await this.game.draw(mainTexture);
 
-            // debug
-            const fb = this.gl.createFramebuffer();
-            this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, fb);
-            const attachmentPoint = this.gl.COLOR_ATTACHMENT0;
+            this.renderer?.draw(mainTexture);
+        }
+    }
 
-            this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, attachmentPoint, this.gl.TEXTURE_2D, mainTexture, 0);
-            const gl = this.gl;
-            let x = new Uint8Array(canvas.clientWidth * canvas.clientHeight * 4);
-            this.gl.readPixels(0, 0, canvas.clientWidth, canvas.clientHeight, gl.RGBA, gl.UNSIGNED_BYTE, x);
+    async start() {
+        if (!this.game && this.gl) {
+            this.game = new Game(...Standard.getConfig(), new GroupRenderer(this.gl), this.spriteLoader);
+            this.gameController = new GameController(this.game);
+            this.gameController.listen();
+            this.run();
 
-            console.log("Main texture", x);
-            // debug
-
-            return data;
+            this.intervalManager.subscribe(
+                MainIntervalKeys.RUN,
+                new Interval(FRAME_MS, () => {
+                    this.draw();
+                })
+            );
         }
     }
 

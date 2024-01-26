@@ -19,8 +19,7 @@ void main() {
 
     vec2 clipSpace = zeroToTwo - 1.0;
 
-    // flip into y-axis to correct the sprite to face upright
-    vec4 finalPosition = vec4(clipSpace.x, - clipSpace.y, 0, 1);
+    vec4 finalPosition = vec4(clipSpace, 0, 1);
 
     // [-1, 1]
     gl_Position = finalPosition;

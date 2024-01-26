@@ -44,15 +44,17 @@ export class DrawMatrix extends ShaderProgram {
         return this.config.borderWidth;
     }
 
-    async draw() {
+    async draw(destTexture: WebGLTexture | null) {
         const gl = this.gl;
         if (gl && this.matrix) {
             const program = this.program;
-            const canvas = gl.canvas as HTMLCanvasElement;
             const visibleDimensions = this.matrix.getVisibleDimensions();
             const dimensions = this.matrix.getDimensions();
 
-            //gl.bindFramebuffer(gl.FRAMEBUFFER, destFb);
+            const fb = gl.createFramebuffer();
+            gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+            const attachmentPoint = gl.COLOR_ATTACHMENT0;
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, destTexture, 0);
 
             // set viewport
             this.resizeCanvas();
