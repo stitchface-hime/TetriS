@@ -1,3 +1,3 @@
 export enum MainIntervalKeys {
-    RUN,
+    RUN = "Main_run",
 }

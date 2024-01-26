@@ -1,4 +1,4 @@
 export enum GameControllerIntervalKeys {
-    LISTEN,
-    RUN,
+    LISTEN = "GameController_listen",
+    RUN = "GameController_run",
 }

@@ -1,5 +1,5 @@
 export enum GameIntervalKeys {
-    RUN,
-    AUTO_DROP,
-    LOCK_DELAY,
+    RUN = "Game_run",
+    AUTO_DROP = "Game_autoDrop",
+    LOCK_DELAY = "Game_lockDelay",
 }

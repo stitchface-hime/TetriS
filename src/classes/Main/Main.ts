@@ -10,13 +10,16 @@ import { Interval } from "@classes/TimeMeasure";
 import { FRAME_MS } from "src/constants";
 
 export class Main {
-    private game: Game | null = null;
+    // Common to all entities within the main progra
     private gl: WebGLRenderingContext | null = null;
     private spriteLoader = new SpriteLoader();
+    private intervalManager = new IntervalManager();
+
+    private game: Game | null = null;
+
     private gameController: GameController | null = null;
     private runStatus: RunStatus = RunStatus.STOPPED;
     private renderer: MainRenderer | null = null;
-    private intervalManager = new IntervalManager();
 
     constructor(canvas?: HTMLCanvasElement) {
         if (canvas) {
@@ -83,8 +86,8 @@ export class Main {
 
     async start() {
         if (!this.game && this.gl) {
-            this.game = new Game(...Standard.getConfig(), new GroupRenderer(this.gl), this.spriteLoader);
-            this.gameController = new GameController(this.game);
+            this.game = new Game(...Standard.getConfig(), new GroupRenderer(this.gl), this.spriteLoader, this.intervalManager);
+            this.gameController = new GameController(this.game, this.intervalManager);
             this.gameController.listen();
             this.run();
 

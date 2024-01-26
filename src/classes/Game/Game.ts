@@ -35,7 +35,7 @@ export class Game extends GroupEntity {
      *
      */
 
-    private intervalManager = new IntervalManager();
+    private intervalManager: IntervalManager;
 
     private spawnRetries = 2;
 
@@ -70,15 +70,18 @@ export class Game extends GroupEntity {
         pieceQueue: PieceQueue,
         spawnCoordinates: [x: number, y: number],
         renderer: GroupRenderer,
-        spriteLoader: SpriteLoader
+        spriteLoader: SpriteLoader,
+        intervalManager: IntervalManager
     ) {
         super(renderer);
         this.pieceFactory = new PieceFactory();
         this.numRows = numRows;
         this.numColumns = numColumns;
-        this.renderer = renderer;
 
+        this.renderer = renderer;
         this.spriteLoader = spriteLoader;
+        this.intervalManager = intervalManager;
+
         this.matrix = new Matrix(numRows, numColumns, this, new GroupRenderer(this.renderer.getWebGLRenderingContext()), spriteLoader);
         this.addEntity(this.matrix);
 

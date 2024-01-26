@@ -8,7 +8,7 @@ import { Interval } from "@classes/TimeMeasure";
 export class GameController {
     private game: Game;
     private inputBinding = new InputBinding();
-    private intervalManager = new IntervalManager();
+    private intervalManager: IntervalManager;
     private queue: Set<Button> = new Set<Button>();
     private pressedFrames: Record<string, number> = {};
     // Do we need this?
@@ -16,8 +16,9 @@ export class GameController {
     // Potential abstraction
     // private buttonConsumer: (held: Record<Button number>, released: Button[], pressed: Button[]) => void | null;
 
-    constructor(game: Game) {
+    constructor(game: Game, intervalManager: IntervalManager) {
         this.game = game;
+        this.intervalManager = intervalManager;
     }
 
     /**

@@ -26,9 +26,10 @@ export class IntervalManager {
         }
         if (!this.globalPause) {
             const delta = now - this.then;
+
             if (delta >= this.tickInterval) {
                 this.advanceAllIntervals(delta);
-                this.then = now;
+                this.then = now - (delta % this.then);
             }
             this.globalIntervalHandle = requestAnimationFrame(() => this.tick());
         } else {
