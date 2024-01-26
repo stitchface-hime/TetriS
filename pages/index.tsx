@@ -12,11 +12,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { GameCanvas } from "src/components/GameCanvas";
 
 const App: React.FC = () => {
-    const mainRef = useRef<Main>(new Main());
+    const mainRef = useRef<Main | null>(null);
     const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
     const start = () => {
         if (canvasRef.current) {
+            mainRef.current = new Main();
             mainRef.current.setWebGLRenderingContext(canvasRef.current);
             mainRef.current.start();
         }

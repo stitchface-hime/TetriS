@@ -37,7 +37,7 @@ export class GroupRenderer extends ShaderProgram {
     };
 
     async draw(destTexture: WebGLTexture | null, groupEntity: GroupEntity, entities: DrawableEntity[]) {
-        console.log("========== Rendering:", groupEntity.constructor.name);
+        // console.log("========== Rendering:", groupEntity.constructor.name);
         const program = this.program;
         const gl = this.gl;
         const dimensions = groupEntity.getDimensions();
@@ -109,9 +109,9 @@ export class GroupRenderer extends ShaderProgram {
 
                 this.prepareTexture(gl, baseTextures[0], groupEntity.getDimensions());
 
-                const fb = gl.createFramebuffer();
+                /* const fb = gl.createFramebuffer();
                 gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
-                const attachmentPoint = gl.COLOR_ATTACHMENT0;
+                const attachmentPoint = gl.COLOR_ATTACHMENT0; */
 
                 for (let i = 0; i < entities.length; i++) {
                     const entity = entities[i];
@@ -131,9 +131,9 @@ export class GroupRenderer extends ShaderProgram {
                     this.prepareTexture(gl, baseTextures[2], entity.getDimensions());
 
                     // render to texture 2, which contains the sub-entity
-                    console.log("Begin drawing", entity.constructor.name);
+                    // console.log("Begin drawing", entity.constructor.name);
                     await entity.draw(baseTextures[2]);
-                    console.log("End drawing", entity.constructor.name);
+                    // console.log("End drawing", entity.constructor.name);
 
                     // render textures 0 and 2 into texture 1
                     renderToTexture(
@@ -148,10 +148,10 @@ export class GroupRenderer extends ShaderProgram {
                         }
                     );
 
-                    gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, baseTextures[0], 0);
+                    /* gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, baseTextures[0], 0);
                     this.debugTexture([...groupEntity.getDimensions()], "In accumulator");
 
-                    console.log("Rendering", entity.constructor.name, "into final texture");
+                    console.log("Rendering", entity.constructor.name, "into final texture"); */
                     renderToTexture(
                         {
                             texture: baseTextures[2],
@@ -164,9 +164,9 @@ export class GroupRenderer extends ShaderProgram {
                         }
                     );
                 }
-                gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, baseTextures[1], 0);
+                /* gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, baseTextures[1], 0);
                 this.debugTexture(dimensions, "Final texture");
-                console.log("======= Finished drawing all subentities, returning...");
+                console.log("======= Finished drawing all subentities, returning..."); */
             } else {
                 this.drawErrorCount++;
 

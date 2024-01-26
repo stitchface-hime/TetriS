@@ -77,7 +77,7 @@ export class Main {
             // draw to main texture
             await this.game.draw(mainTexture);
 
-            this.renderer?.draw(mainTexture);
+            await this.renderer?.draw(mainTexture);
         }
     }
 
@@ -90,9 +90,13 @@ export class Main {
 
             this.intervalManager.subscribe(
                 MainIntervalKeys.RUN,
-                new Interval(FRAME_MS, () => {
-                    this.draw();
-                })
+                new Interval(
+                    FRAME_MS,
+                    () => {
+                        this.draw();
+                    },
+                    Infinity
+                )
             );
         }
     }

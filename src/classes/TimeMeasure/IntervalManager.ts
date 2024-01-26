@@ -1,3 +1,4 @@
+import { FRAME_MS } from "src/constants";
 import { Interval } from "./Interval";
 
 type IntervalManagerKey = string | number;
@@ -7,7 +8,7 @@ type IntervalManagerKey = string | number;
  * `Interval` instances.
  */
 export class IntervalManager {
-    private tickInterval = 1000 / 60; // ~16.6667ms
+    private tickInterval = FRAME_MS; // ~16.6667ms
     private globalIntervalHandle?: number = undefined;
     private globalPause: boolean = false;
     private then: number | null = null;
@@ -29,9 +30,7 @@ export class IntervalManager {
                 this.advanceAllIntervals(delta);
                 this.then = now;
             }
-            this.globalIntervalHandle = requestAnimationFrame(() =>
-                this.tick()
-            );
+            this.globalIntervalHandle = requestAnimationFrame(() => this.tick());
         } else {
             if (this.globalIntervalHandle !== undefined) {
                 cancelAnimationFrame(this.globalIntervalHandle);
@@ -43,9 +42,7 @@ export class IntervalManager {
      *
      */
     advanceAllIntervals(ms: number) {
-        this.subscriptions.forEach((interval) =>
-            interval.increaseTimeElapsed(ms)
-        );
+        this.subscriptions.forEach((interval) => interval.increaseTimeElapsed(ms));
     }
 
     /**

@@ -47,7 +47,7 @@ export class Game extends GroupEntity {
     // this should be extracted out
     private autoDropFrameBaseline = (0.8 - (this.level - 1) * 0.007) ** (this.level - 1) * 60;
 
-    private autoDropFrameTarget = 60;
+    private autoDropFrameTarget = 0.2;
     private autoDropFrames = 0;
 
     private groundedMoveLimit = 15;
@@ -98,19 +98,18 @@ export class Game extends GroupEntity {
         this.renderer.setWebGLRenderingContext(gl);
 
         // TODO: This is still testing
-        /* if (!this.intervalManager.getInterval(GameIntervalKeys.RUN)) {
+        if (!this.intervalManager.getInterval(GameIntervalKeys.RUN)) {
             this.intervalManager.subscribe(
                 GameIntervalKeys.RUN,
                 new Interval(
                     1000 / 60,
                     () => {
-                        // this.rerender();
                         this.tick(gl);
                     },
                     Infinity
                 )
             );
-        } */
+        }
 
         await this.tick(gl);
     }
@@ -179,6 +178,7 @@ export class Game extends GroupEntity {
     // TODO: Grounded flow still buggy
     private dropFlow(dropUnits = 1) {
         if (this.autoDropFrames >= this.autoDropFrameTarget) {
+            console.log("Autodrop:", this.autoDropFrames, "/", this.autoDropFrameTarget);
             this.autoDropPiece(dropUnits);
         } else {
             this.autoDropFrames++;

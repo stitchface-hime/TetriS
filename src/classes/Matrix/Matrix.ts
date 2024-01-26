@@ -1,3 +1,4 @@
+import { DrawableEntity } from "@classes/DrawableEntity";
 import { Game } from "@classes/Game";
 import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
 import { MatrixBackground } from "@classes/MatrixBackground/MatrixBackground";
@@ -383,7 +384,12 @@ export class Matrix extends GroupEntity {
     }
 
     async draw(destTexture: WebGLTexture | null) {
-        console.log(this.activePiece?.getBlocks() || []);
-        await this.renderer.draw(destTexture, this, [this.background, ...this.activePiece!.getBlocks()]);
+        let entities: DrawableEntity[] = [this.background, ...this.blocks];
+
+        if (this.activePiece) {
+            entities.push(...this.activePiece.getBlocks());
+        }
+
+        await this.renderer.draw(destTexture, this, entities);
     }
 }
