@@ -47,7 +47,7 @@ export class Game extends GroupEntity {
     // this should be extracted out
     private autoDropFrameBaseline = (0.8 - (this.level - 1) * 0.007) ** (this.level - 1) * 60;
 
-    private autoDropFrameTarget = 0.2;
+    private autoDropFrameTarget = 60;
     private autoDropFrames = 0;
 
     private groundedMoveLimit = 15;
