@@ -1,6 +1,6 @@
 import { SpriteSheetDetails } from "src/shaders/types";
 
-type SpriteSheetKey = "STANDARD_MINO";
+export type SpriteSheetKey = "STANDARD_MINO";
 
 export const SpriteSheets: Record<SpriteSheetKey, SpriteSheetDetails> = {
     STANDARD_MINO: {

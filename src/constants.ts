@@ -10,3 +10,5 @@ export const NATIVE_RESOLUTION_H = 900;
 export const MAX_ERROR_BEFORE_SUPPRESS = 10;
 
 export const FRAME_MS = 1000 / 60;
+
+export const MIN_TEXTURE_UNITS = 2;

@@ -1,3 +1,3 @@
 export { Connection } from "./Connection";
 export { PieceId } from "./PieceId";
-export { SpriteSheets } from "./SpriteSheets";
+export { SpriteSheets, type SpriteSheetKey } from "./SpriteSheets";
