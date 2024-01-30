@@ -29,7 +29,8 @@ export class IntervalManager {
 
             if (delta >= this.tickInterval) {
                 this.advanceAllIntervals(delta);
-                this.then = now - (delta % this.then);
+                // offset to ensure that each `then` is exactly `tickInterval` apart
+                this.then = now - (delta % this.tickInterval);
             }
             this.globalIntervalHandle = requestAnimationFrame(() => this.tick());
         } else {

@@ -4,6 +4,7 @@ import { Button } from "@classes/InputBinding/types";
 import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
 import { GameControllerIntervalKeys } from "./GameControllerIntervalKeys";
 import { Interval } from "@classes/TimeMeasure";
+import { FRAME_MS } from "src/constants";
 
 export class GameController {
     private game: Game;
@@ -96,7 +97,7 @@ export class GameController {
         this.intervalManager.subscribe(
             GameControllerIntervalKeys.RUN,
             new Interval(
-                1000 / 60,
+                FRAME_MS,
                 () => {
                     this.consume();
                 },

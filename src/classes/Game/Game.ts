@@ -12,6 +12,7 @@ import { GroupRenderer } from "@classes/ShaderProgram/GroupRenderer";
 import { DrawMatrix, DrawSprite } from "@classes/ShaderProgram";
 import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
 import { SpriteLoader } from "@classes/SpriteLoader";
+import { FRAME_MS } from "src/constants";
 
 export class Game extends GroupEntity {
     private numRows: number;
@@ -105,7 +106,7 @@ export class Game extends GroupEntity {
             this.intervalManager.subscribe(
                 GameIntervalKeys.RUN,
                 new Interval(
-                    1000 / 60,
+                    FRAME_MS,
                     () => {
                         this.tick(gl);
                     },
@@ -184,6 +185,7 @@ export class Game extends GroupEntity {
             console.log("Autodrop:", this.autoDropFrames, "/", this.autoDropFrameTarget);
             this.autoDropPiece(dropUnits);
         } else {
+            console.log(this.autoDropFrames);
             this.autoDropFrames++;
         }
     }
@@ -209,7 +211,7 @@ export class Game extends GroupEntity {
             this.autoDropPiece(unitsToDrop);
         }
 
-        this.intervalManager.subscribe(GameIntervalKeys.AUTO_DROP, new Interval(1000 / 60, () => this.dropFlow(unitsToDrop), Infinity));
+        this.intervalManager.subscribe(GameIntervalKeys.AUTO_DROP, new Interval(FRAME_MS, () => this.dropFlow(unitsToDrop), Infinity));
     }
 
     private resetAutoDrop() {
@@ -237,7 +239,7 @@ export class Game extends GroupEntity {
         this.intervalManager.subscribe(
             GameIntervalKeys.LOCK_DELAY,
             new Interval(
-                1000 / 60,
+                FRAME_MS,
                 () => {
                     if (this.lockDelayFrames >= this.lockDelayFrameLimit) {
                         this.lockPiece();
