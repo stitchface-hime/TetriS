@@ -1,4 +1,3 @@
-import { DrawableEntity } from "@classes/DrawableEntity";
 import { Game } from "@classes/Game";
 import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
 import { MatrixBackground } from "@classes/MatrixBackground/MatrixBackground";
@@ -68,6 +67,8 @@ export class Matrix extends GroupEntity {
 
         // Background for the matrix
         this.background = new MatrixBackground(this, new DrawMatrix(this.renderer.getWebGLRenderingContext()));
+        this.addEntity(this.background);
+
         this.background.setParent(this);
     }
 
@@ -135,6 +136,7 @@ export class Matrix extends GroupEntity {
      */
     setActivePiece(piece: Piece) {
         this.activePiece = piece;
+        this.addMultipleEntities(piece.getBlocks());
     }
 
     /**
@@ -381,15 +383,5 @@ export class Matrix extends GroupEntity {
         });
         console.log("Occupied cells:", this.numCellsOccupied);
         console.log("\n");
-    }
-
-    async draw(destTexture: WebGLTexture | null) {
-        let entities: DrawableEntity[] = [this.background, ...this.blocks];
-
-        if (this.activePiece) {
-            entities.push(...this.activePiece.getBlocks());
-        }
-
-        await this.renderer.draw(destTexture, this, entities);
     }
 }

@@ -102,7 +102,7 @@ export class Game extends GroupEntity {
         this.renderer.setWebGLRenderingContext(gl);
 
         // TODO: This is still testing
-        if (!this.intervalManager.getInterval(GameIntervalKeys.RUN)) {
+        /*  if (!this.intervalManager.getInterval(GameIntervalKeys.RUN)) {
             this.intervalManager.subscribe(
                 GameIntervalKeys.RUN,
                 new Interval(
@@ -113,7 +113,7 @@ export class Game extends GroupEntity {
                     Infinity
                 )
             );
-        }
+        } */
 
         await this.tick(gl);
     }
@@ -129,6 +129,7 @@ export class Game extends GroupEntity {
         if (!this.gameOver) {
             if (!this.activePiece) {
                 const spawnSuccessful = this.spawnNextPiece();
+                console.log("Spawned piece");
                 if (!spawnSuccessful) {
                     this.triggerGameOver(GameOverCode.BLOCK_OUT);
                 }
@@ -211,7 +212,7 @@ export class Game extends GroupEntity {
             this.autoDropPiece(unitsToDrop);
         }
 
-        this.intervalManager.subscribe(GameIntervalKeys.AUTO_DROP, new Interval(FRAME_MS, () => this.dropFlow(unitsToDrop), Infinity));
+        // this.intervalManager.subscribe(GameIntervalKeys.AUTO_DROP, new Interval(FRAME_MS, () => this.dropFlow(unitsToDrop), Infinity));
     }
 
     private resetAutoDrop() {
@@ -535,10 +536,6 @@ export class Game extends GroupEntity {
         this.intervalManager.unsubscribeAll();
         // Debugging feature
         console.log("Game over:", code);
-    }
-
-    async draw(destTexture: WebGLTexture | null) {
-        await this.renderer.draw(destTexture, this, this.entities);
     }
 
     // Game methods

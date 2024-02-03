@@ -78,9 +78,7 @@ export class Main {
             this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
 
             // draw to main texture
-            await this.game.draw(mainTexture);
-
-            await this.renderer?.draw(mainTexture);
+            console.log(this.game.getDrawBuffers());
         }
     }
 
@@ -98,7 +96,7 @@ export class Main {
                     () => {
                         this.draw();
                     },
-                    Infinity
+                    1 // debug
                 )
             );
         }

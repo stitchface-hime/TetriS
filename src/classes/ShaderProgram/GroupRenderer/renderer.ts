@@ -132,7 +132,7 @@ export class GroupRenderer extends ShaderProgram {
 
                     // render to texture 2, which contains the sub-entity
                     // console.log("Begin drawing", entity.constructor.name);
-                    await entity.draw(baseTextures[2]);
+                    entity.getDrawBuffers();
                     // console.log("End drawing", entity.constructor.name);
 
                     // render textures 0 and 2 into texture 1

@@ -1,3 +1,5 @@
+import { SpriteSheetKey } from "@data/SpriteSheets";
+
 export type HexString = `#${string}`;
 
 export type SupportedAttributeTypes =
@@ -45,7 +47,7 @@ export type ShaderUniformDataRecord = Record<string, number[]>;
  * Details of the sprite sheet that you want to load.
  */
 export interface SpriteSheetDetails {
-    id: string;
+    id: SpriteSheetKey;
     src: string;
     width: number;
     height: number;
@@ -63,4 +65,10 @@ export interface SpriteSheet {
         height: number;
     };
     loaded: boolean;
+}
+
+export interface DrawBuffers {
+    positionBuffer: number[];
+    textureCoordBuffer: number[];
+    textureKeyBuffer: string[];
 }

@@ -2,6 +2,7 @@ import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
 import { ShaderProgram } from "@classes/ShaderProgram/ShaderProgram";
 import { add2DVectorTuples } from "@utils/add2DVectorTuples";
 import { product2DVectorTuples } from "@utils/product2DVectorTuples";
+import { DrawBuffers } from "src/shaders/types";
 
 export abstract class DrawableEntity {
     private defaultScale: [x: number, y: number] = [1, 1];
@@ -168,5 +169,5 @@ export abstract class DrawableEntity {
     /**
      * Draw the entity to a destination texture.
      */
-    abstract draw(destTexture: WebGLTexture | null): Promise<void>;
+    abstract getDrawBuffers(): DrawBuffers;
 }

@@ -1,7 +1,8 @@
 import { DrawSprite } from "@classes/ShaderProgram";
 import { getRectangleCoords } from "@utils/getRectangleCoords";
-import { SpriteSheetDetails } from "src/shaders/types";
+import { DrawBuffers, SpriteSheetDetails } from "src/shaders/types";
 import { DrawableEntity } from "@classes/DrawableEntity";
+import { Tuple } from "src/types";
 
 /* interface AnimationFrame {
     name: string;
@@ -31,7 +32,7 @@ export abstract class SpritedEntity extends DrawableEntity {
 
     private activeSpriteSheetData: SpriteSheetDetails | null = null;
 
-    private activeSpriteQuadCoords: number[] | null = null;
+    private activeSpriteQuadCoords: Tuple<number, 12> | null = null;
 
     protected renderer: DrawSprite;
 
@@ -154,13 +155,22 @@ export abstract class SpritedEntity extends DrawableEntity {
         }
     }
 
-    async draw(destTexture: WebGLTexture | null): Promise<void> {
-        if (this.activeSpriteSheetData) {
-            if (this.activeSpriteQuadCoords) {
-                await this.renderer?.draw(destTexture, this, this.activeSpriteQuadCoords, this.activeSpriteSheetData);
-            }
+    getDrawBuffers(): DrawBuffers {
+        const drawBuffers: DrawBuffers = {
+            positionBuffer: [],
+            textureCoordBuffer: [],
+            textureKeyBuffer: [],
+        };
+
+        // make sure all buffers have some data in them
+        if (this.activeSpriteQuadCoords && this.activeSpriteSheetData) {
+            drawBuffers.positionBuffer = getRectangleCoords(...this.getPosition(), ...this.getDimensions());
+            drawBuffers.textureCoordBuffer = this.activeSpriteQuadCoords;
+            drawBuffers.textureKeyBuffer = [this.activeSpriteSheetData.id];
         } else {
-            console.log("Failed to draw");
+            console.warn(`Skip drawing this ${this.constructor.name} entity, either no quad coords or active sprite sheet data.`);
         }
+
+        return drawBuffers;
     }
 }

@@ -1,13 +1,10 @@
+import { Tuple } from "src/types";
+
 /**
  * Gives coordinates to draw a rectangle using WebGL. Note x and y are assumed to be in the bottom-left
  * of the canvas.
  */
-export const getRectangleCoords = (
-    x: number,
-    y: number,
-    width: number,
-    height: number
-) => {
+export const getRectangleCoords = (x: number, y: number, width: number, height: number): Tuple<number, 12> => {
     /**
      * 24____5
      * | \   |

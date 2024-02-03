@@ -15,7 +15,15 @@ export class MatrixBackground extends DrawableEntity {
         this.renderer.setMatrix(matrix);
     }
 
-    async draw(destTexture: WebGLTexture | null) {
-        await this.renderer.draw(destTexture);
+    getDrawBuffers() {
+        // TODO
+        // draw texture register it with the texture library
+        // await this.renderer.draw(destTexture);
+
+        return {
+            positionBuffer: [],
+            textureCoordBuffer: [],
+            textureKeyBuffer: [],
+        };
     }
 }

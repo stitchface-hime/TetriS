@@ -233,7 +233,7 @@ export class GameRenderer extends ShaderProgram {
                 // render to texture 1
                 gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, baseTextures[1], 0);
 
-                await entityArray[i].draw(gl);
+                await entityArray[i].getDrawBuffers(gl);
 
                 // render textures 0 and 1 into texture 2
                 renderToTexture(fb, [baseTextures[0], baseTextures[1]], baseTextures[2]);
