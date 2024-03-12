@@ -34,28 +34,22 @@ export abstract class SpritedEntity extends DrawableEntity {
 
     private activeSpriteQuadCoords: Tuple<number, 12> | null = null;
 
-    protected renderer: DrawSprite;
-
     /* protected animationCycles: Record<string, number[]> = {};
 
     protected animation: SpriteAnimation | null = {}; */
 
-    constructor(
-        renderer: DrawSprite,
-        {
-            position,
-            scale,
-            rotation,
-            spriteSheetDatas = [],
-        }: Partial<{
-            position: [x: number, y: number];
-            scale: [x: number, y: number];
-            rotation: number;
-            spriteSheetDatas: SpriteSheetDetails[];
-        }> = {}
-    ) {
+    constructor({
+        position,
+        scale,
+        rotation,
+        spriteSheetDatas = [],
+    }: Partial<{
+        position: [x: number, y: number];
+        scale: [x: number, y: number];
+        rotation: number;
+        spriteSheetDatas: SpriteSheetDetails[];
+    }> = {}) {
         super({ position, scale, rotation });
-        this.renderer = renderer;
         spriteSheetDatas.forEach((sheet) => this.registerSpriteSheetData(sheet));
     }
 

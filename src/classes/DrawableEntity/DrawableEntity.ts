@@ -1,5 +1,5 @@
 import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
-import { ShaderProgram } from "@classes/ShaderProgram/ShaderProgram";
+import { ShaderProgram } from "@classes/ShaderProgram";
 import { add2DVectorTuples } from "@utils/add2DVectorTuples";
 import { product2DVectorTuples } from "@utils/product2DVectorTuples";
 import { DrawBuffers } from "src/shaders/types";

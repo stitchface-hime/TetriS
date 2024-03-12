@@ -9,9 +9,7 @@ import { PieceId } from "@data/index";
 import { GameIntervalKeys } from "./GameIntervalKeys";
 import { GameOverCode } from "./GameOverCode";
 import { GroupRenderer } from "@classes/ShaderProgram/GroupRenderer";
-import { DrawMatrix, DrawSprite } from "@classes/ShaderProgram";
 import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
-import { SpriteLoader } from "@classes/SpriteLoader";
 import { FRAME_MS } from "src/constants";
 
 export class Game extends GroupEntity {
@@ -63,7 +61,6 @@ export class Game extends GroupEntity {
     private gameOver = false;
 
     protected renderer: GroupRenderer;
-    private spriteLoader: SpriteLoader;
 
     constructor(
         numRows: number,
@@ -71,7 +68,6 @@ export class Game extends GroupEntity {
         pieceQueue: PieceQueue,
         spawnCoordinates: [x: number, y: number],
         renderer: GroupRenderer,
-        spriteLoader: SpriteLoader,
         intervalManager: IntervalManager
     ) {
         super(renderer);
@@ -80,10 +76,9 @@ export class Game extends GroupEntity {
         this.numColumns = numColumns;
 
         this.renderer = renderer;
-        this.spriteLoader = spriteLoader;
         this.intervalManager = intervalManager;
 
-        this.matrix = new Matrix(numRows, numColumns, this, new GroupRenderer(this.renderer.getWebGLRenderingContext()), spriteLoader);
+        this.matrix = new Matrix(numRows, numColumns, this, new GroupRenderer(this.renderer.getWebGLRenderingContext()));
         this.addEntity(this.matrix);
 
         const canvas = this.renderer.getWebGLRenderingContext().canvas as HTMLCanvasElement;
@@ -264,12 +259,7 @@ export class Game extends GroupEntity {
         let spawnSuccessful = false;
 
         for (let spawnAttempt = 0; spawnAttempt < this.spawnRetries; spawnAttempt++) {
-            const spawnedPiece = this.pieceFactory.makePiece(
-                [this.spawnCoordinates[0], this.spawnCoordinates[1] + spawnAttempt],
-                this.matrix,
-                new DrawSprite(this.renderer.getWebGLRenderingContext(), this.spriteLoader),
-                pieceId
-            );
+            const spawnedPiece = this.pieceFactory.makePiece([this.spawnCoordinates[0], this.spawnCoordinates[1] + spawnAttempt], this.matrix, pieceId);
 
             if (spawnedPiece) {
                 // Register block entities

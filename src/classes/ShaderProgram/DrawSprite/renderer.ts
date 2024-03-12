@@ -3,7 +3,6 @@ import { getRectangleCoords } from "@utils/index";
 import { vertex } from "./vertex";
 import { fragment } from "./fragment";
 import { SpriteSheet, SpriteSheetDetails } from "src/shaders/types";
-import { SpriteLoader } from "@classes/SpriteLoader";
 import { SpritedEntity } from "@classes/SpritedEntity";
 
 interface SpriteSheetImage extends SpriteSheetLoadData {
@@ -40,6 +39,9 @@ interface DrawArgs {
     drawData: DrawData[];
 }
 
+/**
+ * @deprecated Provide texture coordinates to be drawn in main
+ */
 export class DrawSprite extends ShaderProgram {
     private spriteLoader: SpriteLoader;
 

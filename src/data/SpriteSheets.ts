@@ -1,10 +1,9 @@
 import { SpriteSheetDetails } from "src/shaders/types";
-
-export type SpriteSheetKey = "STANDARD_MINO";
+import { SpriteSheetKey } from "./TextureKey";
 
 export const SpriteSheets: Record<SpriteSheetKey, SpriteSheetDetails> = {
-    STANDARD_MINO: {
-        id: "STANDARD_MINO",
+    SPR_MINO_STD: {
+        id: "SPR_MINO_STD",
         src: "/mino_sprites_light_32.png",
         width: 128,
         height: 128,

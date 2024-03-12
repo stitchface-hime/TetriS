@@ -1,11 +1,9 @@
 import { Matrix } from "@classes/Matrix";
 import { PieceId } from "@data/index";
-import { Block } from "../../Block";
 import { Tetromino } from "../Tetromino";
 import { J_antiClockwiseWallKickPositionOffsetData, J_clockwiseWallKickPositionOffsetData } from "../Tetromino.wallkick";
 import * as Rotation from "./L_Tetromino.rotation";
 import { HexString } from "src/shaders/types";
-import { DrawSprite } from "@classes/ShaderProgram";
 import { Tuple } from "src/types";
 
 /**
@@ -22,7 +20,7 @@ export class L_Tetromino extends Tetromino {
     protected static id = PieceId.TETROMINO_L;
     protected static color: HexString = "#ff7900";
 
-    constructor(originCoordinates: [x: number, y: number], renderer: DrawSprite, matrix: Matrix) {
+    constructor(originCoordinates: [x: number, y: number], matrix: Matrix) {
         const [originX, originY] = originCoordinates;
 
         const blockCoordinates: Tuple<[number, number], 4> = [
@@ -34,7 +32,6 @@ export class L_Tetromino extends Tetromino {
 
         super(
             blockCoordinates,
-            renderer,
             matrix,
             L_Tetromino.color,
             Rotation.clockwiseRotationMap,

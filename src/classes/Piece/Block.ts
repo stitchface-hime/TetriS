@@ -34,9 +34,9 @@ export class Block extends SpritedEntity {
      */
     private associatedPiece: Piece | undefined;
 
-    constructor(renderer: DrawSprite, globalCoordinates: [x: number, y: number], matrix: Matrix, color: string = "", coupledBlocks: Block[] = []) {
-        super(renderer, { spriteSheetDatas: [SpriteSheets.STANDARD_MINO] });
-        this.setActiveSpriteSheetData(SpriteSheets.STANDARD_MINO.id);
+    constructor(globalCoordinates: [x: number, y: number], matrix: Matrix, color: string = "", coupledBlocks: Block[] = []) {
+        super({ spriteSheetDatas: [SpriteSheets.SPR_MINO_STD] });
+        this.setActiveSpriteSheetData(SpriteSheets.SPR_MINO_STD.id);
 
         this.activeCoordinates = globalCoordinates;
         this.setParent(matrix);
@@ -48,8 +48,6 @@ export class Block extends SpritedEntity {
 
         this.associatedPiece = undefined;
         this.connections = 0;
-
-        this.renderer = renderer;
 
         this.updateCoordinates(this.activeCoordinates);
     }

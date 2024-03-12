@@ -2,17 +2,17 @@ import { Game, Standard } from "@classes/Game";
 import { GameController } from "@classes/GameController";
 import { RunStatus } from "./types";
 import { GroupRenderer } from "@classes/ShaderProgram/GroupRenderer";
-import { SpriteLoader } from "@classes/SpriteLoader";
 import { MainRenderer } from "@classes/ShaderProgram/MainRenderer/renderer";
 import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
 import { MainIntervalKeys } from "./MainIntervalKeys";
 import { Interval } from "@classes/TimeMeasure";
 import { FRAME_MS } from "src/constants";
+import { TextureManager } from "@classes/TextureManager";
 
 export class Main {
     // Common to all entities within the main progra
     private gl: WebGLRenderingContext | null = null;
-    private spriteLoader = new SpriteLoader();
+    private textureManager = new TextureManager();
     private intervalManager = new IntervalManager();
 
     private game: Game | null = null;
@@ -84,7 +84,7 @@ export class Main {
 
     async start() {
         if (!this.game && this.gl) {
-            this.game = new Game(...Standard.getConfig(), new GroupRenderer(this.gl), this.spriteLoader, this.intervalManager);
+            this.game = new Game(...Standard.getConfig(), new GroupRenderer(this.gl), this.intervalManager);
             this.gameController = new GameController(this.game, this.intervalManager);
             this.gameController.listen();
             this.run();

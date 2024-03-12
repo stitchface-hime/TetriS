@@ -17,11 +17,11 @@ export class PieceFactory {
     /**
      * Creates a piece using its piece id in the supplied matrix at specific coordinates.
      */
-    makePiece(originCoordinates: [x: number, y: number], matrix: Matrix, renderer: DrawSprite, id?: PieceId) {
+    makePiece(originCoordinates: [x: number, y: number], matrix: Matrix, id?: PieceId) {
         if (id === undefined) {
             return null;
         }
 
-        return new pieceLookUp[id](originCoordinates, renderer, matrix);
+        return new pieceLookUp[id](originCoordinates, matrix);
     }
 }

@@ -1,6 +1,7 @@
 import { DrawableEntity } from "@classes/DrawableEntity";
 import { Matrix } from "@classes/Matrix/Matrix";
 import { DrawMatrix } from "@classes/ShaderProgram";
+import { DrawBuffers } from "src/shaders/types";
 
 export class MatrixBackground extends DrawableEntity {
     protected renderer: DrawMatrix;
@@ -15,7 +16,7 @@ export class MatrixBackground extends DrawableEntity {
         this.renderer.setMatrix(matrix);
     }
 
-    getDrawBuffers() {
+    getDrawBuffers(): DrawBuffers {
         // TODO
         // draw texture register it with the texture library
         // await this.renderer.draw(destTexture);

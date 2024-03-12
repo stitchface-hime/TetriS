@@ -2,8 +2,7 @@ import { Game } from "@classes/Game";
 import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
 import { MatrixBackground } from "@classes/MatrixBackground/MatrixBackground";
 import { Block, Piece } from "@classes/Piece";
-import { GroupRenderer, DrawSprite, DrawMatrix } from "@classes/ShaderProgram";
-import { SpriteLoader } from "@classes/SpriteLoader";
+import { GroupRenderer, DrawMatrix } from "@classes/ShaderProgram";
 import { SpriteSheets } from "@data/SpriteSheets";
 import { isEqual2DVectorTuples, warnIfNotInteger } from "@utils/index";
 import { NATIVE_RESOLUTION_H, NATIVE_RESOLUTION_W } from "src/constants";
@@ -27,8 +26,6 @@ export class Matrix extends GroupEntity {
         height: 0,
     };
 
-    private spriteLoader: SpriteLoader;
-
     protected renderer: GroupRenderer;
 
     private background: MatrixBackground;
@@ -39,15 +36,15 @@ export class Matrix extends GroupEntity {
      * When constructing the matrix, the matrix will have twice the number of rows
      * you specify to account for blocks above the visible part of the matrix.
      */
-    constructor(numRows: number, numColumns: number, game: Game, renderer: GroupRenderer, spriteLoader: SpriteLoader) {
+    constructor(numRows: number, numColumns: number, game: Game, renderer: GroupRenderer) {
         super(renderer);
 
         this.numRows = numRows * 2;
         this.numVisibleRows = numRows;
         this.numColumns = numColumns;
         this.visibleDimensions = [
-            warnIfNotInteger(SpriteSheets.STANDARD_MINO.spriteSize.width * this.numColumns),
-            warnIfNotInteger(SpriteSheets.STANDARD_MINO.spriteSize.height * this.numVisibleRows),
+            warnIfNotInteger(SpriteSheets.SPR_MINO_STD.spriteSize.width * this.numColumns),
+            warnIfNotInteger(SpriteSheets.SPR_MINO_STD.spriteSize.height * this.numVisibleRows),
         ];
 
         this.setDefaultDimensions([this.visibleDimensions[0], warnIfNotInteger((NATIVE_RESOLUTION_H + this.visibleDimensions[1]) * 0.5)]);
@@ -60,8 +57,6 @@ export class Matrix extends GroupEntity {
         this.numCellsOccupied = 0;
 
         this.renderer = renderer;
-
-        this.spriteLoader = spriteLoader;
 
         this.activePiece = null;
 
@@ -285,7 +280,7 @@ export class Matrix extends GroupEntity {
      */
     addBlocksByCoordinates(coordinatesList: [x: number, y: number][]) {
         coordinatesList.forEach((coordinates) => {
-            this.addBlock(new Block(new DrawSprite(this.renderer.getWebGLRenderingContext(), this.spriteLoader), coordinates, this));
+            this.addBlock(new Block(coordinates, this));
             this.numCellsOccupied += 1;
         });
     }
@@ -309,7 +304,7 @@ export class Matrix extends GroupEntity {
 
         setRows.forEach((row) => {
             for (let col = 0; col < this.numColumns; col++) {
-                this.addBlock(new Block(new DrawSprite(this.renderer.getWebGLRenderingContext(), this.spriteLoader), this.translateToXY([row, col]), this));
+                this.addBlock(new Block(this.translateToXY([row, col]), this));
             }
         });
     }

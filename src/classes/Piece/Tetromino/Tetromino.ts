@@ -4,8 +4,6 @@ import { Piece } from "../Piece";
 import { WallKickPositionOffsetTestData, type RotationBlockPositionAdjust } from "../Piece.types";
 import { HexString } from "src/shaders/types";
 import { Matrix } from "@classes/Matrix";
-import { DrawSprite } from "@classes/ShaderProgram";
-import { SpriteLoader } from "@classes/SpriteLoader";
 import { generateBlocks } from "../Piece.helpers";
 
 export type TetrominoRotationPositionAdjust = [
@@ -32,7 +30,6 @@ export abstract class Tetromino extends Piece {
 
     constructor(
         coordinatesList: Tuple<[number, number], 4>,
-        renderer: DrawSprite,
         matrix: Matrix,
         color: HexString,
         clockwiseRotationMap: TetrominoRotationPositionAdjustMap,
@@ -40,7 +37,7 @@ export abstract class Tetromino extends Piece {
         clockwiseWallKickOffsetData: WallKickPositionOffsetTestData,
         antiClockwiseWallKickOffsetData: WallKickPositionOffsetTestData
     ) {
-        const blocks = generateBlocks(coordinatesList, renderer, matrix, color) as Tuple<Block, 4>;
+        const blocks = generateBlocks(coordinatesList, matrix, color) as Tuple<Block, 4>;
 
         super(blocks, clockwiseRotationMap, antiClockwiseRotationMap, clockwiseWallKickOffsetData, antiClockwiseWallKickOffsetData);
 
