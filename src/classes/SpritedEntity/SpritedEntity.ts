@@ -1,8 +1,10 @@
-import { DrawSprite } from "@classes/ShaderProgram";
 import { getRectangleCoords } from "@utils/getRectangleCoords";
 import { DrawBuffers, SpriteSheetDetails } from "src/shaders/types";
 import { DrawableEntity } from "@classes/DrawableEntity";
 import { Tuple } from "src/types";
+import { TextureManager } from "@classes/TextureManager";
+import { SpriteSheetLoader } from "@classes/ShaderProgram/SpriteSheetLoader/renderer";
+import { TextureKey } from "@data/TextureKey";
 
 /* interface AnimationFrame {
     name: string;
@@ -149,7 +151,27 @@ export abstract class SpritedEntity extends DrawableEntity {
         }
     }
 
-    getDrawBuffers(): DrawBuffers {
+    async loadIntoTextureManager(gl: WebGLRenderingContext, textureManager: TextureManager, textureKey: TextureKey): Promise<void> {
+        const loader = new SpriteSheetLoader(gl);
+
+        // Set up texture
+        const texture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+        if (texture && this.activeSpriteSheetData) {
+            await loader.draw(texture, this.activeSpriteSheetData.src);
+            textureManager.load(textureKey, texture);
+        } else {
+            throw Error("Failed to load texture");
+        }
+    }
+
+    async getDrawBuffers(gl: WebGLRenderingContext, textureManager: TextureManager): Promise<DrawBuffers> {
         const drawBuffers: DrawBuffers = {
             positionBuffer: [],
             textureCoordBuffer: [],
@@ -161,6 +183,10 @@ export abstract class SpritedEntity extends DrawableEntity {
             drawBuffers.positionBuffer = getRectangleCoords(...this.getPosition(), ...this.getDimensions());
             drawBuffers.textureCoordBuffer = this.activeSpriteQuadCoords;
             drawBuffers.textureKeyBuffer = [this.activeSpriteSheetData.id];
+
+            if (!textureManager.isLoaded(this.activeSpriteSheetData.id)) {
+                this.loadIntoTextureManager(gl, textureManager, this.activeSpriteSheetData.id);
+            }
         } else {
             console.warn(`Skip drawing this ${this.constructor.name} entity, either no quad coords or active sprite sheet data.`);
         }

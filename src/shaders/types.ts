@@ -1,4 +1,4 @@
-import { SpriteSheetKey } from "@data/SpriteSheets";
+import { SpriteSheetKey } from "@data/TextureKey";
 
 export type HexString = `#${string}`;
 

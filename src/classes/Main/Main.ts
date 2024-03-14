@@ -78,7 +78,8 @@ export class Main {
             this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
 
             // draw to main texture
-            console.log(this.game.getDrawBuffers());
+            console.log(await this.game.getDrawBuffers(this.gl, this.textureManager));
+            console.log(this.textureManager);
         }
     }
 

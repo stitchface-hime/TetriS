@@ -1,5 +1,6 @@
 import { DrawableEntity } from "@classes/DrawableEntity";
 import { GroupRenderer } from "@classes/ShaderProgram/GroupRenderer";
+import { TextureManager } from "@classes/TextureManager";
 import { DrawBuffers } from "src/shaders/types";
 
 export abstract class GroupEntity extends DrawableEntity {
@@ -37,10 +38,7 @@ export abstract class GroupEntity extends DrawableEntity {
         });
     }
 
-    // TODO: Multi vs group renderer
-    // Group renderer renders everything in a quad but with no overflow
-    // Multi renderer renders everything but allows overflow
-    getDrawBuffers(): DrawBuffers {
+    async getDrawBuffers(gl: WebGLRenderingContext, textureManager: TextureManager): Promise<DrawBuffers> {
         const drawBuffers: DrawBuffers = {
             positionBuffer: [],
             textureCoordBuffer: [],
@@ -49,13 +47,15 @@ export abstract class GroupEntity extends DrawableEntity {
 
         console.log("Generating buffers for entities:", this.entities);
 
-        this.entities.forEach((entity) => {
-            const entityBuffers = entity.getDrawBuffers();
+        await Promise.all(
+            this.entities.map(async (entity) => {
+                const entityBuffers = await entity.getDrawBuffers(gl, textureManager);
 
-            drawBuffers.positionBuffer.push(...entityBuffers.positionBuffer);
-            drawBuffers.textureCoordBuffer.push(...entityBuffers.textureCoordBuffer);
-            drawBuffers.textureKeyBuffer.push(...entityBuffers.textureKeyBuffer);
-        });
+                drawBuffers.positionBuffer.push(...entityBuffers.positionBuffer);
+                drawBuffers.textureCoordBuffer.push(...entityBuffers.textureCoordBuffer);
+                drawBuffers.textureKeyBuffer.push(...entityBuffers.textureKeyBuffer);
+            })
+        );
 
         return drawBuffers;
     }

@@ -1,8 +1,12 @@
 import { ShaderProgram } from "@classes/ShaderProgram/ShaderProgram";
-import { SpriteSheet, SpriteSheetDetails } from "src/shaders/types";
+import { vertex } from "./vertex";
+import { fragment } from "./fragment";
 
 // TODO: This probably doesn't make sense as a ShaderProgram
 export class SpriteSheetLoader extends ShaderProgram {
+    constructor(gl: WebGLRenderingContext) {
+        super(vertex, fragment, gl);
+    }
     /**
      * Loads a sprite sheet from a source into a texture.
      */

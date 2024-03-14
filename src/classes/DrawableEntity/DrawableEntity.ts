@@ -1,5 +1,7 @@
 import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
 import { ShaderProgram } from "@classes/ShaderProgram";
+import { TextureManager } from "@classes/TextureManager";
+import { TextureKey } from "@data/TextureKey";
 import { add2DVectorTuples } from "@utils/add2DVectorTuples";
 import { product2DVectorTuples } from "@utils/product2DVectorTuples";
 import { DrawBuffers } from "src/shaders/types";
@@ -167,7 +169,19 @@ export abstract class DrawableEntity {
     }
 
     /**
-     * Draw the entity to a destination texture.
+     * Creates a texture and loads it into the texture manager.
+     * To be called only when there are no entries with the texture key within the supplied texture manager.
      */
-    abstract getDrawBuffers(): DrawBuffers;
+    abstract loadIntoTextureManager(gl: WebGLRenderingContext, textureManager: TextureManager, textureKey: TextureKey): Promise<void>;
+
+    /**
+     * Returns entity buffers containing:
+     * - entity position (12 elements in buffer per entity)
+     * - entity texture coordinates (12 elements in buffer per entity)
+     * - entity texture key (1 element in buffer per entity)
+     *
+     * If a texture does not exist within the supplied texture manager with the returned texture key,
+     * this function will be required to create a texture and load it into the texture manager keyed by texture key.
+     */
+    abstract getDrawBuffers(gl: WebGLRenderingContext, textureManager: TextureManager): Promise<DrawBuffers>;
 }
