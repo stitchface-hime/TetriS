@@ -10,9 +10,8 @@ export class MatrixBackground extends DrawableEntity {
     static textureKey: TextureKey = "MATRIX_BG";
     private matrix: Matrix;
 
-    constructor(matrix: Matrix, renderer: DrawMatrix) {
+    constructor(matrix: Matrix) {
         super();
-        this.renderer = renderer;
         this.setDefaultDimensions(matrix.getDimensions());
 
         this.setParent(matrix);

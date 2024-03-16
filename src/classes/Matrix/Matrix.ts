@@ -26,8 +26,6 @@ export class Matrix extends GroupEntity {
         height: 0,
     };
 
-    protected renderer: GroupRenderer;
-
     private background: MatrixBackground;
 
     private visibleDimensions: [width: number, height: number];
@@ -36,8 +34,8 @@ export class Matrix extends GroupEntity {
      * When constructing the matrix, the matrix will have twice the number of rows
      * you specify to account for blocks above the visible part of the matrix.
      */
-    constructor(numRows: number, numColumns: number, game: Game, renderer: GroupRenderer) {
-        super(renderer);
+    constructor(numRows: number, numColumns: number, game: Game) {
+        super();
 
         this.numRows = numRows * 2;
         this.numVisibleRows = numRows;
@@ -56,12 +54,10 @@ export class Matrix extends GroupEntity {
 
         this.numCellsOccupied = 0;
 
-        this.renderer = renderer;
-
         this.activePiece = null;
 
         // Background for the matrix
-        this.background = new MatrixBackground(this, new DrawMatrix(this.renderer.getWebGLRenderingContext()));
+        this.background = new MatrixBackground(this);
         this.addEntity(this.background);
 
         this.background.setParent(this);

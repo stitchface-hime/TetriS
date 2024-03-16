@@ -1,17 +1,12 @@
 import { DrawableEntity } from "@classes/DrawableEntity";
-import { GroupRenderer } from "@classes/ShaderProgram/GroupRenderer";
+import { Entity } from "@classes/Entity";
 import { TextureManager } from "@classes/TextureManager";
 import { DrawBuffers } from "src/shaders/types";
 
-export abstract class GroupEntity extends DrawableEntity {
+export abstract class GroupEntity extends Entity {
     protected entities: DrawableEntity[] = [];
-    protected renderer: GroupRenderer | null;
 
-    constructor(renderer: GroupRenderer) {
-        super();
-        this.renderer = renderer;
-    }
-
+    // TODO: need to implement transformations for children elements
     addEntity(entity: DrawableEntity) {
         if (!this.entities.includes(entity)) {
             this.entities.push(entity);
