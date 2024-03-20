@@ -8,6 +8,7 @@ import { MainIntervalKeys } from "./MainIntervalKeys";
 import { Interval } from "@classes/TimeMeasure";
 import { FRAME_MS } from "src/constants";
 import { TextureManager } from "@classes/TextureManager";
+import { DrawBuffers } from "src/shaders/types";
 
 export class Main {
     // Common to all entities within the main progra
@@ -25,7 +26,7 @@ export class Main {
         if (canvas) {
             this.setWebGLRenderingContext(canvas);
             if (this.gl) {
-                this.renderer = new MainRenderer(this.gl);
+                this.renderer = new MainRenderer(this.gl, this.textureManager);
             }
         }
     }
@@ -36,7 +37,7 @@ export class Main {
     setWebGLRenderingContext(canvas: HTMLCanvasElement) {
         this.gl = canvas.getContext("webgl");
         if (this.gl) {
-            this.renderer = new MainRenderer(this.gl);
+            this.renderer = new MainRenderer(this.gl, this.textureManager);
         }
     }
 
@@ -78,8 +79,8 @@ export class Main {
             this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
 
             // draw to main texture
-            console.log(await this.game.getDrawBuffers(this.gl, this.textureManager));
-            console.log(this.textureManager);
+            const drawBuffers: DrawBuffers = await this.game.getDrawBuffers(this.gl, this.textureManager);
+            await this.renderer?.draw(mainTexture, drawBuffers);
         }
     }
 

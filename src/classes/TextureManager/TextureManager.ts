@@ -9,6 +9,10 @@ export class TextureManager {
         return !!this.loaded[key];
     }
 
+    getTexture(key: TextureKey) {
+        return this.loaded[key];
+    }
+
     /**
      * Loads the texture into this texture loader instance.
      * If it already exists, nothing will happen unless specifically called with overwrite flag, which

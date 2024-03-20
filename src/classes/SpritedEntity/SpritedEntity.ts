@@ -55,14 +55,6 @@ export abstract class SpritedEntity extends DrawableEntity {
         spriteSheetDatas.forEach((sheet) => this.registerSpriteSheetData(sheet));
     }
 
-    assignContextToRenderer(gl: WebGLRenderingContext) {
-        if (this.renderer) {
-            this.renderer.setWebGLRenderingContext(gl);
-        } else {
-            throw new Error("Could not set assign context to renderer. Did you forget to set a renderer for this entity?");
-        }
-    }
-
     getActiveSpriteQuadCoords() {
         return this.activeSpriteQuadCoords;
     }
@@ -185,7 +177,7 @@ export abstract class SpritedEntity extends DrawableEntity {
             drawBuffers.textureKeyBuffer = [this.activeSpriteSheetData.id];
 
             if (!textureManager.isLoaded(this.activeSpriteSheetData.id)) {
-                this.loadIntoTextureManager(gl, textureManager, this.activeSpriteSheetData.id);
+                await this.loadIntoTextureManager(gl, textureManager, this.activeSpriteSheetData.id);
             }
         } else {
             console.warn(`Skip drawing this ${this.constructor.name} entity, either no quad coords or active sprite sheet data.`);

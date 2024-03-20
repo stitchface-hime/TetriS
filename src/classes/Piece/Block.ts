@@ -52,10 +52,6 @@ export class Block extends SpritedEntity {
         this.updateCoordinates(this.activeCoordinates);
     }
 
-    setRenderer(renderer: DrawSprite): void {
-        this.renderer = renderer;
-    }
-
     getActiveCoordinates() {
         return this.activeCoordinates;
     }

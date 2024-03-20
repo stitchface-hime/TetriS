@@ -4,8 +4,14 @@ import { TextureKey } from "@data/TextureKey";
 import { DrawBuffers } from "src/shaders/types";
 
 export abstract class DrawableEntity extends Entity {
-    constructor() {
-        super();
+    constructor(
+        transform: Partial<{
+            position: [x: number, y: number];
+            scale: [x: number, y: number];
+            rotation: number;
+        }> = {}
+    ) {
+        super(transform);
     }
 
     /**

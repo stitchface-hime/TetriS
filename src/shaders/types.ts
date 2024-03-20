@@ -1,4 +1,4 @@
-import { SpriteSheetKey } from "@data/TextureKey";
+import { SpriteSheetKey, TextureKey } from "@data/TextureKey";
 
 export type HexString = `#${string}`;
 
@@ -70,5 +70,5 @@ export interface SpriteSheet {
 export interface DrawBuffers {
     positionBuffer: number[];
     textureCoordBuffer: number[];
-    textureKeyBuffer: string[];
+    textureKeyBuffer: TextureKey[];
 }

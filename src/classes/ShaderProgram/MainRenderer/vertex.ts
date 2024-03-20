@@ -4,10 +4,12 @@ export const vertex = glsl`
 
 precision mediump float;
 attribute vec2 a_position;
+attribute float a_textureIndex;
 attribute vec2 a_textureCoord;
 
 uniform vec2 u_resolution;
 
+varying float v_textureIndex;
 varying vec2 v_textureCoord;
  
 void main() {
@@ -25,6 +27,8 @@ void main() {
     gl_Position = finalPosition;
 
     v_textureCoord = a_textureCoord;
+    v_textureIndex = a_textureIndex;
+
 }
 
 `;

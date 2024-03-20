@@ -2,13 +2,60 @@ import { ShaderProgram } from "@classes/ShaderProgram/ShaderProgram";
 import { getRectangleCoords } from "@utils/getRectangleCoords";
 import { vertex } from "./vertex";
 import { fragment } from "./fragment";
+import { DrawBuffers } from "src/shaders/types";
+import { TextureManager } from "@classes/TextureManager";
+import { TextureKey } from "@data/TextureKey";
 
 export class MainRenderer extends ShaderProgram {
-    constructor(gl: WebGLRenderingContext) {
+    private textureManager: TextureManager;
+    /**
+     * Maximum texture units is at least 0, at most 32.
+     */
+    private maxTextureUnits: number;
+    /**
+     * This is the maximum number of supported texture units you can use at once per draw.
+     */
+    private maxSimultaneousTextureUnits = 4;
+
+    constructor(gl: WebGLRenderingContext, textureManager: TextureManager) {
         super(vertex, fragment, gl);
+        this.textureManager = textureManager;
+        this.maxTextureUnits = this.gl.getParameter(this.gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS);
     }
 
-    async draw(destTexture: WebGLTexture | null) {
+    /**
+     * Binds all textures by key from the texture key buffer,
+     * to texture units. Returns a lookup object which matches the texture key
+     * to the index of the texture unit it is binded to.
+     */
+    private processTextureBuffer(textureKeyBuffer: TextureKey[]) {
+        const uniqueTextureKeys = Array.from(new Set(textureKeyBuffer));
+        const textureLookup: Partial<Record<TextureKey, number>> = {};
+
+        for (let i = 0; i < Math.min(this.maxTextureUnits, uniqueTextureKeys.length, this.maxSimultaneousTextureUnits); i++) {
+            const texture = this.textureManager.getTexture(uniqueTextureKeys[i]);
+            console.log(texture, i, uniqueTextureKeys[i]);
+
+            if (!!texture) {
+                console.log(this.gl.TEXTURE0 + i);
+                this.gl.activeTexture(this.gl.TEXTURE0 + i);
+                this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+                textureLookup[uniqueTextureKeys[i]] = i;
+            }
+            console.log("Run", i, uniqueTextureKeys[i]);
+        }
+
+        return textureLookup;
+    }
+
+    private textureKeyToIndex = (textureLookup: Partial<Record<TextureKey, number>>, textureKeyBuffer: TextureKey[]) => {
+        console.log(textureLookup);
+        const textureIndexBuffer: number[] = [];
+        textureKeyBuffer.forEach((key) => textureIndexBuffer.push(...Array(6).fill(textureLookup[key] || 0)));
+        return textureIndexBuffer;
+    };
+
+    async draw(destTexture: WebGLTexture | null, drawBuffers: DrawBuffers) {
         const program = this.program;
         const gl = this.gl;
         const canvas = gl.canvas as HTMLCanvasElement;
@@ -22,33 +69,49 @@ export class MainRenderer extends ShaderProgram {
         if (gl && program) {
             gl.useProgram(program);
 
-            const positionLocation = gl.getAttribLocation(program, "a_position");
-            const texCoordLocation = gl.getAttribLocation(program, "a_textureCoord");
-            const resolutionLocation = gl.getUniformLocation(program, "u_resolution");
+            const textureLookup = this.processTextureBuffer(drawBuffers.textureKeyBuffer);
+            const textureIndexBuffer = this.textureKeyToIndex(textureLookup, drawBuffers.textureKeyBuffer);
 
-            const positionBuffer = gl.createBuffer();
-            const texCoordBuffer = gl.createBuffer();
+            // Set up uniforms
+            const u_texLocation = gl.getUniformLocation(program, "u_tex[0]");
+            gl.uniform1iv(u_texLocation, [0, 1, 2, 3]);
 
-            gl.uniform2f(resolutionLocation, ...dimensions);
+            const u_resolutionLocation = gl.getUniformLocation(program, "u_resolution");
+            gl.uniform2f(u_resolutionLocation, ...dimensions);
 
-            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(getRectangleCoords(0, 0, ...dimensions)), gl.STATIC_DRAW);
+            // Set up attribute buffers
+            const a_positionLocation = gl.getAttribLocation(program, "a_position");
+            const a_positionBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, a_positionBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(drawBuffers.positionBuffer), gl.STATIC_DRAW);
+            console.log(drawBuffers.positionBuffer);
 
-            // Draw the entire texture (texCoord: [0, 0, 1, 1]) into the rectangle
-            gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(getRectangleCoords(0, 0, 1, 1)), gl.STATIC_DRAW);
+            const a_textureCoordLocation = gl.getAttribLocation(program, "a_textureCoord");
+            const a_textureCoordBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, a_textureCoordBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(drawBuffers.textureCoordBuffer), gl.STATIC_DRAW);
+            console.log(drawBuffers.textureCoordBuffer);
 
-            // enable arrays
-            gl.enableVertexAttribArray(positionLocation);
-            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+            const a_textureIndexLocation = gl.getAttribLocation(program, "a_textureIndex");
+            const a_textureIndexBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, a_textureIndexBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureIndexBuffer), gl.STATIC_DRAW);
 
-            gl.enableVertexAttribArray(texCoordLocation);
-            gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
-            gl.vertexAttribPointer(texCoordLocation, 2, gl.FLOAT, true, 0, 0);
+            // Set up attribute pointers
+            gl.enableVertexAttribArray(a_positionLocation);
+            gl.bindBuffer(gl.ARRAY_BUFFER, a_positionBuffer);
+            gl.vertexAttribPointer(a_positionLocation, 2, gl.FLOAT, false, 0, 0);
 
-            gl.bindTexture(gl.TEXTURE_2D, destTexture);
-            gl.drawArrays(gl.TRIANGLES, 0, 6);
+            gl.enableVertexAttribArray(a_textureCoordLocation);
+            gl.bindBuffer(gl.ARRAY_BUFFER, a_textureCoordBuffer);
+            gl.vertexAttribPointer(a_textureCoordLocation, 2, gl.FLOAT, false, 0, 0);
+
+            gl.enableVertexAttribArray(a_textureIndexLocation);
+            gl.bindBuffer(gl.ARRAY_BUFFER, a_textureIndexBuffer);
+            gl.vertexAttribPointer(a_textureIndexLocation, 1, gl.FLOAT, false, 0, 0);
+
+            console.log(textureIndexBuffer, drawBuffers.positionBuffer.length / 2);
+            gl.drawArrays(gl.TRIANGLES, 0, drawBuffers.positionBuffer.length / 2);
         }
     }
 }
