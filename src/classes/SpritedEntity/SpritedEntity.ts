@@ -137,7 +137,7 @@ export abstract class SpritedEntity extends DrawableEntity {
             const {
                 spriteSize: { width, height },
             } = this.activeSpriteSheetData;
-            this.activeSpriteQuadCoords = getRectangleCoords(u, v, width / this.activeSpriteSheetData.width, height / this.activeSpriteSheetData.height);
+            this.activeSpriteQuadCoords = getRectangleCoords(u, v, width / this.activeSpriteSheetData.width, height / this.activeSpriteSheetData.height, true);
         } else {
             throw new Error("There is no active sprite sheet set. Did not set active sprite.");
         }
