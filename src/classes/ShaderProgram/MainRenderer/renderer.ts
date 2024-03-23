@@ -34,22 +34,22 @@ export class MainRenderer extends ShaderProgram {
 
         for (let i = 0; i < Math.min(this.maxTextureUnits, uniqueTextureKeys.length, this.maxSimultaneousTextureUnits); i++) {
             const texture = this.textureManager.getTexture(uniqueTextureKeys[i]);
-            console.log(texture, i, uniqueTextureKeys[i]);
+            // console.log(texture, i, uniqueTextureKeys[i]);
 
             if (!!texture) {
-                console.log(this.gl.TEXTURE0 + i);
+                // console.log(this.gl.TEXTURE0 + i);
                 this.gl.activeTexture(this.gl.TEXTURE0 + i);
                 this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
                 textureLookup[uniqueTextureKeys[i]] = i;
             }
-            console.log("Run", i, uniqueTextureKeys[i]);
+            // console.log("Run", i, uniqueTextureKeys[i]);
         }
 
         return textureLookup;
     }
 
     private textureKeyToIndex = (textureLookup: Partial<Record<TextureKey, number>>, textureKeyBuffer: TextureKey[]) => {
-        console.log(textureLookup);
+        // console.log(textureLookup);
         const textureIndexBuffer: number[] = [];
         textureKeyBuffer.forEach((key) => textureIndexBuffer.push(...Array(6).fill(textureLookup[key] || 0)));
         return textureIndexBuffer;
@@ -84,13 +84,13 @@ export class MainRenderer extends ShaderProgram {
             const a_positionBuffer = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, a_positionBuffer);
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(drawBuffers.positionBuffer), gl.STATIC_DRAW);
-            console.log(drawBuffers.positionBuffer);
+            // console.log(drawBuffers.positionBuffer);
 
             const a_textureCoordLocation = gl.getAttribLocation(program, "a_textureCoord");
             const a_textureCoordBuffer = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, a_textureCoordBuffer);
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(drawBuffers.textureCoordBuffer), gl.STATIC_DRAW);
-            console.log(drawBuffers.textureCoordBuffer);
+            // console.log(drawBuffers.textureCoordBuffer);
 
             const a_textureIndexLocation = gl.getAttribLocation(program, "a_textureIndex");
             const a_textureIndexBuffer = gl.createBuffer();
@@ -110,7 +110,7 @@ export class MainRenderer extends ShaderProgram {
             gl.bindBuffer(gl.ARRAY_BUFFER, a_textureIndexBuffer);
             gl.vertexAttribPointer(a_textureIndexLocation, 1, gl.FLOAT, false, 0, 0);
 
-            console.log(textureIndexBuffer, drawBuffers.positionBuffer.length / 2);
+            //console.log(textureIndexBuffer, drawBuffers.positionBuffer.length / 2);
             gl.drawArrays(gl.TRIANGLES, 0, drawBuffers.positionBuffer.length / 2);
         }
     }

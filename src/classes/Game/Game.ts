@@ -97,7 +97,7 @@ export class Game extends GroupEntity {
         this.renderer.setWebGLRenderingContext(gl);
 
         // TODO: This is still testing
-        /*  if (!this.intervalManager.getInterval(GameIntervalKeys.RUN)) {
+        if (!this.intervalManager.getInterval(GameIntervalKeys.RUN)) {
             this.intervalManager.subscribe(
                 GameIntervalKeys.RUN,
                 new Interval(
@@ -108,7 +108,7 @@ export class Game extends GroupEntity {
                     Infinity
                 )
             );
-        } */
+        }
 
         await this.tick(gl);
     }
@@ -181,7 +181,7 @@ export class Game extends GroupEntity {
             console.log("Autodrop:", this.autoDropFrames, "/", this.autoDropFrameTarget);
             this.autoDropPiece(dropUnits);
         } else {
-            console.log(this.autoDropFrames);
+            // console.log(this.autoDropFrames);
             this.autoDropFrames++;
         }
     }
@@ -207,7 +207,7 @@ export class Game extends GroupEntity {
             this.autoDropPiece(unitsToDrop);
         }
 
-        // this.intervalManager.subscribe(GameIntervalKeys.AUTO_DROP, new Interval(FRAME_MS, () => this.dropFlow(unitsToDrop), Infinity));
+        this.intervalManager.subscribe(GameIntervalKeys.AUTO_DROP, new Interval(FRAME_MS, () => this.dropFlow(unitsToDrop), Infinity));
     }
 
     private resetAutoDrop() {

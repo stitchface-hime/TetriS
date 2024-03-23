@@ -98,7 +98,7 @@ export class Main {
                     () => {
                         this.draw();
                     },
-                    1 // debug
+                    Infinity // debug
                 )
             );
         }
