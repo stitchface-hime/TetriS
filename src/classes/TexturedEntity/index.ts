@@ -1,0 +1,1 @@
+export { TexturedEntity } from "./TexturedEntity";

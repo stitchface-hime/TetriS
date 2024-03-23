@@ -70,7 +70,7 @@ export class Game extends GroupEntity {
         renderer: GroupRenderer,
         intervalManager: IntervalManager
     ) {
-        super(renderer);
+        super();
         this.pieceFactory = new PieceFactory();
         this.numRows = numRows;
         this.numColumns = numColumns;
@@ -78,8 +78,8 @@ export class Game extends GroupEntity {
         this.renderer = renderer;
         this.intervalManager = intervalManager;
 
-        this.matrix = new Matrix(numRows, numColumns, this, new GroupRenderer(this.renderer.getWebGLRenderingContext()));
-        this.addEntity(this.matrix);
+        this.matrix = new Matrix(numRows, numColumns, this);
+        this.addDrawable(this.matrix);
 
         const canvas = this.renderer.getWebGLRenderingContext().canvas as HTMLCanvasElement;
         this.setDefaultDimensions([canvas.clientWidth, canvas.clientHeight]);
@@ -403,7 +403,7 @@ export class Game extends GroupEntity {
      * Clears a line from the matrix at a given row.
      */
     private clearLine(row: number) {
-        this.removeMultiple(this.matrix.clearRows(row));
+        this.removeDrawables(this.matrix.clearRows(row));
 
         this.matrix.shiftRowsDown(row, 1);
         this.linesCleared++;
@@ -493,7 +493,7 @@ export class Game extends GroupEntity {
     hold() {
         if (this.canHold && this.activePiece !== null) {
             // take blocks out of play
-            this.addMultipleEntities(this.activePiece.getBlocks());
+            this.addDrawables(this.activePiece.getBlocks());
 
             if (this.holdPieceId === null) {
                 // when hold piece is null, hold current piece and spawn a new piece

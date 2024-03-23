@@ -1,12 +1,12 @@
-import { DrawableEntity } from "@classes/DrawableEntity";
 import { Matrix } from "@classes/Matrix/Matrix";
 import { DrawMatrix } from "@classes/ShaderProgram";
 import { DrawBuffers } from "src/shaders/types";
 import { TextureManager } from "@classes/TextureManager";
 import { TextureKey } from "@data/TextureKey";
 import { getRectangleCoords } from "@utils/getRectangleCoords";
+import { TexturedEntity } from "@classes/TexturedEntity";
 
-export class MatrixBackground extends DrawableEntity {
+export class MatrixBackground extends TexturedEntity {
     static textureKey: TextureKey = "MATRIX_BG";
     private matrix: Matrix;
 

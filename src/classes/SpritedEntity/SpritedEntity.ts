@@ -5,6 +5,7 @@ import { Tuple } from "src/types";
 import { TextureManager } from "@classes/TextureManager";
 import { SpriteSheetLoader } from "@classes/ShaderProgram/SpriteSheetLoader/renderer";
 import { TextureKey } from "@data/TextureKey";
+import { TexturedEntity } from "@classes/TexturedEntity";
 
 /* interface AnimationFrame {
     name: string;
@@ -26,7 +27,7 @@ class SpriteAnimation {
 
 }
  */
-export abstract class SpritedEntity extends DrawableEntity {
+export abstract class SpritedEntity extends TexturedEntity {
     /**
      * The sprite sheets that will be used when drawing this entity to the scene.
      */

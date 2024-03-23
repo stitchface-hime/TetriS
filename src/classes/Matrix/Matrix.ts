@@ -58,7 +58,7 @@ export class Matrix extends GroupEntity {
 
         // Background for the matrix
         this.background = new MatrixBackground(this);
-        this.addEntity(this.background);
+        this.addDrawable(this.background);
 
         this.background.setParent(this);
     }
@@ -127,7 +127,7 @@ export class Matrix extends GroupEntity {
      */
     setActivePiece(piece: Piece) {
         this.activePiece = piece;
-        this.addMultipleEntities(piece.getBlocks());
+        this.addDrawables(piece.getBlocks());
     }
 
     /**
@@ -188,7 +188,7 @@ export class Matrix extends GroupEntity {
             const [block] = this.blocks.splice(blockIdx, 1);
 
             block.getCoupledBlocks().forEach((coupledBlock) => coupledBlock.unsetCoupledBlock(block));
-            this.removeEntity(block);
+            this.removeDrawable(block);
             this.numCellsOccupied -= 1;
 
             return block;
@@ -245,7 +245,7 @@ export class Matrix extends GroupEntity {
         }
 
         this.blocks.push(block);
-        this.addEntity(block);
+        this.addDrawable(block);
         this.numCellsOccupied += 1;
     }
 

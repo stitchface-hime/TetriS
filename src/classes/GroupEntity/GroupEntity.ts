@@ -3,34 +3,71 @@ import { Entity } from "@classes/Entity";
 import { TextureManager } from "@classes/TextureManager";
 import { DrawBuffers } from "src/shaders/types";
 
-export abstract class GroupEntity extends Entity {
-    protected entities: DrawableEntity[] = [];
+/**
+ * A group entity is an entity that consists of
+ * - passive entities: entities that belong to the group but are not visible
+ * - drawable entities: entities that belong to the group that are renderable to a texture or screen
+ */
+export abstract class GroupEntity extends DrawableEntity {
+    protected passives: Entity[] = [];
+    protected drawables: DrawableEntity[] = [];
 
-    // TODO: need to implement transformations for children elements
-    addEntity(entity: DrawableEntity) {
-        if (!this.entities.includes(entity)) {
-            this.entities.push(entity);
+    private addEntity<E extends Entity>(subgroup: E[], entity: E) {
+        if (!subgroup.includes(entity)) {
+            subgroup.push(entity);
         }
     }
 
-    addMultipleEntities(entities: DrawableEntity[]) {
-        entities.forEach((entity) => {
-            this.addEntity(entity);
+    addPassive(entity: Entity) {
+        this.addEntity(this.passives, entity);
+    }
+
+    addDrawable(entity: DrawableEntity) {
+        this.addEntity(this.drawables, entity);
+    }
+
+    private addEntities<E extends Entity>(subgroup: E[], entitiesToAdd: E[]) {
+        entitiesToAdd.forEach((entity) => {
+            this.addEntity(subgroup, entity);
         });
     }
 
-    removeEntity(entity: DrawableEntity) {
-        const index = this.entities.indexOf(entity);
+    addPassives(entities: Entity[]) {
+        this.addEntities(this.passives, entities);
+    }
+
+    addDrawables(entities: DrawableEntity[]) {
+        this.addEntities(this.drawables, entities);
+    }
+
+    private removeEntity<E extends Entity>(subgroup: E[], entity: E) {
+        const index = subgroup.indexOf(entity);
 
         if (index !== -1) {
-            return this.entities.splice(index)[0];
+            return subgroup.splice(index)[0];
         }
     }
 
-    removeMultiple(entities: DrawableEntity[]) {
-        entities.forEach((entity) => {
-            this.removeEntity(entity);
+    removePassive(entity: Entity) {
+        this.removeEntity(this.passives, entity);
+    }
+
+    removeDrawable(entity: DrawableEntity) {
+        this.removeEntity(this.drawables, entity);
+    }
+
+    private removeEntities<E extends Entity>(subgroup: E[], entitiesToRemove: E[]) {
+        entitiesToRemove.forEach((entity) => {
+            this.removeEntity(subgroup, entity);
         });
+    }
+
+    removePassives(entities: Entity[]) {
+        this.removeEntities(this.passives, entities);
+    }
+
+    removeDrawables(entities: DrawableEntity[]) {
+        this.removeEntities(this.drawables, entities);
     }
 
     async getDrawBuffers(gl: WebGLRenderingContext, textureManager: TextureManager): Promise<DrawBuffers> {
@@ -40,10 +77,8 @@ export abstract class GroupEntity extends Entity {
             textureKeyBuffer: [],
         };
 
-        console.log("Generating buffers for entities:", this.entities);
-
         await Promise.all(
-            this.entities.map(async (entity) => {
+            this.drawables.map(async (entity) => {
                 const entityBuffers = await entity.getDrawBuffers(gl, textureManager);
 
                 drawBuffers.positionBuffer.push(...entityBuffers.positionBuffer);
