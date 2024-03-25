@@ -56,7 +56,6 @@ export class Interval {
                     this.incrementRepetitions();
                     this.repeatCount -= 1;
                     this.rollingMsCount -= this.intervalMs;
-                    console.log(this.rollingMsCount);
                 } else {
                     // TODO: Does this even work?
                     this.pause();
