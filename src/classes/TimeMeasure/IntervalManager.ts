@@ -8,7 +8,6 @@ type IntervalManagerKey = string | number;
  * `Interval` instances.
  */
 export class IntervalManager {
-    private tickInterval = FRAME_MS; // ~16.6667ms
     private globalIntervalHandle?: number = undefined;
     private globalPause: boolean = false;
     private then: number | null = null;
@@ -27,11 +26,9 @@ export class IntervalManager {
         if (!this.globalPause) {
             const delta = now - this.then;
 
-            if (delta >= this.tickInterval) {
-                this.advanceAllIntervals(delta);
-                // offset to ensure that each `then` is exactly `tickInterval` apart
-                this.then = now - (delta % this.tickInterval);
-            }
+            this.advanceAllIntervals(delta);
+            // offset to ensure that each `then` is exactly `tickInterval` apart
+            this.then = now;
             this.globalIntervalHandle = requestAnimationFrame(() => this.tick());
         } else {
             if (this.globalIntervalHandle !== undefined) {

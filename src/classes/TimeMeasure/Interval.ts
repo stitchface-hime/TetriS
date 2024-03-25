@@ -33,15 +33,30 @@ export class Interval {
         return this.repetitions;
     }
 
+    private incrementRepetitions() {
+        if (this.repetitions < Number.MAX_SAFE_INTEGER) {
+            this.repetitions += 1;
+        }
+    }
+
+    private increaseRollingMsCount(ms: number) {
+        if (this.rollingMsCount + ms < Number.MAX_SAFE_INTEGER) {
+            this.rollingMsCount += ms;
+        } else {
+            this.rollingMsCount = Infinity;
+        }
+    }
+
     increaseTimeElapsed(ms: number) {
         if (this.shouldRun) {
-            this.rollingMsCount += ms;
+            this.increaseRollingMsCount(ms);
             if (this.rollingMsCount >= this.intervalMs) {
                 if (this.repeatCount >= 0) {
                     this.callback();
-                    this.repetitions += 1;
+                    this.incrementRepetitions();
                     this.repeatCount -= 1;
                     this.rollingMsCount -= this.intervalMs;
+                    console.log(this.rollingMsCount);
                 } else {
                     // TODO: Does this even work?
                     this.pause();

@@ -6,7 +6,6 @@ import { MainRenderer } from "@classes/ShaderProgram/MainRenderer/renderer";
 import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
 import { MainIntervalKeys } from "./MainIntervalKeys";
 import { Interval } from "@classes/TimeMeasure";
-import { FRAME_MS } from "src/constants";
 import { TextureManager } from "@classes/TextureManager";
 import { DrawBuffers } from "src/shaders/types";
 
@@ -94,7 +93,7 @@ export class Main {
             this.intervalManager.subscribe(
                 MainIntervalKeys.RUN,
                 new Interval(
-                    FRAME_MS,
+                    0,
                     () => {
                         this.draw();
                     },
