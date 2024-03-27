@@ -11,6 +11,8 @@ import { GameOverCode } from "./GameOverCode";
 import { GroupRenderer } from "@classes/ShaderProgram/GroupRenderer";
 import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
 import { FRAME_MS } from "src/constants";
+import { ButtonFramesHeld, ButtonsHeld } from "@classes/GameController";
+import { Button } from "@classes/InputBinding/types";
 
 export class Game extends GroupEntity {
     private numRows: number;
@@ -178,7 +180,7 @@ export class Game extends GroupEntity {
     // TODO: Grounded flow still buggy
     private dropFlow(dropUnits = 1) {
         if (this.autoDropFrames >= this.autoDropFrameTarget) {
-            console.log("Autodrop:", this.autoDropFrames, "/", this.autoDropFrameTarget);
+            // console.log("Autodrop:", this.autoDropFrames, "/", this.autoDropFrameTarget);
             this.autoDropPiece(dropUnits);
         } else {
             // console.log(this.autoDropFrames);
@@ -513,12 +515,75 @@ export class Game extends GroupEntity {
         return false;
     }
 
-    pauseGame() {
-        this.gamePaused = true;
+    togglePause() {
+        this.gamePaused = !this.gamePaused;
     }
 
-    resumeGame() {
-        this.gamePaused = false;
+    private handlePressInput(button: ButtonFramesHeld) {
+        switch (button.id) {
+            case Button.BUTTON_UP: {
+                if (button.frames === 1) {
+                    this.hardDrop();
+                }
+                break;
+            }
+            case Button.BUTTON_DOWN: {
+                this.enableSoftDrop();
+                break;
+            }
+            case Button.BUTTON_LEFT: {
+                // 12 is magic number for DAS
+                if (button.frames === 1 || button.frames >= 30) {
+                    this.moveLeft();
+                }
+                break;
+            }
+            case Button.BUTTON_RIGHT: {
+                if (button.frames === 1 || button.frames >= 60) {
+                    this.moveRight();
+                }
+                break;
+            }
+            case Button.BUTTON_0: {
+                if (button.frames === 1) {
+                    this.rotateAntiClockwise();
+                }
+                break;
+            }
+            case Button.BUTTON_1: {
+                if (button.frames === 1) {
+                    this.rotateClockwise();
+                }
+                break;
+            }
+            case Button.L_TRIGGER_F: {
+                if (button.frames === 1) {
+                    this.hold();
+                }
+                break;
+            }
+            case Button.START: {
+                this.togglePause();
+            }
+            default:
+            // do nothing
+        }
+    }
+
+    private handleReleaseInput(button: Button) {
+        switch (button) {
+            case Button.BUTTON_DOWN: {
+                this.disableSoftDrop();
+                break;
+            }
+            default:
+            // do nothing
+        }
+    }
+
+    handleInputState(heldButtons: ButtonsHeld, releasedButtons: Button[]) {
+        heldButtons.forEach((button) => this.handlePressInput(button));
+        releasedButtons.forEach((button) => this.handleReleaseInput(button));
     }
 
     triggerGameOver(code?: GameOverCode) {

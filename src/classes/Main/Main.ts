@@ -124,11 +124,26 @@ export class Main {
     input(input: string | GamepadButton) {
         if (this.gameController) {
             this.gameController.input(input);
+        } else {
+            console.warn("Input", input, "ignored - game controller not initialized, have you started the game yet?");
+        }
+    }
+
+    release(input: string | GamepadButton) {
+        if (this.gameController) {
+            this.gameController.release(input);
+        } else {
+            console.warn("Release", input, "ignored - game controller not initialized, have you started the game yet?");
         }
     }
 
     // debug
     getGame() {
         return this.game;
+    }
+
+    // debug
+    getGameController() {
+        return this.gameController;
     }
 }

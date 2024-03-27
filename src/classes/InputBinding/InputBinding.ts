@@ -11,6 +11,8 @@ export class InputBinding {
     }
 
     mapToButton(input: string | GamepadButton) {
-        return (Object.keys(this.buttonBinding) as unknown as Button[]).find((button: Button) => this.buttonBinding[button] === input);
+        return (Object.keys(this.buttonBinding).map((buttonKey) => parseInt(buttonKey)) as Button[]).find(
+            (button: Button) => this.buttonBinding[button] === input
+        );
     }
 }

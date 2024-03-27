@@ -10,74 +10,62 @@ export class GameController {
     private game: Game;
     private inputBinding = new InputBinding();
     private intervalManager: IntervalManager;
-    private queue: Set<Button> = new Set<Button>();
-    private pressedFrames: Record<string, number> = {};
-    // Do we need this?
-    // private consumptionLock
-    // Potential abstraction
-    // private buttonConsumer: (held: Record<Button number>, released: Button[], pressed: Button[]) => void | null;
+    private heldButtons: { id: Button; frames: number }[] = [];
+    private releasedButtons: Button[] = [];
 
     constructor(game: Game, intervalManager: IntervalManager) {
         this.game = game;
         this.intervalManager = intervalManager;
     }
 
+    private incrementHeldButtonFramesPressed(button: Button) {
+        const entry = this.heldButtons.find((entry) => entry.id === button);
+
+        if (entry !== undefined) {
+            entry.frames++;
+        }
+    }
+
+    private incrementAllHeldButtonsFramesPressed() {
+        this.heldButtons.forEach((entry) => this.incrementHeldButtonFramesPressed(entry.id));
+    }
+
+    private addHeldButtonEntry(button: Button) {
+        const entry = this.heldButtons.find((entry) => entry.id === button);
+
+        if (entry === undefined) {
+            this.heldButtons.push({ id: button, frames: 1 });
+        }
+    }
+
+    private addReleasedButton(button: Button) {
+        const entry = this.releasedButtons.find((entry) => entry === button);
+
+        if (entry === undefined) {
+            this.releasedButtons.push(button);
+        }
+    }
+
+    private removeHeldButton(button: Button) {
+        const entryIdx = this.heldButtons.findIndex((entry) => entry.id === button);
+        const entry = this.heldButtons[entryIdx];
+
+        if (entryIdx !== -1 && entry !== undefined) {
+            this.addReleasedButton(entry.id);
+            this.heldButtons.splice(entryIdx, 1);
+        }
+    }
+
     /**
-     * Consumes any captured button inputs since last frame and calls instructions depending on the context,
-     * in this case the game. Also detects button releases as well.
+     * Sends inputs to consuming context and also updates input state.
+     *
      */
-    private consume() {
-        // Only read the first button pressed but we can capture how long the other buttons are held for too
-        const oldPressedFrames = { ...this.pressedFrames };
-        this.pressedFrames = {};
+    private sendAndUpdateInputState() {
+        this.game.handleInputState(this.heldButtons, this.releasedButtons);
 
-        let lastPressed: Button | null = null;
+        this.releasedButtons = [];
 
-        this.queue.forEach((button) => {
-            if (oldPressedFrames[button]) {
-                this.pressedFrames[button] = oldPressedFrames[button] + 1;
-                delete oldPressedFrames[button];
-            } else {
-                this.pressedFrames[button] = 1;
-                if (lastPressed === null) {
-                    // freshly pressed button
-                    lastPressed = button;
-                }
-            }
-        });
-
-        const releasedButtons = Object.keys(oldPressedFrames) as unknown as Button[];
-
-        // release
-        if (releasedButtons.includes(Button.BUTTON_DOWN)) {
-            this.game.disableSoftDrop();
-        }
-
-        // hold
-        if (lastPressed !== null) {
-            switch (lastPressed) {
-                case Button.BUTTON_0:
-                    this.game.rotateAntiClockwise();
-                    break;
-                case Button.BUTTON_1:
-                    this.game.rotateClockwise();
-                    break;
-                case Button.BUTTON_DOWN:
-                    this.game.enableSoftDrop();
-                    break;
-                case Button.BUTTON_UP:
-                    this.game.hardDrop();
-                case Button.BUTTON_LEFT:
-                    this.game.moveLeft();
-                case Button.BUTTON_RIGHT:
-                    this.game.moveRight();
-                case Button.L_TRIGGER_F:
-                    this.game.hold();
-                    break;
-            }
-        }
-
-        this.queue.clear();
+        this.incrementAllHeldButtonsFramesPressed();
     }
 
     /**
@@ -85,24 +73,41 @@ export class GameController {
      */
     input(input: string | GamepadButton) {
         const button = this.inputBinding.mapToButton(input);
-        if (button) {
-            this.queue.add(button);
+        if (button !== undefined) {
+            this.addHeldButtonEntry(button);
         }
     }
 
     /**
-     * Run the consumption loop to consume any button presses captured between frames.
+     * Detect a key from a keyboard or button from gamepad being released.
+     */
+    release(input: string | GamepadButton) {
+        const button = this.inputBinding.mapToButton(input);
+        if (button !== undefined) {
+            this.removeHeldButton(button);
+        }
+    }
+
+    /**
+     * Run the loop to increment number of frames buttons are pressed down.
      */
     listen() {
         this.intervalManager.subscribe(
             GameControllerIntervalKeys.RUN,
             new Interval(
-                FRAME_MS,
+                0,
                 () => {
-                    this.consume();
+                    this.sendAndUpdateInputState();
                 },
                 Infinity
             )
         );
+    }
+
+    /**
+     * Debug only - return an object containing current buttons pressed
+     */
+    getPressedButtons() {
+        return this.heldButtons;
     }
 }
