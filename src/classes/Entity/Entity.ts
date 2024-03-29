@@ -1,10 +1,12 @@
+import { Controller, HeldButtons } from "@classes/Controller";
 import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
-import { ShaderProgram } from "@classes/ShaderProgram";
-import { add2DVectorTuples } from "@utils/add2DVectorTuples";
-import { product2DVectorTuples } from "@utils/product2DVectorTuples";
+import { Button } from "@classes/InputBinding/types";
+import { Interval } from "@classes/TimeMeasure";
 
-export class Entity {
+export abstract class Entity {
     protected parent: GroupEntity | null = null;
+    protected controllers: Controller[] = [];
+    protected intervals: Interval[] = [];
 
     getParent() {
         return this.parent;
@@ -17,4 +19,18 @@ export class Entity {
     unsetParent() {
         this.parent = null;
     }
+
+    acceptInput(heldButtons: HeldButtons, releasedButtons: Button[]) {
+        // no-op, implementated in each individual entity
+    }
+
+    registerInterval() {
+        // TODO
+    }
+
+    registerController() {
+        // TODO
+    }
+
+    destroy() {}
 }
