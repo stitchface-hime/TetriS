@@ -1,6 +1,7 @@
 import { DrawableEntity } from "@classes/DrawableEntity";
 import { Entity } from "@classes/Entity";
 import { TextureManager } from "@classes/TextureManager";
+import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
 import { DrawBuffers } from "src/shaders/types";
 
 /**
@@ -11,6 +12,10 @@ import { DrawBuffers } from "src/shaders/types";
 export abstract class GroupEntity extends DrawableEntity {
     protected passives: Entity[] = [];
     protected drawables: DrawableEntity[] = [];
+
+    constructor(intervalManager: IntervalManager) {
+        super(intervalManager);
+    }
 
     private addEntity<E extends Entity>(subgroup: E[], entity: E) {
         if (!subgroup.includes(entity)) {

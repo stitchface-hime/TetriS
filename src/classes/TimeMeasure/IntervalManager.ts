@@ -1,7 +1,4 @@
-import { FRAME_MS } from "src/constants";
 import { Interval } from "./Interval";
-
-type IntervalManagerKey = string | number;
 
 /**
  * Manages all intervals for a given class. A decorator around a `Map` object used to store the
@@ -12,7 +9,7 @@ export class IntervalManager {
     private globalPause: boolean = false;
     private then: number | null = null;
 
-    private subscriptions: Map<IntervalManagerKey, Interval> = new Map();
+    private subscriptions: Interval[] = [];
 
     constructor() {
         this.tick();
@@ -45,11 +42,11 @@ export class IntervalManager {
     }
 
     /**
-     * Adds a new interval into the manager with a given key.
+     * Adds a new interval into the manager.
      * The interval will automatically run once added unless specified otherwise.
      */
-    subscribe(key: IntervalManagerKey, interval: Interval, autoRun = true) {
-        this.subscriptions.set(key, interval);
+    subscribe(interval: Interval, autoRun = true) {
+        this.subscriptions.push(interval);
         if (autoRun) {
             interval.run();
         }
@@ -59,16 +56,18 @@ export class IntervalManager {
      * Returns the given interval from a given key. Returns `undefined` if no interval
      * can be found with the given key.
      */
-    getInterval(key: IntervalManagerKey): Interval | undefined {
-        return this.subscriptions.get(key);
+    isIntervalSubscribed(interval: Interval): boolean {
+        return !!this.subscriptions.find((subscription) => subscription === interval);
     }
 
     /**
      * Removes an interval from the manager with a given key.
      */
-    unsubscribe(key: IntervalManagerKey) {
-        this.subscriptions.get(key)?.clear();
-        this.subscriptions.delete(key);
+    unsubscribe(interval: Interval) {
+        const subIdx = this.subscriptions.findIndex((subscription) => subscription === interval);
+        if (subIdx !== -1) {
+            this.subscriptions.splice(subIdx, 1);
+        }
     }
 
     /**
@@ -90,6 +89,6 @@ export class IntervalManager {
      */
     unsubscribeAll() {
         this.subscriptions.forEach((interval) => interval.clear());
-        this.subscriptions.clear();
+        this.subscriptions = [];
     }
 }

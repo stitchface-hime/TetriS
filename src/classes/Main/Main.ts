@@ -4,16 +4,28 @@ import { RunStatus } from "./types";
 import { GroupRenderer } from "@classes/ShaderProgram/GroupRenderer";
 import { MainRenderer } from "@classes/ShaderProgram/MainRenderer/renderer";
 import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
-import { MainIntervalKeys } from "./MainIntervalKeys";
 import { Interval } from "@classes/TimeMeasure";
 import { TextureManager } from "@classes/TextureManager";
 import { DrawBuffers } from "src/shaders/types";
+import { ControllerPortManager } from "@classes/ControllerPortManager";
 
 export class Main {
     // Common to all entities within the main progra
     private gl: WebGLRenderingContext | null = null;
+
     private textureManager = new TextureManager();
     private intervalManager = new IntervalManager();
+    private controllerPorts = new ControllerPortManager();
+
+    private clock = this.intervalManager.subscribe(
+        new Interval(
+            0,
+            () => {
+                this.draw();
+            },
+            Infinity // debug
+        )
+    );
 
     private game: Game | null = null;
 
@@ -89,17 +101,6 @@ export class Main {
             this.gameController = new GameController(this.game, this.intervalManager);
             this.gameController.listen();
             this.run();
-
-            this.intervalManager.subscribe(
-                MainIntervalKeys.RUN,
-                new Interval(
-                    0,
-                    () => {
-                        this.draw();
-                    },
-                    Infinity // debug
-                )
-            );
         }
     }
 

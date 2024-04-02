@@ -32,12 +32,6 @@ export class Game extends GroupEntity {
     private levelLineQuota = 10;
     private combo = -1;
 
-    /**
-     *
-     */
-
-    private intervalManager: IntervalManager;
-
     private spawnRetries = 2;
 
     private lockDelayFrameLimit = 30;
@@ -72,13 +66,12 @@ export class Game extends GroupEntity {
         renderer: GroupRenderer,
         intervalManager: IntervalManager
     ) {
-        super();
+        super(intervalManager);
         this.pieceFactory = new PieceFactory();
         this.numRows = numRows;
         this.numColumns = numColumns;
 
         this.renderer = renderer;
-        this.intervalManager = intervalManager;
 
         this.matrix = new Matrix(numRows, numColumns, this);
         this.addDrawable(this.matrix);
@@ -99,24 +92,22 @@ export class Game extends GroupEntity {
         this.renderer.setWebGLRenderingContext(gl);
 
         // TODO: This is still testing
-        if (!this.intervalManager.getInterval(GameIntervalKeys.RUN)) {
-            this.intervalManager.subscribe(
-                GameIntervalKeys.RUN,
-                new Interval(
-                    FRAME_MS,
-                    () => {
-                        this.tick(gl);
-                    },
-                    Infinity
-                )
-            );
-        }
+        this.registerInterval(
+            GameIntervalKeys.RUN,
+            new Interval(
+                FRAME_MS,
+                () => {
+                    this.tick(gl);
+                },
+                Infinity
+            )
+        );
 
         await this.tick(gl);
     }
 
     halt() {
-        this.intervalManager.unsubscribe(GameIntervalKeys.RUN);
+        this.unregisterInterval(GameIntervalKeys.RUN);
     }
 
     /**
@@ -191,12 +182,12 @@ export class Game extends GroupEntity {
      * The flow for an active piece to auto lock.
      */
     private autoLockFlow() {
-        if (!this.intervalManager.getInterval(GameIntervalKeys.LOCK_DELAY)) {
-            this.autoDropFrames = 0;
-            // lock immediately if there is no frame delay
-            if (this.lockDelayFrameLimit === 0) {
-                this.lockPiece();
-            } else {
+        this.autoDropFrames = 0;
+        // lock immediately if there is no frame delay
+        if (this.lockDelayFrameLimit === 0) {
+            this.lockPiece();
+        } else {
+            if (this.getInterval(GameIntervalKeys.LOCK_DELAY)) {
                 this.initLockDelay();
             }
         }
@@ -209,12 +200,12 @@ export class Game extends GroupEntity {
             this.autoDropPiece(unitsToDrop);
         }
 
-        this.intervalManager.subscribe(GameIntervalKeys.AUTO_DROP, new Interval(FRAME_MS, () => this.dropFlow(unitsToDrop), Infinity));
+        this.registerInterval(GameIntervalKeys.AUTO_DROP, new Interval(FRAME_MS, () => this.dropFlow(unitsToDrop), Infinity));
     }
 
     private resetAutoDrop() {
         this.autoDropFrames = 0;
-        this.intervalManager.unsubscribe(GameIntervalKeys.AUTO_DROP);
+        this.unregisterInterval(GameIntervalKeys.AUTO_DROP);
     }
 
     private autoDropPiece(units = 1) {
@@ -230,11 +221,11 @@ export class Game extends GroupEntity {
 
     private resetLockDelay() {
         this.lockDelayFrames = 0;
-        this.intervalManager.unsubscribe(GameIntervalKeys.LOCK_DELAY);
+        this.unregisterInterval(GameIntervalKeys.LOCK_DELAY);
     }
 
     private initLockDelay() {
-        this.intervalManager.subscribe(
+        this.registerInterval(
             GameIntervalKeys.LOCK_DELAY,
             new Interval(
                 FRAME_MS,
@@ -588,7 +579,7 @@ export class Game extends GroupEntity {
 
     triggerGameOver(code?: GameOverCode) {
         this.gameOver = true;
-        this.intervalManager.unsubscribeAll();
+        this.unregisterAllIntervals();
         // Debugging feature
         console.log("Game over:", code);
     }

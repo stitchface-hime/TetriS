@@ -1,6 +1,8 @@
+import { Controller } from "@classes/Controller";
 import { Entity } from "@classes/Entity";
 import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
 import { TextureManager } from "@classes/TextureManager";
+import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
 import { TextureKey } from "@data/TextureKey";
 import { add2DVectorTuples, product2DVectorTuples } from "@utils/index";
 import { DrawBuffers } from "src/shaders/types";
@@ -35,16 +37,20 @@ export abstract class DrawableEntity extends Entity {
      */
     private rotation = 0;
 
-    constructor({
-        position,
-        scale,
-        rotation,
-    }: Partial<{
-        position: [x: number, y: number];
-        scale: [x: number, y: number];
-        rotation: number;
-    }> = {}) {
-        super();
+    constructor(
+        intervalManager: IntervalManager,
+        controllers: Controller[],
+        {
+            position,
+            scale,
+            rotation,
+        }: Partial<{
+            position: [x: number, y: number];
+            scale: [x: number, y: number];
+            rotation: number;
+        }> = {}
+    ) {
+        super(intervalManager, controllers);
         if (position !== undefined) this.setPosition(position);
         if (scale !== undefined) this.scale = scale || this.scale;
         if (rotation !== undefined) this.rotation = rotation || this.rotation;

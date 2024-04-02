@@ -4,10 +4,9 @@ import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
 import { Interval } from "@classes/TimeMeasure";
 import { Entity } from "@classes/Entity";
 import { HeldButtonFrames } from "./types";
-import { ControllerIntervalKeys } from "./ControllerIntervalKeys";
 
 export class Controller {
-    private entities: Entity[] = [];
+    private subscriptions: Entity[] = [];
     private inputBinding = new InputBinding();
     private intervalManager: IntervalManager;
     private heldButtons: HeldButtonFrames[] = [];
@@ -17,21 +16,21 @@ export class Controller {
         this.intervalManager = intervalManager;
     }
 
-    registerEntity(entity: Entity) {
-        if (!this.entities.includes(entity)) {
-            this.entities.push(entity);
+    subscribeEntity(entity: Entity) {
+        if (!this.subscriptions.includes(entity)) {
+            this.subscriptions.push(entity);
         }
     }
 
-    unregisterEntity(entity: Entity) {
-        const entityIdx = this.entities.findIndex((currentEntity) => currentEntity === entity);
+    unsubscribeEntity(entity: Entity) {
+        const entityIdx = this.subscriptions.findIndex((currentEntity) => currentEntity === entity);
         if (entityIdx !== -1) {
-            this.entities.splice(entityIdx, 1);
+            this.subscriptions.splice(entityIdx, 1);
         }
     }
 
-    unregisterAllEntities() {
-        this.entities = [];
+    unsubscribeAllEntities() {
+        this.subscriptions = [];
     }
 
     private incrementHeldButtonFramesPressed(button: Button) {
@@ -73,11 +72,10 @@ export class Controller {
     }
 
     /**
-     * Sends inputs to consuming context and also updates input state.
-     *
+     * Sends inputs to all subscribed entities and also updates input state.
      */
     private sendAndUpdateInputState() {
-        this.entities.forEach((entity) => {
+        this.subscriptions.forEach((entity) => {
             entity.acceptInput(this.heldButtons, this.releasedButtons);
         });
 
@@ -89,7 +87,7 @@ export class Controller {
     /**
      * Detect a key from a keyboard or button from gamepad being pressed.
      */
-    input(input: string | GamepadButton) {
+    press(input: string | GamepadButton) {
         const button = this.inputBinding.mapToButton(input);
         if (button !== undefined) {
             this.addHeldButtonEntry(button);
@@ -111,7 +109,6 @@ export class Controller {
      */
     listen() {
         this.intervalManager.subscribe(
-            ControllerIntervalKeys.RUN,
             new Interval(
                 0,
                 () => {

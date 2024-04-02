@@ -1,4 +1,5 @@
 export { add2DVectorTuples } from "./add2DVectorTuples";
+export { arrayFindAndDelete } from "./arrayFindAndDelete";
 export { declareShaderAttribute } from "./declareShaderAttribute";
 export { getRandomInt } from "./getRandomInt";
 export { glsl } from "./glsl";
