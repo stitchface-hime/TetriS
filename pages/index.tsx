@@ -1,8 +1,7 @@
+import { ControllerPortKey } from "@classes/ControllerPortManager/types";
 import { Main } from "@classes/Main";
 
-import { SpriteSheets } from "@data/SpriteSheets";
-
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import { GameCanvas } from "src/components/GameCanvas";
 
 const App: React.FC = () => {
@@ -21,9 +20,9 @@ const App: React.FC = () => {
     }, []);
 
     const getButtons = () => {
-        const controller = mainRef.current?.getGameController();
+        const controller = mainRef.current?.getController(ControllerPortKey.PORT_0);
         if (controller) {
-            return controller.getPressedButtons();
+            return controller;
         }
 
         return {};
@@ -36,14 +35,20 @@ const App: React.FC = () => {
             mainRef.current = new Main();
             mainRef.current.setWebGLRenderingContext(canvasRef.current);
             await mainRef.current.start();
-            window.addEventListener("keydown", (e) => {
-                const { key } = e;
-                mainRef.current?.input(key);
-            });
-            window.addEventListener("keyup", (e) => {
-                const { key } = e;
-                mainRef.current?.release(key);
-            });
+
+            const triggers = mainRef.current?.getControllerEventTriggers(ControllerPortKey.PORT_0);
+
+            if (triggers) {
+                mainRef.current?.getControllerEventTriggers(ControllerPortKey.PORT_0);
+                window.addEventListener("keydown", (e) => {
+                    const { key } = e;
+                    triggers.press(key);
+                });
+                window.addEventListener("keyup", (e): void => {
+                    const { key } = e;
+                    triggers.release(key);
+                });
+            }
             tick();
         }
     };

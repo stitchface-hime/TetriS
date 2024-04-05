@@ -1,23 +1,18 @@
 import { HeldButtons } from "@classes/Controller";
 import { ControllerPortManager } from "@classes/ControllerPortManager";
-import { ControllerPortKey } from "@classes/ControllerPortManager/types";
 import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
 import { Button } from "@classes/InputBinding/types";
 import { Interval } from "@classes/TimeMeasure";
 import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
-import { arrayFindAndDelete } from "@utils/arrayFindAndDelete";
 
 export abstract class Entity {
     protected parent: GroupEntity | null = null;
     protected intervals: Partial<Record<string, Interval>> = {};
 
     private intervalManager: IntervalManager;
-    private controllerPortManager: ControllerPortManager;
-    private controllerPortSubscriptions: ControllerPortKey[] = [];
 
     constructor(intervalManager: IntervalManager, controllerPortManager: ControllerPortManager) {
         this.intervalManager = intervalManager;
-        this.controllerPortManager = controllerPortManager;
     }
 
     getParent() {
@@ -77,26 +72,8 @@ export abstract class Entity {
         });
     }
 
-    registerController(controllerPortKey: ControllerPortKey) {
-        if (this.controllerPortManager.subscribeToControllerAt(controllerPortKey, this)) {
-            this.controllerPortSubscriptions.push(controllerPortKey);
-        }
-    }
-
-    unregisterController(controllerPortKey: ControllerPortKey) {
-        this.controllerPortManager.unsubscribeFromControllerAt(controllerPortKey, this);
-        arrayFindAndDelete(controllerPortKey, this.controllerPortSubscriptions);
-    }
-
-    unregisterAllControllers() {
-        this.controllerPortSubscriptions.forEach((subscription) => this.unregisterController(subscription));
-    }
-
     destroy() {
         // clean up intervals
         this.unregisterAllIntervals();
-
-        // clean up controllers
-        this.unregisterAllControllers();
     }
 }

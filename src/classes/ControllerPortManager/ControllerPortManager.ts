@@ -8,7 +8,7 @@ export class ControllerPortManager {
     };
 
     connect(key: ControllerPortKey, controller: Controller) {
-        if (!!this.ports[key] === null) {
+        if (this.ports[key] === null) {
             this.ports[key] = controller;
         }
     }
@@ -41,6 +41,29 @@ export class ControllerPortManager {
         if (port !== null) {
             port.unsubscribeEntity(entity);
         }
+    }
+
+    getEventTriggersFromControllerAt(key: ControllerPortKey) {
+        const port = this.ports[key];
+
+        if (port !== null) {
+            return port.getEventTriggers();
+        }
+
+        console.warn("Unable to get triggers, no controller found at port id:", key);
+        return null;
+    }
+
+    // debug
+
+    getControllerState(key: ControllerPortKey) {
+        const port = this.ports[key];
+
+        if (port !== null) {
+            return port.getState();
+        }
+
+        return {};
     }
 }
 

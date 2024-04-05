@@ -8,6 +8,8 @@ import { Interval } from "@classes/TimeMeasure";
 import { TextureManager } from "@classes/TextureManager";
 import { DrawBuffers } from "src/shaders/types";
 import { ControllerPortManager } from "@classes/ControllerPortManager";
+import { Controller } from "@classes/Controller";
+import { ControllerPortKey } from "@classes/ControllerPortManager/types";
 
 export class Main {
     // Common to all entities within the main progra
@@ -29,7 +31,6 @@ export class Main {
 
     private game: Game | null = null;
 
-    private gameController: GameController | null = null;
     private runStatus: RunStatus = RunStatus.STOPPED;
     private renderer: MainRenderer | null = null;
 
@@ -98,8 +99,12 @@ export class Main {
     async start() {
         if (!this.game && this.gl) {
             this.game = new Game(...Standard.getConfig(), new GroupRenderer(this.gl), this.intervalManager);
-            this.gameController = new GameController(this.game, this.intervalManager);
-            this.gameController.listen();
+
+            const controller = new Controller(this.intervalManager);
+
+            this.controllerPorts.connect(ControllerPortKey.PORT_0, controller);
+            this.controllerPorts.subscribeToControllerAt(ControllerPortKey.PORT_0, this.game);
+
             this.run();
         }
     }
@@ -115,6 +120,7 @@ export class Main {
     stop() {
         this.halt();
         this.game = null;
+        this.controllerPorts.disconnectAll();
         this.runStatus = RunStatus.STOPPED;
     }
 
@@ -122,20 +128,8 @@ export class Main {
         return this.runStatus;
     }
 
-    input(input: string | GamepadButton) {
-        if (this.gameController) {
-            this.gameController.input(input);
-        } else {
-            console.warn("Input", input, "ignored - game controller not initialized, have you started the game yet?");
-        }
-    }
-
-    release(input: string | GamepadButton) {
-        if (this.gameController) {
-            this.gameController.release(input);
-        } else {
-            console.warn("Release", input, "ignored - game controller not initialized, have you started the game yet?");
-        }
+    getControllerEventTriggers(key: ControllerPortKey) {
+        return this.controllerPorts.getEventTriggersFromControllerAt(key);
     }
 
     // debug
@@ -144,7 +138,7 @@ export class Main {
     }
 
     // debug
-    getGameController() {
-        return this.gameController;
+    getController(key: ControllerPortKey) {
+        return this.controllerPorts.getControllerState(key);
     }
 }

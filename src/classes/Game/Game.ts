@@ -13,6 +13,7 @@ import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
 import { FRAME_MS } from "src/constants";
 import { ButtonFramesHeld, ButtonsHeld } from "@classes/GameController";
 import { Button } from "@classes/InputBinding/types";
+import { HeldButtons } from "@classes/Controller";
 
 export class Game extends GroupEntity {
     private numRows: number;
@@ -187,7 +188,7 @@ export class Game extends GroupEntity {
         if (this.lockDelayFrameLimit === 0) {
             this.lockPiece();
         } else {
-            if (this.getInterval(GameIntervalKeys.LOCK_DELAY)) {
+            if (this.getInterval(GameIntervalKeys.LOCK_DELAY) === undefined) {
                 this.initLockDelay();
             }
         }
@@ -570,6 +571,11 @@ export class Game extends GroupEntity {
             default:
             // do nothing
         }
+    }
+
+    acceptInput(heldButtons: HeldButtons, releasedButtons: Button[]): void {
+        heldButtons.forEach((button) => this.handlePressInput(button));
+        releasedButtons.forEach((button) => this.handleReleaseInput(button));
     }
 
     handleInputState(heldButtons: ButtonsHeld, releasedButtons: Button[]) {

@@ -14,14 +14,21 @@ export class Controller {
 
     constructor(intervalManager: IntervalManager) {
         this.intervalManager = intervalManager;
+        this.listen();
     }
 
+    /**
+     * Subscribe an entity to listen to inputs to this controller.
+     */
     subscribeEntity(entity: Entity) {
         if (!this.subscriptions.includes(entity)) {
             this.subscriptions.push(entity);
         }
     }
 
+    /**
+     * Unsubscribe an entity such that they are no longer listening to inputs.
+     */
     unsubscribeEntity(entity: Entity) {
         const entityIdx = this.subscriptions.findIndex((currentEntity) => currentEntity === entity);
         if (entityIdx !== -1) {
@@ -87,7 +94,9 @@ export class Controller {
     /**
      * Detect a key from a keyboard or button from gamepad being pressed.
      */
-    press(input: string | GamepadButton) {
+    private press(input: string | GamepadButton) {
+        console.log(this);
+        console.log(this.subscriptions);
         const button = this.inputBinding.mapToButton(input);
         if (button !== undefined) {
             this.addHeldButtonEntry(button);
@@ -97,17 +106,25 @@ export class Controller {
     /**
      * Detect a key from a keyboard or button from gamepad being released.
      */
-    release(input: string | GamepadButton) {
+    private release(input: string | GamepadButton) {
         const button = this.inputBinding.mapToButton(input);
         if (button !== undefined) {
             this.removeHeldButton(button);
         }
     }
 
+    getEventTriggers() {
+        // wrap in arrow functions otherwise `this` will be bound to scope of return object
+        return {
+            press: (input: string | GamepadButton) => this.press(input),
+            release: (input: string | GamepadButton) => this.release(input),
+        };
+    }
+
     /**
      * Run the loop to increment number of frames buttons are pressed down.
      */
-    listen() {
+    private listen() {
         this.intervalManager.subscribe(
             new Interval(
                 0,
@@ -122,7 +139,10 @@ export class Controller {
     /**
      * Debug only - return an object containing current buttons pressed
      */
-    getPressedButtons() {
-        return this.heldButtons;
+    getState() {
+        return {
+            press: this.heldButtons,
+            released: this.releasedButtons,
+        };
     }
 }
