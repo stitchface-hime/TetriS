@@ -2,104 +2,73 @@ import { InputBinding } from "@classes/InputBinding";
 import { Button } from "@classes/InputBinding/types";
 import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
 import { Interval } from "@classes/TimeMeasure";
-import { Entity } from "@classes/Entity";
-import { HeldButtonFrames } from "./types";
+import { ControllerContext } from "@classes/ControllerContext/ControllerContext";
+import { arrayFindAndDelete } from "@utils/arrayFindAndDelete";
 
 export class Controller {
-    private subscriptions: Entity[] = [];
+    private pressedButtons: Button[] = [];
+    private subscriptions: ControllerContext[] = [];
     private inputBinding = new InputBinding();
     private intervalManager: IntervalManager;
-    private heldButtons: HeldButtonFrames[] = [];
-    private releasedButtons: Button[] = [];
 
     constructor(intervalManager: IntervalManager) {
         this.intervalManager = intervalManager;
-        this.listen();
+        this.update();
     }
 
     /**
-     * Subscribe an entity to listen to inputs to this controller.
+     * Subscribe a controller context to listen to inputs from this controller.
      */
-    subscribeEntity(entity: Entity) {
-        if (!this.subscriptions.includes(entity)) {
-            this.subscriptions.push(entity);
+    subscribeContext(context: ControllerContext) {
+        if (this.subscriptions.includes(context)) {
+            console.warn("Context already subscribed, ignoring");
+            return;
         }
+        this.subscriptions.push(context);
     }
 
     /**
-     * Unsubscribe an entity such that they are no longer listening to inputs.
+     * Unsubscribe a controller context to no longer listen to inputs from this controller.
      */
-    unsubscribeEntity(entity: Entity) {
-        const entityIdx = this.subscriptions.findIndex((currentEntity) => currentEntity === entity);
-        if (entityIdx !== -1) {
-            this.subscriptions.splice(entityIdx, 1);
+    unsubscribeContext(context: ControllerContext) {
+        const contextIdx = this.subscriptions.findIndex((currentContext) => currentContext === context);
+        if (contextIdx !== -1) {
+            this.subscriptions.splice(contextIdx, 1);
         }
     }
 
-    unsubscribeAllEntities() {
+    unsubscribeAllContexts() {
         this.subscriptions = [];
-    }
-
-    private incrementHeldButtonFramesPressed(button: Button) {
-        const entry = this.heldButtons.find((entry) => entry.id === button);
-
-        if (entry !== undefined) {
-            entry.frames++;
-        }
-    }
-
-    private incrementAllHeldButtonsFramesPressed() {
-        this.heldButtons.forEach((entry) => this.incrementHeldButtonFramesPressed(entry.id));
-    }
-
-    private addHeldButtonEntry(button: Button) {
-        const entry = this.heldButtons.find((entry) => entry.id === button);
-
-        if (entry === undefined) {
-            this.heldButtons.push({ id: button, frames: 1 });
-        }
-    }
-
-    private addReleasedButton(button: Button) {
-        const entry = this.releasedButtons.find((entry) => entry === button);
-
-        if (entry === undefined) {
-            this.releasedButtons.push(button);
-        }
-    }
-
-    private removeHeldButton(button: Button) {
-        const entryIdx = this.heldButtons.findIndex((entry) => entry.id === button);
-        const entry = this.heldButtons[entryIdx];
-
-        if (entryIdx !== -1 && entry !== undefined) {
-            this.addReleasedButton(entry.id);
-            this.heldButtons.splice(entryIdx, 1);
-        }
     }
 
     /**
      * Sends inputs to all subscribed entities and also updates input state.
      */
-    private sendAndUpdateInputState() {
-        this.subscriptions.forEach((entity) => {
-            entity.acceptInput(this.heldButtons, this.releasedButtons);
+    private updateAllSubscriptions() {
+        this.subscriptions.forEach((context) => {
+            context.receivePressSignal(this.pressedButtons);
         });
+    }
 
-        this.releasedButtons = [];
+    private addPressedButton(button: Button) {
+        const entry = this.pressedButtons.find((entry) => entry === button);
 
-        this.incrementAllHeldButtonsFramesPressed();
+        if (entry === undefined) {
+            this.pressedButtons.push(button);
+        }
+    }
+
+    private removePressedButton(button: Button) {
+        arrayFindAndDelete(button, this.pressedButtons);
     }
 
     /**
      * Detect a key from a keyboard or button from gamepad being pressed.
      */
     private press(input: string | GamepadButton) {
-        console.log(this);
-        console.log(this.subscriptions);
         const button = this.inputBinding.mapToButton(input);
         if (button !== undefined) {
-            this.addHeldButtonEntry(button);
+            this.addPressedButton(button);
         }
     }
 
@@ -109,7 +78,7 @@ export class Controller {
     private release(input: string | GamepadButton) {
         const button = this.inputBinding.mapToButton(input);
         if (button !== undefined) {
-            this.removeHeldButton(button);
+            this.removePressedButton(button);
         }
     }
 
@@ -124,12 +93,12 @@ export class Controller {
     /**
      * Run the loop to increment number of frames buttons are pressed down.
      */
-    private listen() {
+    private update() {
         this.intervalManager.subscribe(
             new Interval(
                 0,
                 () => {
-                    this.sendAndUpdateInputState();
+                    this.updateAllSubscriptions();
                 },
                 Infinity
             )
@@ -141,8 +110,7 @@ export class Controller {
      */
     getState() {
         return {
-            press: this.heldButtons,
-            released: this.releasedButtons,
+            press: this.pressedButtons,
         };
     }
 }

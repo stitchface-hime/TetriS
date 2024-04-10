@@ -1,5 +1,7 @@
-import { HeldButtons } from "@classes/Controller";
+import { Controller, PressedButtons } from "@classes/Controller";
+import { ControllerContext } from "@classes/ControllerContext";
 import { ControllerPortManager } from "@classes/ControllerPortManager";
+import { ControllerPortKey } from "@classes/ControllerPortManager/types";
 import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
 import { Button } from "@classes/InputBinding/types";
 import { Interval } from "@classes/TimeMeasure";
@@ -7,12 +9,15 @@ import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
 
 export abstract class Entity {
     protected parent: GroupEntity | null = null;
+    protected controllerContext: ControllerContext | null = null;
     protected intervals: Partial<Record<string, Interval>> = {};
 
     private intervalManager: IntervalManager;
+    private controllerPortManager: ControllerPortManager;
 
     constructor(intervalManager: IntervalManager, controllerPortManager: ControllerPortManager) {
         this.intervalManager = intervalManager;
+        this.controllerPortManager = controllerPortManager;
     }
 
     getParent() {
@@ -27,15 +32,8 @@ export abstract class Entity {
         this.parent = null;
     }
 
-    acceptInput(heldButtons: HeldButtons, releasedButtons: Button[]) {
+    acceptInput(heldButtons: PressedButtons, releasedButtons: Button[]) {
         // no-op, implementated in each individual entity
-    }
-
-    /**
-     * TODO: Can we not expose interval manager like this?
-     */
-    getIntervalManager() {
-        return this.intervalManager;
     }
 
     getInterval(key: string) {
@@ -59,21 +57,69 @@ export abstract class Entity {
     unregisterInterval(key: string) {
         const interval = this.intervals[key];
         if (interval) {
+            interval.clear();
             this.intervalManager.unsubscribe(interval);
             delete this.intervals[key];
         }
     }
 
     unregisterAllIntervals() {
-        Object.values(this.intervals).forEach((interval) => {
-            if (interval) {
-                this.intervalManager.unsubscribe(interval);
-            }
+        Object.keys(this.intervals).forEach((intervalKey) => {
+            this.unregisterInterval(intervalKey);
         });
+
+        this.intervals = {};
+    }
+
+    pauseInterval(key: string) {
+        const interval = this.intervals[key];
+        console.log("Get interval to pause", interval, key);
+        if (interval) {
+            interval.pause();
+        }
+    }
+
+    pauseAllIntervals() {
+        Object.keys(this.intervals).forEach((intervalKey) => {
+            this.pauseInterval(intervalKey);
+        });
+    }
+
+    resumeInterval(key: string) {
+        const interval = this.intervals[key];
+        if (interval) {
+            interval.run();
+        }
+    }
+
+    resumeAllIntervals() {
+        Object.keys(this.intervals).forEach((intervalKey) => {
+            this.resumeInterval(intervalKey);
+        });
+    }
+
+    getController(key: ControllerPortKey) {
+        return this.controllerPortManager.getControllerAtPort(key);
+    }
+
+    registerControllerContext(controller: Controller) {
+        this.controllerContext = new ControllerContext(this);
+        controller.subscribeContext(this.controllerContext);
+    }
+
+    unregisterControllerContext(controller: Controller) {
+        if (!this.controllerContext) {
+            console.warn("No controller context!");
+            return;
+        }
+
+        controller.unsubscribeContext(this.controllerContext);
+        this.controllerContext = null;
     }
 
     destroy() {
         // clean up intervals
         this.unregisterAllIntervals();
+        this.controllerContext = null;
     }
 }

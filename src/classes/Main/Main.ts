@@ -17,7 +17,7 @@ export class Main {
 
     private textureManager = new TextureManager();
     private intervalManager = new IntervalManager();
-    private controllerPorts = new ControllerPortManager();
+    private controllerPortManager = new ControllerPortManager();
 
     private clock = this.intervalManager.subscribe(
         new Interval(
@@ -55,7 +55,7 @@ export class Main {
 
     private run() {
         if (this.gl) {
-            this.game?.run(this.gl);
+            this.game?.run();
             this.runStatus = RunStatus.RUNNING;
 
             // draw from game into canvas
@@ -98,12 +98,10 @@ export class Main {
 
     async start() {
         if (!this.game && this.gl) {
-            this.game = new Game(...Standard.getConfig(), new GroupRenderer(this.gl), this.intervalManager);
-
             const controller = new Controller(this.intervalManager);
+            this.controllerPortManager.connect(ControllerPortKey.PORT_0, controller);
 
-            this.controllerPorts.connect(ControllerPortKey.PORT_0, controller);
-            this.controllerPorts.subscribeToControllerAt(ControllerPortKey.PORT_0, this.game);
+            this.game = new Game(...Standard.getConfig(), new GroupRenderer(this.gl), this.intervalManager, this.controllerPortManager);
 
             this.run();
         }
@@ -120,7 +118,7 @@ export class Main {
     stop() {
         this.halt();
         this.game = null;
-        this.controllerPorts.disconnectAll();
+        this.controllerPortManager.disconnectAll();
         this.runStatus = RunStatus.STOPPED;
     }
 
@@ -129,7 +127,7 @@ export class Main {
     }
 
     getControllerEventTriggers(key: ControllerPortKey) {
-        return this.controllerPorts.getEventTriggersFromControllerAt(key);
+        return this.controllerPortManager.getEventTriggerFromControllerAt(key);
     }
 
     // debug
@@ -139,6 +137,6 @@ export class Main {
 
     // debug
     getController(key: ControllerPortKey) {
-        return this.controllerPorts.getControllerState(key);
+        return this.controllerPortManager.getControllerState(key);
     }
 }

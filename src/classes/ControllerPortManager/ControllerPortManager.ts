@@ -1,6 +1,7 @@
 import { Controller } from "@classes/Controller";
 import { ControllerPortKey, ControllerPorts } from "./types";
 import { Entity } from "@classes/Entity";
+import { ControllerContext } from "@classes/ControllerContext";
 
 export class ControllerPortManager {
     private ports: ControllerPorts = {
@@ -17,33 +18,43 @@ export class ControllerPortManager {
         this.ports[key] = null;
     }
 
+    // TODO: do we also need to remove all controller contexts too?
     disconnectAll() {
         this.ports = { ...initialPorts };
     }
 
+    getControllerAtPort(key: ControllerPortKey) {
+        if (this.ports[key] === null) {
+            console.warn("No controller at this port key");
+            return null;
+        }
+
+        return this.ports[key];
+    }
+
     /**
-     * Subscribes an entity to a controller at a given port given its key.
+     * Subscribes a controller context to a controller at a given port given its key.
      * Returns `true` if subscription successful `false` otherwise.
      */
-    subscribeToControllerAt(key: ControllerPortKey, entity: Entity) {
+    subscribeToControllerAt(key: ControllerPortKey, context: ControllerContext) {
         const port = this.ports[key];
 
         if (port !== null) {
-            port.subscribeEntity(entity);
+            port.subscribeContext(context);
             return true;
         }
         return false;
     }
 
-    unsubscribeFromControllerAt(key: ControllerPortKey, entity: Entity) {
+    unsubscribeFromControllerAt(key: ControllerPortKey, context: ControllerContext) {
         const port = this.ports[key];
 
         if (port !== null) {
-            port.unsubscribeEntity(entity);
+            port.unsubscribeContext(context);
         }
     }
 
-    getEventTriggersFromControllerAt(key: ControllerPortKey) {
+    getEventTriggerFromControllerAt(key: ControllerPortKey) {
         const port = this.ports[key];
 
         if (port !== null) {

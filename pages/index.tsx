@@ -20,9 +20,9 @@ const App: React.FC = () => {
     }, []);
 
     const getButtons = () => {
-        const controller = mainRef.current?.getController(ControllerPortKey.PORT_0);
+        const controller = mainRef.current?.getGame()?.getControllerContext();
         if (controller) {
-            return controller;
+            return controller.getState();
         }
 
         return {};
@@ -44,7 +44,7 @@ const App: React.FC = () => {
                     const { key } = e;
                     triggers.press(key);
                 });
-                window.addEventListener("keyup", (e): void => {
+                window.addEventListener("keyup", (e) => {
                     const { key } = e;
                     triggers.release(key);
                 });

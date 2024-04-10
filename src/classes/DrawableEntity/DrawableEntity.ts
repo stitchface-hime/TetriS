@@ -1,9 +1,8 @@
-import { Controller } from "@classes/Controller";
+import { ControllerPortManager } from "@classes/ControllerPortManager";
 import { Entity } from "@classes/Entity";
 import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
 import { TextureManager } from "@classes/TextureManager";
 import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
-import { TextureKey } from "@data/TextureKey";
 import { add2DVectorTuples, product2DVectorTuples } from "@utils/index";
 import { DrawBuffers } from "src/shaders/types";
 
@@ -39,7 +38,7 @@ export abstract class DrawableEntity extends Entity {
 
     constructor(
         intervalManager: IntervalManager,
-        controllers: Controller[],
+        controllerPortManager: ControllerPortManager,
         {
             position,
             scale,
@@ -50,7 +49,7 @@ export abstract class DrawableEntity extends Entity {
             rotation: number;
         }> = {}
     ) {
-        super(intervalManager, controllers);
+        super(intervalManager, controllerPortManager);
         if (position !== undefined) this.setPosition(position);
         if (scale !== undefined) this.scale = scale || this.scale;
         if (rotation !== undefined) this.rotation = rotation || this.rotation;

@@ -13,7 +13,9 @@ import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
 import { FRAME_MS } from "src/constants";
 import { ButtonFramesHeld, ButtonsHeld } from "@classes/GameController";
 import { Button } from "@classes/InputBinding/types";
-import { HeldButtons } from "@classes/Controller";
+import { PressedButtons } from "@classes/Controller";
+import { ControllerPortManager } from "@classes/ControllerPortManager";
+import { ControllerPortKey } from "@classes/ControllerPortManager/types";
 
 export class Game extends GroupEntity {
     private numRows: number;
@@ -57,27 +59,25 @@ export class Game extends GroupEntity {
     private gamePaused = false;
     private gameOver = false;
 
-    protected renderer: GroupRenderer;
-
     constructor(
         numRows: number,
         numColumns: number,
         pieceQueue: PieceQueue,
         spawnCoordinates: [x: number, y: number],
+        // TODO: why is renderer necessary for anything except getting size of canvas
         renderer: GroupRenderer,
-        intervalManager: IntervalManager
+        intervalManager: IntervalManager,
+        controllerPortManager: ControllerPortManager
     ) {
-        super(intervalManager);
+        super(intervalManager, controllerPortManager);
         this.pieceFactory = new PieceFactory();
         this.numRows = numRows;
         this.numColumns = numColumns;
 
-        this.renderer = renderer;
-
         this.matrix = new Matrix(numRows, numColumns, this);
         this.addDrawable(this.matrix);
 
-        const canvas = this.renderer.getWebGLRenderingContext().canvas as HTMLCanvasElement;
+        const canvas = renderer.getWebGLRenderingContext().canvas as HTMLCanvasElement;
         this.setDefaultDimensions([canvas.clientWidth, canvas.clientHeight]);
         this.setPosition([0, 0]);
 
@@ -89,8 +89,11 @@ export class Game extends GroupEntity {
 
     /* Game flow methods */
 
-    async run(gl: WebGLRenderingContext) {
-        this.renderer.setWebGLRenderingContext(gl);
+    async run() {
+        const controller = this.getController(ControllerPortKey.PORT_0);
+        if (controller) {
+            this.registerControllerContext(controller);
+        }
 
         // TODO: This is still testing
         this.registerInterval(
@@ -98,13 +101,13 @@ export class Game extends GroupEntity {
             new Interval(
                 FRAME_MS,
                 () => {
-                    this.tick(gl);
+                    this.tick();
                 },
                 Infinity
             )
         );
 
-        await this.tick(gl);
+        await this.tick();
     }
 
     halt() {
@@ -114,7 +117,7 @@ export class Game extends GroupEntity {
     /**
      * Ticks the game and decides what happens in the given frame.
      */
-    async tick(gl: WebGLRenderingContext) {
+    async tick() {
         if (!this.gameOver) {
             if (!this.activePiece) {
                 const spawnSuccessful = this.spawnNextPiece();
@@ -509,71 +512,81 @@ export class Game extends GroupEntity {
 
     togglePause() {
         this.gamePaused = !this.gamePaused;
+        if (this.gamePaused) {
+            this.pauseAllIntervals();
+        } else {
+            this.resumeAllIntervals();
+        }
     }
 
     private handlePressInput(button: ButtonFramesHeld) {
-        switch (button.id) {
-            case Button.BUTTON_UP: {
-                if (button.frames === 1) {
-                    this.hardDrop();
+        if (!this.gamePaused) {
+            switch (button.id) {
+                case Button.BUTTON_UP: {
+                    if (button.frames === 1) {
+                        this.hardDrop();
+                    }
+                    break;
                 }
-                break;
-            }
-            case Button.BUTTON_DOWN: {
-                this.enableSoftDrop();
-                break;
-            }
-            case Button.BUTTON_LEFT: {
-                // 12 is magic number for DAS
-                if (button.frames === 1 || button.frames >= 30) {
-                    this.moveLeft();
+                case Button.BUTTON_DOWN: {
+                    this.enableSoftDrop();
+                    break;
                 }
-                break;
-            }
-            case Button.BUTTON_RIGHT: {
-                if (button.frames === 1 || button.frames >= 60) {
-                    this.moveRight();
+                case Button.BUTTON_LEFT: {
+                    // 12 is magic number for DAS
+                    if (button.frames === 1 || button.frames >= 30) {
+                        this.moveLeft();
+                    }
+                    break;
                 }
-                break;
-            }
-            case Button.BUTTON_0: {
-                if (button.frames === 1) {
-                    this.rotateAntiClockwise();
+                case Button.BUTTON_RIGHT: {
+                    if (button.frames === 1 || button.frames >= 60) {
+                        this.moveRight();
+                    }
+                    break;
                 }
-                break;
-            }
-            case Button.BUTTON_1: {
-                if (button.frames === 1) {
-                    this.rotateClockwise();
+                case Button.BUTTON_0: {
+                    if (button.frames === 1) {
+                        this.rotateAntiClockwise();
+                    }
+                    break;
                 }
-                break;
-            }
-            case Button.L_TRIGGER_F: {
-                if (button.frames === 1) {
-                    this.hold();
+                case Button.BUTTON_1: {
+                    if (button.frames === 1) {
+                        this.rotateClockwise();
+                    }
+                    break;
                 }
-                break;
+                case Button.L_TRIGGER_F: {
+                    if (button.frames === 1) {
+                        this.hold();
+                    }
+                    break;
+                }
+                default:
+                // do nothing
             }
-            case Button.START: {
-                this.togglePause();
-            }
-            default:
-            // do nothing
+        }
+
+        if (button.id === Button.START && button.frames === 1) {
+            this.togglePause();
         }
     }
 
     private handleReleaseInput(button: Button) {
-        switch (button) {
-            case Button.BUTTON_DOWN: {
-                this.disableSoftDrop();
-                break;
+        if (!this.gamePaused) {
+            switch (button) {
+                case Button.BUTTON_DOWN: {
+                    this.disableSoftDrop();
+                    break;
+                }
+                default:
+                // do nothing
             }
-            default:
-            // do nothing
         }
     }
 
-    acceptInput(heldButtons: HeldButtons, releasedButtons: Button[]): void {
+    acceptInput(heldButtons: PressedButtons, releasedButtons: Button[]): void {
         heldButtons.forEach((button) => this.handlePressInput(button));
         releasedButtons.forEach((button) => this.handleReleaseInput(button));
     }
@@ -617,11 +630,6 @@ export class Game extends GroupEntity {
     }
 
     // ! Debug only
-    getRenderer() {
-        return this.renderer;
-    }
-
-    // ! Debug only
     /**
      * Returns some stats about the game.
      */
@@ -638,5 +646,10 @@ export class Game extends GroupEntity {
             holdPieceId: this.holdPieceId,
             canHold: this.canHold,
         };
+    }
+
+    // ! Debug only
+    getControllerContext() {
+        return this.controllerContext;
     }
 }

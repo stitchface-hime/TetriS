@@ -1,4 +1,4 @@
 import { Button } from "@classes/InputBinding/types";
 
-export type HeldButtonFrames = { id: Button; frames: number };
-export type HeldButtons = HeldButtonFrames[];
+export type ButtonFrames = { id: Button; frames: number };
+export type PressedButtons = ButtonFrames[];

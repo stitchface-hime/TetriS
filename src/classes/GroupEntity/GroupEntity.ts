@@ -1,3 +1,4 @@
+import { ControllerPortManager } from "@classes/ControllerPortManager";
 import { DrawableEntity } from "@classes/DrawableEntity";
 import { Entity } from "@classes/Entity";
 import { TextureManager } from "@classes/TextureManager";
@@ -13,8 +14,8 @@ export abstract class GroupEntity extends DrawableEntity {
     protected passives: Entity[] = [];
     protected drawables: DrawableEntity[] = [];
 
-    constructor(intervalManager: IntervalManager) {
-        super(intervalManager);
+    constructor(intervalManager: IntervalManager, controllerPortManager: ControllerPortManager) {
+        super(intervalManager, controllerPortManager);
     }
 
     private addEntity<E extends Entity>(subgroup: E[], entity: E) {
