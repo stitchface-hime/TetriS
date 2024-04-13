@@ -162,6 +162,7 @@ export abstract class DrawableEntity extends Entity {
      * - entity position (12 elements in buffer per entity)
      * - entity texture coordinates (12 elements in buffer per entity)
      * - entity texture key (1 element in buffer per entity)
+     * - kernel (9 elements in buffer per entity)
      *
      * If a texture does not exist within the supplied texture manager with the returned texture key,
      * this function will be required to create a texture and load it into the texture manager keyed by texture key.

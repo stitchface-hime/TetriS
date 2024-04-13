@@ -6,6 +6,8 @@ import { TextureManager } from "@classes/TextureManager";
 import { SpriteSheetLoader } from "@classes/ShaderProgram/SpriteSheetLoader/renderer";
 import { TextureKey } from "@data/TextureKey";
 import { TexturedEntity } from "@classes/TexturedEntity";
+import { ControllerPortManager } from "@classes/ControllerPortManager";
+import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
 
 /* interface AnimationFrame {
     name: string;
@@ -28,6 +30,7 @@ class SpriteAnimation {
 }
  */
 export abstract class SpritedEntity extends TexturedEntity {
+    static defaultImageKernel: Tuple<number, 9> = [0, 0, 0, 0, 1, 0, 0, 0, 0];
     /**
      * The sprite sheets that will be used when drawing this entity to the scene.
      */
@@ -37,22 +40,29 @@ export abstract class SpritedEntity extends TexturedEntity {
 
     private activeSpriteQuadCoords: Tuple<number, 12> | null = null;
 
+    // TODO: want to add support for multiple kernels
+    private imageKernel: Tuple<number, 9> = SpritedEntity.defaultImageKernel;
+
     /* protected animationCycles: Record<string, number[]> = {};
 
     protected animation: SpriteAnimation | null = {}; */
 
-    constructor({
-        position,
-        scale,
-        rotation,
-        spriteSheetDatas = [],
-    }: Partial<{
-        position: [x: number, y: number];
-        scale: [x: number, y: number];
-        rotation: number;
-        spriteSheetDatas: SpriteSheetDetails[];
-    }> = {}) {
-        super({ position, scale, rotation });
+    constructor(
+        intervalManager: IntervalManager,
+        controllerPortManager: ControllerPortManager,
+        {
+            position,
+            scale,
+            rotation,
+            spriteSheetDatas = [],
+        }: Partial<{
+            position: [x: number, y: number];
+            scale: [x: number, y: number];
+            rotation: number;
+            spriteSheetDatas: SpriteSheetDetails[];
+        }> = {}
+    ) {
+        super(intervalManager, controllerPortManager, { position, scale, rotation });
         spriteSheetDatas.forEach((sheet) => this.registerSpriteSheetData(sheet));
     }
 
@@ -169,6 +179,7 @@ export abstract class SpritedEntity extends TexturedEntity {
             positionBuffer: [],
             textureCoordBuffer: [],
             textureKeyBuffer: [],
+            kernelBuffer: this.imageKernel,
         };
 
         // make sure all buffers have some data in them
@@ -185,5 +196,13 @@ export abstract class SpritedEntity extends TexturedEntity {
         }
 
         return drawBuffers;
+    }
+
+    setImageKernel(kernel: Tuple<number, 9>) {
+        this.imageKernel = kernel;
+    }
+
+    resetImageKernel() {
+        this.imageKernel = SpritedEntity.defaultImageKernel;
     }
 }

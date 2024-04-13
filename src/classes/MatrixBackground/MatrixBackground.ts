@@ -5,13 +5,15 @@ import { TextureManager } from "@classes/TextureManager";
 import { TextureKey } from "@data/TextureKey";
 import { getRectangleCoords } from "@utils/getRectangleCoords";
 import { TexturedEntity } from "@classes/TexturedEntity";
+import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
+import { ControllerPortManager } from "@classes/ControllerPortManager";
 
 export class MatrixBackground extends TexturedEntity {
     static textureKey: TextureKey = "MATRIX_BG";
     private matrix: Matrix;
 
-    constructor(matrix: Matrix) {
-        super();
+    constructor(intervalManager: IntervalManager, controllerPortManager: ControllerPortManager, matrix: Matrix) {
+        super(intervalManager, controllerPortManager);
         this.setDefaultDimensions(matrix.getDimensions());
 
         this.setParent(matrix);
@@ -59,6 +61,7 @@ export class MatrixBackground extends TexturedEntity {
             positionBuffer: getRectangleCoords(...this.getPosition(), ...this.getDimensions()),
             textureCoordBuffer: getRectangleCoords(0, 0, 1, 1),
             textureKeyBuffer: [MatrixBackground.textureKey],
+            kernelBuffer: [0, 0, 0, 0, 1, 0, 0, 0, 0],
         };
     }
 }

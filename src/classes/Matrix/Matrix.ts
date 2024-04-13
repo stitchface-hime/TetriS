@@ -58,7 +58,7 @@ export class Matrix extends GroupEntity {
         this.activePiece = null;
 
         // Background for the matrix
-        this.background = new MatrixBackground(this);
+        this.background = new MatrixBackground(intervalManager, controllerPortManager, this);
         this.addDrawable(this.background);
 
         this.background.setParent(this);

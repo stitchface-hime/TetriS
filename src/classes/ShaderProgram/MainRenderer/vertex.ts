@@ -6,11 +6,13 @@ precision mediump float;
 attribute vec2 a_position;
 attribute float a_textureIndex;
 attribute vec2 a_textureCoord;
+attribute float a_kernel[9];
 
 uniform vec2 u_resolution;
 
 varying float v_textureIndex;
 varying vec2 v_textureCoord;
+varying float v_kernel[9];
  
 void main() {
     // [0, 1]
@@ -28,6 +30,7 @@ void main() {
 
     v_textureCoord = a_textureCoord;
     v_textureIndex = a_textureIndex;
+    v_kernel = a_kernel;
 
 }
 

@@ -71,4 +71,5 @@ export interface DrawBuffers {
     positionBuffer: number[];
     textureCoordBuffer: number[];
     textureKeyBuffer: TextureKey[];
+    kernelBuffer: number[];
 }

@@ -84,16 +84,19 @@ export class MainRenderer extends ShaderProgram {
             const a_positionBuffer = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, a_positionBuffer);
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(drawBuffers.positionBuffer), gl.STATIC_DRAW);
-            // console.log(drawBuffers.positionBuffer);
 
             const a_textureCoordLocation = gl.getAttribLocation(program, "a_textureCoord");
             const a_textureCoordBuffer = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, a_textureCoordBuffer);
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(drawBuffers.textureCoordBuffer), gl.STATIC_DRAW);
-            // console.log(drawBuffers.textureCoordBuffer);
 
             const a_textureIndexLocation = gl.getAttribLocation(program, "a_textureIndex");
             const a_textureIndexBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, a_textureIndexBuffer);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureIndexBuffer), gl.STATIC_DRAW);
+
+            const a_kernelLocation = gl.getAttribLocation(program, "a_kernel");
+            const a_kernelBuffer = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, a_textureIndexBuffer);
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureIndexBuffer), gl.STATIC_DRAW);
 
@@ -109,6 +112,10 @@ export class MainRenderer extends ShaderProgram {
             gl.enableVertexAttribArray(a_textureIndexLocation);
             gl.bindBuffer(gl.ARRAY_BUFFER, a_textureIndexBuffer);
             gl.vertexAttribPointer(a_textureIndexLocation, 1, gl.FLOAT, false, 0, 0);
+
+            gl.enableVertexAttribArray(a_kernelLocation);
+            gl.bindBuffer(gl.ARRAY_BUFFER, a_kernelBuffer);
+            gl.vertexAttribPointer(a_kernelLocation, 9, gl.FLOAT, false, 0, 0);
 
             //console.log(textureIndexBuffer, drawBuffers.positionBuffer.length / 2);
             gl.drawArrays(gl.TRIANGLES, 0, drawBuffers.positionBuffer.length / 2);
