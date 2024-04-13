@@ -50,7 +50,7 @@ export abstract class GroupEntity extends DrawableEntity {
         const index = subgroup.indexOf(entity);
 
         if (index !== -1) {
-            return subgroup.splice(index)[0];
+            return subgroup.splice(index, 1)[0];
         }
     }
 

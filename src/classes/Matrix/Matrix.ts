@@ -1,8 +1,9 @@
+import { ControllerPortManager } from "@classes/ControllerPortManager";
 import { Game } from "@classes/Game";
 import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
 import { MatrixBackground } from "@classes/MatrixBackground/MatrixBackground";
 import { Block, Piece } from "@classes/Piece";
-import { GroupRenderer, DrawMatrix } from "@classes/ShaderProgram";
+import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
 import { SpriteSheets } from "@data/SpriteSheets";
 import { isEqual2DVectorTuples, warnIfNotInteger } from "@utils/index";
 import { NATIVE_RESOLUTION_H, NATIVE_RESOLUTION_W } from "src/constants";
@@ -34,8 +35,8 @@ export class Matrix extends GroupEntity {
      * When constructing the matrix, the matrix will have twice the number of rows
      * you specify to account for blocks above the visible part of the matrix.
      */
-    constructor(numRows: number, numColumns: number, game: Game) {
-        super();
+    constructor(intervalManager: IntervalManager, controllerPortManager: ControllerPortManager, numRows: number, numColumns: number, game: Game) {
+        super(intervalManager, controllerPortManager);
 
         this.numRows = numRows * 2;
         this.numVisibleRows = numRows;
@@ -134,7 +135,10 @@ export class Matrix extends GroupEntity {
      * Unsets the active piece within the matrix.
      */
     unsetActivePiece() {
-        this.activePiece = null;
+        if (this.activePiece) {
+            this.removeDrawables(this.activePiece.getBlocks());
+            this.activePiece = null;
+        }
     }
 
     /**

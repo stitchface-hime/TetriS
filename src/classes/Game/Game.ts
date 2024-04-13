@@ -43,9 +43,9 @@ export class Game extends GroupEntity {
     private lowestGroundedRow = Infinity;
 
     // this should be extracted out
-    private autoDropFrameBaseline = (0.8 - (this.level - 1) * 0.007) ** (this.level - 1) * 60;
+    private autoDropFrameBaseline = 0;
 
-    private autoDropFrameTarget = 60;
+    private autoDropFrameTarget = 0;
     private autoDropFrames = 0;
 
     private groundedMoveLimit = 15;
@@ -67,14 +67,16 @@ export class Game extends GroupEntity {
         // TODO: why is renderer necessary for anything except getting size of canvas
         renderer: GroupRenderer,
         intervalManager: IntervalManager,
-        controllerPortManager: ControllerPortManager
+        controllerPortManager: ControllerPortManager,
+        level = 1
     ) {
         super(intervalManager, controllerPortManager);
         this.pieceFactory = new PieceFactory();
         this.numRows = numRows;
         this.numColumns = numColumns;
+        this.setLevel(level);
 
-        this.matrix = new Matrix(numRows, numColumns, this);
+        this.matrix = new Matrix(intervalManager, controllerPortManager, numRows, numColumns, this);
         this.addDrawable(this.matrix);
 
         const canvas = renderer.getWebGLRenderingContext().canvas as HTMLCanvasElement;
@@ -278,10 +280,9 @@ export class Game extends GroupEntity {
                 this.resetGroundedState();
                 this.triggerGroundedCheck();
 
-                this.matrix.setActivePiece(spawnedPiece);
-
                 // if it doesn't overlap, spawn successful
                 if (pieceDoesNotOverlap) {
+                    this.matrix.setActivePiece(spawnedPiece);
                     spawnSuccessful = true;
                     break;
                 }
@@ -356,6 +357,7 @@ export class Game extends GroupEntity {
 
     /**
      * Checks for the lock out condition.
+     * A lock out occurs when a piece locks out of bounds. (i.e. it locks in a row > matrix's visible rows)
      */
     private isLockOut() {
         return this.getActivePieceLowestRow() >= this.numRows;
@@ -383,6 +385,12 @@ export class Game extends GroupEntity {
         filledLines.forEach((row) => this.clearLine(row));
     }
 
+    private setLevel(level: number) {
+        this.level = level;
+        this.autoDropFrameBaseline = (0.8 - (this.level - 1) * 0.007) ** (this.level - 1) * 60;
+        this.autoDropFrameTarget = this.autoDropFrameBaseline;
+    }
+
     /**
      * Inceases level when conditions are met.
      * TODO: This should be moved out!
@@ -390,9 +398,7 @@ export class Game extends GroupEntity {
     private increaseLevelCheck() {
         // Increase level when lines meet a quota (should move this out)
         if (this.linesCleared % this.levelLineQuota === 0 && this.level < this.maxLevel) {
-            this.level++;
-            this.autoDropFrameBaseline = (0.8 - (this.level - 1) * 0.007) ** (this.level - 1) * 60;
-            this.autoDropFrameTarget = this.autoDropFrameBaseline;
+            this.setLevel(this.level++);
         }
     }
 
@@ -490,7 +496,7 @@ export class Game extends GroupEntity {
     hold() {
         if (this.canHold && this.activePiece !== null) {
             // take blocks out of play
-            this.addDrawables(this.activePiece.getBlocks());
+            this.matrix.unsetActivePiece();
 
             if (this.holdPieceId === null) {
                 // when hold piece is null, hold current piece and spawn a new piece
