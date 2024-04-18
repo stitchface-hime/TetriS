@@ -6,13 +6,13 @@ precision mediump float;
 attribute vec2 a_position;
 attribute float a_textureIndex;
 attribute vec2 a_textureCoord;
-attribute float a_kernel[9];
+attribute vec4 a_hsvaMod;
 
 uniform vec2 u_resolution;
 
 varying float v_textureIndex;
 varying vec2 v_textureCoord;
-varying float v_kernel[9];
+varying vec4 v_hsvaMod;
  
 void main() {
     // [0, 1]
@@ -30,8 +30,7 @@ void main() {
 
     v_textureCoord = a_textureCoord;
     v_textureIndex = a_textureIndex;
-    v_kernel = a_kernel;
-
+    v_hsvaMod = a_hsvaMod;
 }
 
 `;

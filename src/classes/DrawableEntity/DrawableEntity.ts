@@ -5,6 +5,7 @@ import { TextureManager } from "@classes/TextureManager";
 import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
 import { add2DVectorTuples, product2DVectorTuples } from "@utils/index";
 import { DrawBuffers } from "src/shaders/types";
+import { Tuple } from "src/types";
 
 export abstract class DrawableEntity extends Entity {
     private defaultScale: [x: number, y: number] = [1, 1];
@@ -35,6 +36,27 @@ export abstract class DrawableEntity extends Entity {
      * Rotation of the entity in degrees within a scene.
      */
     private rotation = 0;
+
+    /**
+     * Color
+     */
+
+    /**
+     * Additive modifier of the hue of this drawable (degrees `[0, 360)`).
+     */
+    private hueModifier = 0;
+    /**
+     * Additive modifier of the saturation of this drawable (values `[0, 1]`).
+     */
+    private saturationModifier = 0;
+    /**
+     * Additive modifier of the value (brightness) of this drawable (values `[0, 1]`).
+     */
+    private valueModifier = 0;
+    /**
+     * Additive modifier of the alpha (transparency) of this drawable (values `[0, 1]`).
+     */
+    private alphaModifier = 0;
 
     constructor(
         intervalManager: IntervalManager,
@@ -157,12 +179,55 @@ export abstract class DrawableEntity extends Entity {
         this.rotation += rotation;
     }
 
+    getColorModifier() {
+        return [this.hueModifier, this.saturationModifier, this.valueModifier, this.alphaModifier];
+    }
+
+    setColorModifier(hsva: Tuple<number, 4>) {
+        this.hueModifier = hsva[0];
+        this.saturationModifier = hsva[1];
+        this.valueModifier = hsva[2];
+        this.alphaModifier = hsva[3];
+    }
+
+    getHueModifier() {
+        return this.hueModifier;
+    }
+
+    setHueModifier(hueModifier: number) {
+        this.hueModifier = hueModifier;
+    }
+
+    getSaturationModifier() {
+        return this.saturationModifier;
+    }
+
+    setSaturationModifier(saturationModifier: number) {
+        this.saturationModifier = saturationModifier;
+    }
+
+    getValueModifier() {
+        return this.valueModifier;
+    }
+
+    setValueModifier(valueModifier: number) {
+        this.valueModifier = valueModifier;
+    }
+
+    getAlphaModifier() {
+        return this.alphaModifier;
+    }
+
+    setAlphaModifier(alphaModifier: number) {
+        this.alphaModifier = alphaModifier;
+    }
+
     /**
      * Returns entity buffers containing:
-     * - entity position (12 elements in buffer per entity)
-     * - entity texture coordinates (12 elements in buffer per entity)
+     * - entity position (12 elements in buffer per entity, 2 coord * 6)
+     * - entity texture coordinates (12 elements in buffer per entity, 2 coord * 6)
      * - entity texture key (1 element in buffer per entity)
-     * - kernel (9 elements in buffer per entity)
+     * - entity hsva modifier (24 elements in buffer per entity, 4 hsva * 6)
      *
      * If a texture does not exist within the supplied texture manager with the returned texture key,
      * this function will be required to create a texture and load it into the texture manager keyed by texture key.

@@ -95,10 +95,10 @@ export class MainRenderer extends ShaderProgram {
             gl.bindBuffer(gl.ARRAY_BUFFER, a_textureIndexBuffer);
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureIndexBuffer), gl.STATIC_DRAW);
 
-            const a_kernelLocation = gl.getAttribLocation(program, "a_kernel");
-            const a_kernelBuffer = gl.createBuffer();
+            const a_hsvaModLocation = gl.getAttribLocation(program, "a_hsvaMod");
+            const a_hsvaModBuffer = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, a_textureIndexBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureIndexBuffer), gl.STATIC_DRAW);
+            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(drawBuffers.hsvaModBuffer), gl.STATIC_DRAW);
 
             // Set up attribute pointers
             gl.enableVertexAttribArray(a_positionLocation);
@@ -113,9 +113,9 @@ export class MainRenderer extends ShaderProgram {
             gl.bindBuffer(gl.ARRAY_BUFFER, a_textureIndexBuffer);
             gl.vertexAttribPointer(a_textureIndexLocation, 1, gl.FLOAT, false, 0, 0);
 
-            gl.enableVertexAttribArray(a_kernelLocation);
-            gl.bindBuffer(gl.ARRAY_BUFFER, a_kernelBuffer);
-            gl.vertexAttribPointer(a_kernelLocation, 9, gl.FLOAT, false, 0, 0);
+            gl.enableVertexAttribArray(a_hsvaModLocation);
+            gl.bindBuffer(gl.ARRAY_BUFFER, a_hsvaModBuffer);
+            gl.vertexAttribPointer(a_hsvaModLocation, 4, gl.FLOAT, false, 0, 0);
 
             //console.log(textureIndexBuffer, drawBuffers.positionBuffer.length / 2);
             gl.drawArrays(gl.TRIANGLES, 0, drawBuffers.positionBuffer.length / 2);

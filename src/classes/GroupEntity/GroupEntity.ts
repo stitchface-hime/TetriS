@@ -81,7 +81,7 @@ export abstract class GroupEntity extends DrawableEntity {
             positionBuffer: [],
             textureCoordBuffer: [],
             textureKeyBuffer: [],
-            kernelBuffer: [],
+            hsvaModBuffer: [],
         };
 
         await Promise.all(
@@ -91,7 +91,7 @@ export abstract class GroupEntity extends DrawableEntity {
                 drawBuffers.positionBuffer.push(...entityBuffers.positionBuffer);
                 drawBuffers.textureCoordBuffer.push(...entityBuffers.textureCoordBuffer);
                 drawBuffers.textureKeyBuffer.push(...entityBuffers.textureKeyBuffer);
-                drawBuffers.kernelBuffer.push(...entityBuffers.kernelBuffer);
+                drawBuffers.hsvaModBuffer.push(...entityBuffers.hsvaModBuffer);
             })
         );
 

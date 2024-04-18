@@ -179,7 +179,7 @@ export abstract class SpritedEntity extends TexturedEntity {
             positionBuffer: [],
             textureCoordBuffer: [],
             textureKeyBuffer: [],
-            kernelBuffer: this.imageKernel,
+            hsvaModBuffer: [],
         };
 
         // make sure all buffers have some data in them
@@ -187,6 +187,9 @@ export abstract class SpritedEntity extends TexturedEntity {
             drawBuffers.positionBuffer = getRectangleCoords(...this.getPosition(), ...this.getDimensions());
             drawBuffers.textureCoordBuffer = this.activeSpriteQuadCoords;
             drawBuffers.textureKeyBuffer = [this.activeSpriteSheetData.id];
+            drawBuffers.hsvaModBuffer = Array(6)
+                .fill([...this.getColorModifier()])
+                .flat();
 
             if (!textureManager.isLoaded(this.activeSpriteSheetData.id)) {
                 await this.loadIntoTextureManager(gl, textureManager, this.activeSpriteSheetData.id);

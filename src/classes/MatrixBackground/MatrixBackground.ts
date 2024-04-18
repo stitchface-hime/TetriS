@@ -61,7 +61,9 @@ export class MatrixBackground extends TexturedEntity {
             positionBuffer: getRectangleCoords(...this.getPosition(), ...this.getDimensions()),
             textureCoordBuffer: getRectangleCoords(0, 0, 1, 1),
             textureKeyBuffer: [MatrixBackground.textureKey],
-            kernelBuffer: [0, 0, 0, 0, 1, 0, 0, 0, 0],
+            hsvaModBuffer: Array(6)
+                .fill([...this.getColorModifier()])
+                .flat(),
         };
     }
 }
