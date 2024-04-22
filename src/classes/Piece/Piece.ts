@@ -30,9 +30,7 @@ export abstract class Piece {
         antiClockwiseWallKickOffsetData: WallKickPositionOffsetTestData
     ) {
         this.blocks = blocks;
-        this.blocks.forEach((block) => {
-            block.updateConnections();
-        });
+
         this.rotationState = 0;
         this.clockwiseRotationMap = clockwiseRotationMap;
         this.antiClockwiseRotationMap = antiClockwiseRotationMap;

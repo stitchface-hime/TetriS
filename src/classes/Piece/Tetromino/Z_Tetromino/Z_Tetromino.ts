@@ -44,7 +44,6 @@ export class Z_Tetromino extends Tetromino {
             J_antiClockwiseWallKickPositionOffsetData
         );
 
-        this.registerBlocks();
         this.coupleBlocks();
     }
 
