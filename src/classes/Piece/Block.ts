@@ -31,16 +31,11 @@ export class Block extends SpritedEntity {
      * 9 (`1001`). This needs to be updated everytime the piece rotates.
      */
     private connections: number;
-    /**
-     * The piece this block belongs to. If `undefined`,
-     * this block is locked in the matrix.
-     */
-    private associatedPiece: Piece | undefined;
 
     constructor(
         intervalManager: IntervalManager,
         controllerPortManager: ControllerPortManager,
-        globalCoordinates: [x: number, y: number],
+        activeCoordinates: [x: number, y: number],
         matrix: Matrix,
         color: HexString = "#000000",
         coupledBlocks: Block[] = []
@@ -48,7 +43,7 @@ export class Block extends SpritedEntity {
         super(intervalManager, controllerPortManager, { spriteSheetDatas: [SpriteSheets.SPR_MINO_STD] });
         this.setActiveSpriteSheetData(SpriteSheets.SPR_MINO_STD.id);
 
-        this.activeCoordinates = globalCoordinates;
+        this.activeCoordinates = activeCoordinates;
         this.setParent(matrix);
         this.matrix = matrix;
         this.color = color;
@@ -60,8 +55,6 @@ export class Block extends SpritedEntity {
 
         this.coupledBlocks = [];
         this.setCoupledBlocks(coupledBlocks);
-
-        this.associatedPiece = undefined;
         this.connections = 0;
 
         this.updateCoordinates(this.activeCoordinates);
@@ -149,14 +142,6 @@ export class Block extends SpritedEntity {
 
         // also update connection
         this.updateConnections();
-    }
-
-    registerPiece(piece: Piece) {
-        this.associatedPiece = piece;
-    }
-
-    unregisterPiece() {
-        this.associatedPiece = undefined;
     }
 
     /**
@@ -323,5 +308,12 @@ export class Block extends SpritedEntity {
         if (canTranslate) {
             this.updateCoordinates([...newCoordinates]);
         }
+    }
+
+    /**
+     * Sets the coordinates of the block. Ignores collisions with other blocks.
+     */
+    setCoordinates(coordinates: [x: number, y: number]) {
+        this.updateCoordinates([...coordinates]);
     }
 }

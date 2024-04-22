@@ -17,7 +17,6 @@ export abstract class Piece {
      */
     protected rotationState: 0 | 1 | 2 | 3;
     protected id: PieceId | null = null;
-    protected color: HexString;
     protected readonly clockwiseRotationMap: RotationPositionAdjustMap;
     protected readonly antiClockwiseRotationMap: RotationPositionAdjustMap;
     protected readonly clockwiseWallKickOffsetData: WallKickPositionOffsetTestData;
@@ -28,13 +27,10 @@ export abstract class Piece {
         clockwiseRotationMap: RotationPositionAdjustMap,
         antiClockwiseRotationMap: RotationPositionAdjustMap,
         clockwiseWallKickOffsetData: WallKickPositionOffsetTestData,
-        antiClockwiseWallKickOffsetData: WallKickPositionOffsetTestData,
-        color: HexString = "#000000"
+        antiClockwiseWallKickOffsetData: WallKickPositionOffsetTestData
     ) {
-        this.color = color;
         this.blocks = blocks;
         this.blocks.forEach((block) => {
-            block.registerPiece(this);
             block.updateConnections();
         });
         this.rotationState = 0;
@@ -42,15 +38,6 @@ export abstract class Piece {
         this.antiClockwiseRotationMap = antiClockwiseRotationMap;
         this.clockwiseWallKickOffsetData = clockwiseWallKickOffsetData;
         this.antiClockwiseWallKickOffsetData = antiClockwiseWallKickOffsetData;
-    }
-
-    /**
-     * Parents the blocks into this piece. (Should only be called once in the constructor.)
-     */
-    protected registerBlocks() {
-        this.blocks.forEach((block) => {
-            block.registerPiece(this);
-        });
     }
 
     /**
@@ -323,17 +310,6 @@ export abstract class Piece {
      */
     getBlocks() {
         return this.blocks;
-    }
-
-    /**
-     * Locks the piece into the matrix, taking it out of the player's control.
-     * The blocks will form part of the matrix and will no longer be registered to a piece.
-     * (Do not call this from anywhere else except from within a `Matrix` object!)
-     */
-    lockPiece() {
-        this.blocks.forEach((block) => {
-            block.unregisterPiece();
-        });
     }
 
     /**

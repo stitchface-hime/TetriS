@@ -26,6 +26,8 @@ export class Game extends GroupEntity {
 
     private holdPieceId: PieceId | null = null;
     private activePiece: Piece | null = null;
+    private ghostPiece: Piece | null = null;
+
     private pieceFactory: PieceFactory;
     private nextQueue: PieceQueue;
 
@@ -258,19 +260,19 @@ export class Game extends GroupEntity {
         let spawnSuccessful = false;
 
         for (let spawnAttempt = 0; spawnAttempt < this.spawnRetries; spawnAttempt++) {
-            const spawnedPiece = this.pieceFactory.makePiece(
+            const spawnArgs: Parameters<typeof this.pieceFactory.makePiece> = [
                 this.getIntervalManager(),
                 this.getControllerPortManager(),
                 [this.spawnCoordinates[0], this.spawnCoordinates[1] + spawnAttempt],
                 this.matrix,
-                pieceId
-            );
+                pieceId,
+            ];
+
+            const spawnedPiece = this.pieceFactory.makePiece(...spawnArgs);
+            // TODO: Need to make this conditional if the ghost piece is turned off
+            const ghostPiece = this.pieceFactory.makePiece(...spawnArgs);
 
             if (spawnedPiece) {
-                // Register block entities
-                // TODO: Disable register Block entities
-                // this.addMultipleEntities(spawnedPiece.getBlocks());
-
                 // Does the spawned piece overlap with any blocks in the matrix?
                 const pieceDoesNotOverlap = spawnedPiece.getBlocksCoordinates().reduce(
                     (noOverlap, blockCoordinates) =>
@@ -288,7 +290,7 @@ export class Game extends GroupEntity {
 
                 // if it doesn't overlap, spawn successful
                 if (pieceDoesNotOverlap) {
-                    this.matrix.setActivePiece(spawnedPiece);
+                    this.matrix.setActivePiece(spawnedPiece, ghostPiece);
                     spawnSuccessful = true;
                     break;
                 }

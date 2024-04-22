@@ -16,7 +16,8 @@ export class Matrix extends GroupEntity {
 
     // TODO: Is this required now that we're keeping track of blocks?
     private numCellsOccupied: number;
-    private activePiece: Piece | null;
+    private activePiece: Piece | null = null;
+    private ghostPiece: Piece | null = null;
 
     /**
      * The play area of the game. This is the area in the scene
@@ -54,8 +55,6 @@ export class Matrix extends GroupEntity {
         ]);
 
         this.numCellsOccupied = 0;
-
-        this.activePiece = null;
 
         // Background for the matrix
         this.background = new MatrixBackground(intervalManager, controllerPortManager, this);
@@ -124,11 +123,16 @@ export class Matrix extends GroupEntity {
     }
 
     /**
-     * Sets the active piece within the matrix.
+     * Sets the active piece within the matrix and sets the corresponding ghost piece, if not null.
      */
-    setActivePiece(piece: Piece) {
+    setActivePiece(piece: Piece, ghostPiece: Piece | null) {
         this.activePiece = piece;
         this.addDrawables(piece.getBlocks());
+
+        if (ghostPiece) {
+            this.ghostPiece = ghostPiece;
+            this.addDrawables(ghostPiece.getBlocks());
+        }
     }
 
     /**
@@ -138,6 +142,10 @@ export class Matrix extends GroupEntity {
         if (this.activePiece) {
             this.removeDrawables(this.activePiece.getBlocks());
             this.activePiece = null;
+        }
+        if (this.ghostPiece) {
+            this.removeDrawables(this.ghostPiece.getBlocks());
+            this.ghostPiece = null;
         }
     }
 
@@ -265,9 +273,6 @@ export class Matrix extends GroupEntity {
      */
     lockActivePiece() {
         if (this.activePiece) {
-            // blocks will no longer be tied to a piece
-            this.activePiece.lockPiece();
-
             this.addBlocks(this.activePiece.getBlocks());
         }
 
@@ -280,7 +285,7 @@ export class Matrix extends GroupEntity {
      */
     addBlocksByCoordinates(coordinatesList: [x: number, y: number][]) {
         coordinatesList.forEach((coordinates) => {
-            this.addBlock(new Block(coordinates, this));
+            this.addBlock(new Block(this.getIntervalManager(), this.getControllerPortManager(), coordinates, this));
             this.numCellsOccupied += 1;
         });
     }
@@ -304,7 +309,7 @@ export class Matrix extends GroupEntity {
 
         setRows.forEach((row) => {
             for (let col = 0; col < this.numColumns; col++) {
-                this.addBlock(new Block(this.translateToXY([row, col]), this));
+                this.addBlock(new Block(this.getIntervalManager(), this.getControllerPortManager(), this.translateToXY([row, col]), this));
             }
         });
     }
