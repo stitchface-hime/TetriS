@@ -1,4 +1,3 @@
-import { Matrix } from "@classes/Matrix";
 import { PieceId } from "../../data/PieceId";
 import { Block } from "./Block";
 import {
@@ -9,8 +8,6 @@ import {
     type RotationPositionAdjustMap,
 } from "./Piece.types";
 import { HexString } from "src/shaders/types";
-import { DrawSprite } from "@classes/ShaderProgram";
-import { drawSprite } from "src/shaders/drawSprite/renderer";
 
 export abstract class Piece {
     protected blocks: Block[];

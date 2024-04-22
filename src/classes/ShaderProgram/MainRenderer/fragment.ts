@@ -19,7 +19,7 @@ float isNotEqual(in float v1, in float v2) {
 
 // 1.0 if equal, 0.0 otherwise
 float isEqual(in float v1, in float v2) {
-    return abs(isNotEqual(v1, v2)) - 1.0;
+    return abs(isNotEqual(v1, v2) - 1.0);
 }
 
 // 1.0 if both conditions are 1.0, 0.0 otherwise
@@ -112,8 +112,9 @@ void main(void) {
     if (v_textureIndex == 2.0) color = texture2D(u_tex[2], v_textureCoord);
     if (v_textureIndex == 3.0) color = texture2D(u_tex[3], v_textureCoord);
 
-    // hsva additive modifier
-    gl_FragColor = hsvaModifier(color, v_hsvaMod);
+    vec4 modColor = hsvaModifier(color, v_hsvaMod);
+
+    gl_FragColor = modColor;
 }
 
 `;

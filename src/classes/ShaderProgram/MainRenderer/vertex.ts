@@ -32,5 +32,4 @@ void main() {
     v_textureIndex = a_textureIndex;
     v_hsvaMod = a_hsvaMod;
 }
-
 `;

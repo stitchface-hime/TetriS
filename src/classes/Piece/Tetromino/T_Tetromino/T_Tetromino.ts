@@ -5,6 +5,8 @@ import { J_antiClockwiseWallKickPositionOffsetData, J_clockwiseWallKickPositionO
 import * as Rotation from "./T_Tetromino.rotation";
 import { HexString } from "src/shaders/types";
 import { Tuple } from "src/types";
+import { ControllerPortManager } from "@classes/ControllerPortManager";
+import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
 
 /**
  * The T tetromino. Below is its initial state:
@@ -20,7 +22,7 @@ export class T_Tetromino extends Tetromino {
     protected static id = PieceId.TETROMINO_T;
     protected static color: HexString = "#952d98";
 
-    constructor(originCoordinates: [x: number, y: number], matrix: Matrix) {
+    constructor(intervalManager: IntervalManager, controllerPortManager: ControllerPortManager, originCoordinates: [x: number, y: number], matrix: Matrix) {
         const [originX, originY] = originCoordinates;
 
         const blockCoordinates: Tuple<[number, number], 4> = [
@@ -31,6 +33,8 @@ export class T_Tetromino extends Tetromino {
         ];
 
         super(
+            intervalManager,
+            controllerPortManager,
             blockCoordinates,
             matrix,
             T_Tetromino.color,

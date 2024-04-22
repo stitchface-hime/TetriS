@@ -5,6 +5,8 @@ import { SpriteSheets } from "@data/SpriteSheets";
 import { SpritedEntity } from "@classes/SpritedEntity";
 import { ControllerPortManager } from "@classes/ControllerPortManager";
 import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
+import { hexToHsv } from "@utils/hexToHsv";
+import { HexString } from "src/shaders/types";
 
 /**
  * A block is a single unit that takes up one cell in the matrix.
@@ -40,17 +42,21 @@ export class Block extends SpritedEntity {
         controllerPortManager: ControllerPortManager,
         globalCoordinates: [x: number, y: number],
         matrix: Matrix,
-        color: string = "",
+        color: HexString = "#000000",
         coupledBlocks: Block[] = []
     ) {
-        super(/* intervalManager, controllerPortManager, */ { spriteSheetDatas: [SpriteSheets.SPR_MINO_STD] });
+        super(intervalManager, controllerPortManager, { spriteSheetDatas: [SpriteSheets.SPR_MINO_STD] });
         this.setActiveSpriteSheetData(SpriteSheets.SPR_MINO_STD.id);
-        this.setHueModifier(5);
 
         this.activeCoordinates = globalCoordinates;
         this.setParent(matrix);
         this.matrix = matrix;
         this.color = color;
+
+        const hsv = hexToHsv(color);
+        this.setHueModifier(hsv[0]);
+        this.setSaturationModifier(hsv[1]);
+        this.setValueModifier(hsv[2] - 1);
 
         this.coupledBlocks = [];
         this.setCoupledBlocks(coupledBlocks);

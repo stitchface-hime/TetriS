@@ -258,7 +258,13 @@ export class Game extends GroupEntity {
         let spawnSuccessful = false;
 
         for (let spawnAttempt = 0; spawnAttempt < this.spawnRetries; spawnAttempt++) {
-            const spawnedPiece = this.pieceFactory.makePiece([this.spawnCoordinates[0], this.spawnCoordinates[1] + spawnAttempt], this.matrix, pieceId);
+            const spawnedPiece = this.pieceFactory.makePiece(
+                this.getIntervalManager(),
+                this.getControllerPortManager(),
+                [this.spawnCoordinates[0], this.spawnCoordinates[1] + spawnAttempt],
+                this.matrix,
+                pieceId
+            );
 
             if (spawnedPiece) {
                 // Register block entities

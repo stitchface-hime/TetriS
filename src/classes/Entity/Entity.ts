@@ -122,4 +122,17 @@ export abstract class Entity {
         this.unregisterAllIntervals();
         this.controllerContext = null;
     }
+
+    // pass to other entity constructors only!
+
+    /**
+     * Returns the interval manager. Should only be used to pass to other entities while they are being constructed.
+     */
+    getIntervalManager() {
+        return this.intervalManager;
+    }
+
+    getControllerPortManager() {
+        return this.controllerPortManager;
+    }
 }

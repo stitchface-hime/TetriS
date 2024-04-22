@@ -97,7 +97,7 @@ export class MainRenderer extends ShaderProgram {
 
             const a_hsvaModLocation = gl.getAttribLocation(program, "a_hsvaMod");
             const a_hsvaModBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, a_textureIndexBuffer);
+            gl.bindBuffer(gl.ARRAY_BUFFER, a_hsvaModBuffer);
             gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(drawBuffers.hsvaModBuffer), gl.STATIC_DRAW);
 
             // Set up attribute pointers
