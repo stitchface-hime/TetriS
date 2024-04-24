@@ -17,6 +17,8 @@ import { PressedButtons } from "@classes/Controller";
 import { ControllerPortManager } from "@classes/ControllerPortManager";
 import { ControllerPortKey } from "@classes/ControllerPortManager/types";
 import { GhostPiece } from "@classes/GhostPiece";
+import { ScoreJudge } from "@classes/ScoreJudge";
+import { ProgressionJudge } from "@classes/ProgressionJudge";
 
 export class Game extends GroupEntity {
     private numRows: number;
@@ -61,6 +63,9 @@ export class Game extends GroupEntity {
 
     private gamePaused = false;
     private gameOver = false;
+
+    private scoreJudge = new ScoreJudge();
+    private progressionJudge = new ProgressionJudge();
 
     constructor(
         numRows: number,

@@ -1,0 +1,1 @@
+export { ScoreJudge } from "./ScoreJudge";
