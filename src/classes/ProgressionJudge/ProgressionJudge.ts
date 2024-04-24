@@ -12,6 +12,12 @@ export class ProgressionJudge {
      * Number of lines progressed towards increasing level.
      */
     private linesQuotaCurrent = 0;
+    private onLevelUpdate?: (newLevel: number) => void;
+
+    constructor(initialLevel = 1, onLevelUpdate?: (newLevel: number) => void) {
+        this.onLevelUpdate = onLevelUpdate;
+        this.setLevel(initialLevel);
+    }
 
     getLevel() {
         return this.level;
@@ -43,8 +49,12 @@ export class ProgressionJudge {
         this.linesQuotaCurrent = 0;
     }
 
-    private increaseLevel(levels: number) {
-        this.level = Math.max(this.level + levels, this.maxLevel);
+    setLevel(level: number) {
+        this.level = Math.min(level, this.maxLevel);
+
+        if (!this.onLevelUpdate) return;
+
+        this.onLevelUpdate(this.level);
     }
 
     private updateLevel() {
@@ -54,16 +64,17 @@ export class ProgressionJudge {
 
         const levelIncrease = Math.floor(this.linesQuotaCurrent / this.linesQuotaTarget);
 
-        this.increaseLevel(levelIncrease);
+        this.setLevel(this.level + levelIncrease);
         this.linesQuotaCurrent -= levelIncrease * this.linesQuotaTarget;
     }
 
     private increaseLinesCleared(linesCleared: number) {
-        this.linesCleared = Math.max(this.linesCleared + linesCleared, this.maxLinesCleared);
+        this.linesCleared = Math.min(this.linesCleared + linesCleared, this.maxLinesCleared);
     }
 
     addLinesCleared(linesCleared: number) {
         this.increaseLinesCleared(linesCleared);
+        this.linesQuotaCurrent += linesCleared;
         this.updateLevel();
     }
 }

@@ -37,7 +37,7 @@ export class Block extends SpritedEntity {
         controllerPortManager: ControllerPortManager,
         activeCoordinates: [x: number, y: number],
         matrix: Matrix,
-        color: HexString = "#000000",
+        color: HexString = "#ffffff",
         coupledBlocks: Block[] = []
     ) {
         super(intervalManager, controllerPortManager, { spriteSheetDatas: [SpriteSheets.SPR_MINO_STD] });

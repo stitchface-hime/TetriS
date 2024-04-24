@@ -34,12 +34,6 @@ export class Game extends GroupEntity {
     private pieceFactory: PieceFactory;
     private nextQueue: PieceQueue;
 
-    private linesCleared = 0;
-    private level = 1;
-    private maxLevel = 15;
-    private levelLineQuota = 10;
-    private combo = -1;
-
     private spawnRetries = 2;
 
     private lockDelayFrameLimit = 30;
@@ -65,7 +59,13 @@ export class Game extends GroupEntity {
     private gameOver = false;
 
     private scoreJudge = new ScoreJudge();
-    private progressionJudge = new ProgressionJudge();
+
+    private onLevelUpdate = (newLevel: number) => {
+        this.autoDropFrameBaseline = (0.8 - (newLevel - 1) * 0.007) ** (newLevel - 1) * 60;
+        this.autoDropFrameTarget = this.autoDropFrameBaseline;
+    };
+
+    private progressionJudge: ProgressionJudge;
 
     constructor(
         numRows: number,
@@ -82,9 +82,11 @@ export class Game extends GroupEntity {
         this.pieceFactory = new PieceFactory();
         this.numRows = numRows;
         this.numColumns = numColumns;
-        this.setLevel(level);
+        this.progressionJudge = new ProgressionJudge(level, this.onLevelUpdate);
+        this.progressionJudge.setLinesQuotaTarget(10);
 
         this.matrix = new Matrix(intervalManager, controllerPortManager, numRows, numColumns, this);
+
         this.addDrawable(this.matrix);
 
         const canvas = renderer.getWebGLRenderingContext().canvas as HTMLCanvasElement;
@@ -365,7 +367,12 @@ export class Game extends GroupEntity {
             }
 
             // clear lines if any
-            this.clearLines();
+            const linesCleared = this.clearLines();
+            const isPerfectClear = this.matrix.getNumCellsOccupied() === 0;
+
+            // update judges
+            this.scoreJudge.addScoreByLock(this.progressionJudge.getLevel(), linesCleared, null, isPerfectClear);
+            this.progressionJudge.addLinesCleared(linesCleared);
 
             // only nullify active piece once all logic above is completed
             this.resetLockDelay();
@@ -400,25 +407,8 @@ export class Game extends GroupEntity {
      */
     private clearLines() {
         const filledLines = this.checkLineClears();
-        console.log("Line clears at:", filledLines);
         filledLines.forEach((row) => this.clearLine(row));
-    }
-
-    private setLevel(level: number) {
-        this.level = level;
-        this.autoDropFrameBaseline = (0.8 - (this.level - 1) * 0.007) ** (this.level - 1) * 60;
-        this.autoDropFrameTarget = this.autoDropFrameBaseline;
-    }
-
-    /**
-     * Inceases level when conditions are met.
-     * TODO: This should be moved out!
-     */
-    private increaseLevelCheck() {
-        // Increase level when lines meet a quota (should move this out)
-        if (this.linesCleared % this.levelLineQuota === 0 && this.level < this.maxLevel) {
-            this.setLevel(this.level++);
-        }
+        return filledLines.length;
     }
 
     /**
@@ -428,8 +418,6 @@ export class Game extends GroupEntity {
         this.removeDrawables(this.matrix.clearRows(row));
 
         this.matrix.shiftRowsDown(row, 1);
-        this.linesCleared++;
-        this.increaseLevelCheck();
     }
 
     /**
@@ -629,6 +617,17 @@ export class Game extends GroupEntity {
         console.log("Game over:", code);
     }
 
+    getGameParams() {
+        return {
+            score: this.scoreJudge.getScore(),
+            combo: this.scoreJudge.getCombo(),
+            b2bCombo: this.scoreJudge.getB2bCombo(),
+
+            level: this.progressionJudge.getLevel(),
+            linesCleared: this.progressionJudge.getLinesCleared(),
+        };
+    }
+
     // Game methods
     getActivePiece() {
         return this.activePiece;
@@ -667,8 +666,6 @@ export class Game extends GroupEntity {
             autoDropFrameTarget: this.autoDropFrameTarget,
             groundedMoves: this.groundedMoveLimit - this.groundedMoves,
             blocks: this.matrix.getNumCellsOccupied(),
-            level: this.level,
-            linesCleared: this.linesCleared,
             holdPieceId: this.holdPieceId,
             canHold: this.canHold,
         };

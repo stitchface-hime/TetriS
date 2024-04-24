@@ -12,6 +12,7 @@ export { hexToHsv } from "./hexToHsv";
 export { hexToRgb } from "./hexToRgb";
 export { hexToClampf } from "./hexToClampf";
 export { isEqual2DVectorTuples } from "./isEqual2DVectorTuples";
+export { randomRgbHex } from "./randomRgbHex";
 export { product2DVectorTuples } from "./product2DVectorTuples";
 export { setAttributeData } from "./setAttributeData";
 export { setUniformData } from "./setUniformData";

@@ -58,6 +58,14 @@ const App: React.FC = () => {
             <GameCanvas ref={canvasRef} />
             <button onClick={start}>Start</button>
             {JSON.stringify(getButtons())}
+            <br />
+            Score: {mainRef.current?.getGame()?.getGameParams().score}
+            <br />
+            Level: {mainRef.current?.getGame()?.getGameParams().level}
+            <br />
+            Lines: {mainRef.current?.getGame()?.getGameParams().linesCleared}
+            <br />
+            Combo: {Math.max(mainRef.current?.getGame()?.getGameParams().combo || 0, 0)}
         </div>
     );
 };

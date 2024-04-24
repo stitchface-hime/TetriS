@@ -15,8 +15,6 @@ export class Matrix extends GroupEntity {
     private numVisibleRows: number;
     private numColumns: number;
 
-    // TODO: Is this required now that we're keeping track of blocks?
-    private numCellsOccupied: number;
     private activePiece: Piece | null = null;
     private ghostPiece: GhostPiece | null = null;
 
@@ -54,8 +52,6 @@ export class Matrix extends GroupEntity {
             warnIfNotInteger((NATIVE_RESOLUTION_W - this.getDimensions()[0]) * 0.5),
             warnIfNotInteger(NATIVE_RESOLUTION_H - this.getDimensions()[1]),
         ]);
-
-        this.numCellsOccupied = 0;
 
         // Background for the matrix
         this.background = new MatrixBackground(intervalManager, controllerPortManager, this);
@@ -113,7 +109,7 @@ export class Matrix extends GroupEntity {
      * Gets the number of cells occupied by blocks.
      */
     getNumCellsOccupied() {
-        return this.numCellsOccupied;
+        return this.blocks.length;
     }
 
     /**
@@ -210,7 +206,6 @@ export class Matrix extends GroupEntity {
 
             block.getCoupledBlocks().forEach((coupledBlock) => coupledBlock.unsetCoupledBlock(block));
             this.removeDrawable(block);
-            this.numCellsOccupied -= 1;
 
             return block;
         } else {
@@ -267,7 +262,6 @@ export class Matrix extends GroupEntity {
 
         this.blocks.push(block);
         this.addDrawable(block);
-        this.numCellsOccupied += 1;
     }
 
     /**
@@ -303,7 +297,6 @@ export class Matrix extends GroupEntity {
     addBlocksByCoordinates(coordinatesList: [x: number, y: number][]) {
         coordinatesList.forEach((coordinates) => {
             this.addBlock(new Block(this.getIntervalManager(), this.getControllerPortManager(), coordinates, this));
-            this.numCellsOccupied += 1;
         });
     }
 
@@ -313,7 +306,6 @@ export class Matrix extends GroupEntity {
     removeBlocks(coordinatesList: [x: number, y: number][]) {
         coordinatesList.forEach((coordinates) => {
             this.clearBlock(coordinates);
-            this.numCellsOccupied -= 1;
         });
     }
 
@@ -398,7 +390,7 @@ export class Matrix extends GroupEntity {
             }
             console.log(rowString);
         });
-        console.log("Occupied cells:", this.numCellsOccupied);
+        console.log("Occupied cells:", this.getNumCellsOccupied());
         console.log("\n");
     }
 }
