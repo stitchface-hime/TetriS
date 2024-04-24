@@ -1,23 +1,26 @@
-import { ControllerPortManager } from "@classes/ControllerPortManager";
-import { Game } from "@classes/Game";
-import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
-import { MatrixBackground } from "@classes/MatrixBackground/MatrixBackground";
 import { Block, Piece } from "@classes/Piece";
-import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
-import { SpriteSheets } from "@data/SpriteSheets";
-import { isEqual2DVectorTuples, warnIfNotInteger } from "@utils/index";
-import { NATIVE_RESOLUTION_H, NATIVE_RESOLUTION_W } from "src/constants";
 
 export class GhostPiece {
-    private blocks: Block[] = [];
+    private piece: Piece | null = null;
 
-    constructor(blocks: Block[]) {
-        this.blocks = blocks;
+    constructor(piece: Piece | null) {
+        this.piece = piece;
+        this.piece?.getBlocks().forEach((block) => block.setSaturationModifier(0.3));
+    }
+
+    getBlocks() {
+        return this.piece ? this.piece.getBlocks() : null;
     }
 
     updateCoordinates(coordinatesList: [x: number, y: number][]) {
-        for (let i = 0; i < Math.min(this.blocks.length, coordinatesList.length); i++) {
-            this.blocks[i].setCoordinates(coordinatesList[i]);
+        const blocks = this.getBlocks();
+
+        if (blocks) {
+            for (let i = 0; i < Math.min(blocks.length, coordinatesList.length); i++) {
+                blocks[i].setCoordinates(coordinatesList[i]);
+            }
+
+            blocks.forEach((block) => block.updateConnections());
         }
     }
 }

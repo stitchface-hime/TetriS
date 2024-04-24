@@ -1,5 +1,6 @@
 import { ControllerPortManager } from "@classes/ControllerPortManager";
 import { Game } from "@classes/Game";
+import { GhostPiece } from "@classes/GhostPiece";
 import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
 import { MatrixBackground } from "@classes/MatrixBackground/MatrixBackground";
 import { Block, Piece } from "@classes/Piece";
@@ -17,7 +18,7 @@ export class Matrix extends GroupEntity {
     // TODO: Is this required now that we're keeping track of blocks?
     private numCellsOccupied: number;
     private activePiece: Piece | null = null;
-    private ghostPiece: Piece | null = null;
+    private ghostPiece: GhostPiece | null = null;
 
     /**
      * The play area of the game. This is the area in the scene
@@ -125,14 +126,18 @@ export class Matrix extends GroupEntity {
     /**
      * Sets the active piece within the matrix and sets the corresponding ghost piece, if not null.
      */
-    setActivePiece(piece: Piece, ghostPiece: Piece | null) {
-        this.activePiece = piece;
-        this.addDrawables(piece.getBlocks());
-
+    setActivePiece(piece: Piece, ghostPiece: GhostPiece | null) {
         if (ghostPiece) {
             this.ghostPiece = ghostPiece;
-            this.addDrawables(ghostPiece.getBlocks());
+            const ghostBlocks = ghostPiece.getBlocks();
+
+            if (ghostBlocks) {
+                this.addDrawables(ghostBlocks);
+            }
         }
+
+        this.activePiece = piece;
+        this.addDrawables(piece.getBlocks());
     }
 
     /**
@@ -143,8 +148,12 @@ export class Matrix extends GroupEntity {
             this.removeDrawables(this.activePiece.getBlocks());
             this.activePiece = null;
         }
+
         if (this.ghostPiece) {
-            this.removeDrawables(this.ghostPiece.getBlocks());
+            const ghostBlocks = this.ghostPiece.getBlocks();
+            if (ghostBlocks) {
+                this.removeDrawables(ghostBlocks);
+            }
             this.ghostPiece = null;
         }
     }
@@ -274,6 +283,14 @@ export class Matrix extends GroupEntity {
     lockActivePiece() {
         if (this.activePiece) {
             this.addBlocks(this.activePiece.getBlocks());
+
+            if (this.ghostPiece) {
+                const ghostBlocks = this.ghostPiece.getBlocks();
+                if (ghostBlocks) {
+                    this.removeDrawables(ghostBlocks);
+                }
+                this.ghostPiece = null;
+            }
         }
 
         this.activePiece = null;

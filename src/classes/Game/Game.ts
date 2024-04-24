@@ -16,6 +16,7 @@ import { Button } from "@classes/InputBinding/types";
 import { PressedButtons } from "@classes/Controller";
 import { ControllerPortManager } from "@classes/ControllerPortManager";
 import { ControllerPortKey } from "@classes/ControllerPortManager/types";
+import { GhostPiece } from "@classes/GhostPiece";
 
 export class Game extends GroupEntity {
     private numRows: number;
@@ -26,7 +27,7 @@ export class Game extends GroupEntity {
 
     private holdPieceId: PieceId | null = null;
     private activePiece: Piece | null = null;
-    private ghostPiece: Piece | null = null;
+    private ghostPiece: GhostPiece | null = null;
 
     private pieceFactory: PieceFactory;
     private nextQueue: PieceQueue;
@@ -270,7 +271,8 @@ export class Game extends GroupEntity {
 
             const spawnedPiece = this.pieceFactory.makePiece(...spawnArgs);
             // TODO: Need to make this conditional if the ghost piece is turned off
-            const ghostPiece = this.pieceFactory.makePiece(...spawnArgs);
+
+            const pieceForGhost = this.pieceFactory.makePiece(...spawnArgs);
 
             if (spawnedPiece) {
                 // Does the spawned piece overlap with any blocks in the matrix?
@@ -290,7 +292,11 @@ export class Game extends GroupEntity {
 
                 // if it doesn't overlap, spawn successful
                 if (pieceDoesNotOverlap) {
-                    this.matrix.setActivePiece(spawnedPiece, ghostPiece);
+                    if (pieceForGhost) {
+                        this.ghostPiece = new GhostPiece(pieceForGhost);
+                    }
+                    this.matrix.setActivePiece(spawnedPiece, this.ghostPiece);
+                    this.ghostPiece?.updateCoordinates(this.getGhostPieceCoordinates());
                     spawnSuccessful = true;
                     break;
                 }
@@ -449,6 +455,7 @@ export class Game extends GroupEntity {
     /* Controller methods */
     private controlledMoveFlow(wasRotationMove = false) {
         this.resetLockDelay();
+        this.ghostPiece?.updateCoordinates(this.getGhostPieceCoordinates());
         if (this.hasGrounded) {
             this.groundedMoves += 1;
             console.log("Moves left before lock:", this.groundedMoveLimit - this.groundedMoves);
