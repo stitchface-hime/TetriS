@@ -19,6 +19,7 @@ import { ControllerPortKey } from "@classes/ControllerPortManager/types";
 import { GhostPiece } from "@classes/GhostPiece";
 import { ScoreJudge } from "@classes/ScoreJudge";
 import { ProgressionJudge } from "@classes/ProgressionJudge";
+import { DropType } from "@classes/ScoreJudge/ScoreJudge.helpers";
 
 export class Game extends GroupEntity {
     private numRows: number;
@@ -225,9 +226,14 @@ export class Game extends GroupEntity {
     }
 
     private autoDropPiece(units = 1) {
-        const autoDropped = !!this.activePiece?.moveDown(units);
+        const unitsMoved = this.activePiece?.moveDown(units);
 
-        if (autoDropped) {
+        // soft drop scoring
+        if (this.softDropEnabled && unitsMoved !== undefined) {
+            this.scoreJudge.addScoreByDrop(unitsMoved, DropType.SOFT);
+        }
+
+        if (unitsMoved !== undefined && unitsMoved > 0) {
             this.resetLockDelay();
             this.autoDropFrames -= this.autoDropFrameTarget;
             // if soft dropped, add score
@@ -360,6 +366,8 @@ export class Game extends GroupEntity {
      */
     private lockPiece(ignoreMoveCheck = false) {
         if (!this.activePiece?.canMoveDownTogether(1) || ignoreMoveCheck) {
+            const prevMoveTechnical = this.activePiece?.getPrevMoveTechnical() || null;
+
             this.matrix.lockActivePiece();
 
             if (this.isLockOut()) {
@@ -371,7 +379,7 @@ export class Game extends GroupEntity {
             const isPerfectClear = this.matrix.getNumCellsOccupied() === 0;
 
             // update judges
-            this.scoreJudge.addScoreByLock(this.progressionJudge.getLevel(), linesCleared, null, isPerfectClear);
+            this.scoreJudge.addScoreByLock(this.progressionJudge.getLevel(), linesCleared, prevMoveTechnical, isPerfectClear);
             this.progressionJudge.addLinesCleared(linesCleared);
 
             // only nullify active piece once all logic above is completed
@@ -497,7 +505,12 @@ export class Game extends GroupEntity {
     }
 
     hardDrop() {
-        this.activePiece?.moveDown(this.activePiece.getHardDropUnits());
+        const unitsMoved = this.activePiece?.moveDown(this.activePiece.getHardDropUnits());
+
+        if (unitsMoved !== undefined) {
+            this.scoreJudge.addScoreByDrop(unitsMoved, DropType.HARD);
+        }
+
         this.lockPiece();
     }
 

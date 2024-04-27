@@ -69,4 +69,30 @@ export class T_Tetromino extends Tetromino {
             }
         }
     }
+
+    override technicalMoveCheck(wallKicked: boolean) {
+        const [baseX, baseY] = this.blocks[0].getActiveCoordinates();
+        let numTargetsOccupied = 0;
+        const requiredTargetsOccupied = 3;
+
+        const targetCoordinates: Tuple<number, 2>[] = [
+            [baseX - 1, baseY - 1],
+            [baseX - 1, baseY + 1],
+            [baseX + 1, baseY - 1],
+            [baseX + 1, baseY + 1],
+        ];
+
+        targetCoordinates.forEach((targetCoordinatesEntry) => {
+            if (this.matrix.hasBlockAt(targetCoordinatesEntry)) {
+                numTargetsOccupied += 1;
+            }
+        });
+
+        if (numTargetsOccupied < requiredTargetsOccupied) {
+            this.prevMoveTechnical = null;
+            return;
+        }
+
+        this.prevMoveTechnical = wallKicked ? "mini" : "full";
+    }
 }

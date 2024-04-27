@@ -1,16 +1,19 @@
+import { Matrix } from "@classes/Matrix";
 import { PieceId } from "../../data/PieceId";
 import { Block } from "./Block";
 import {
     RotationBlockPositionAdjust,
+    TechnicalMove,
     WallKickPositionOffset,
     WallKickPositionOffsetTest,
     WallKickPositionOffsetTestData,
     type RotationPositionAdjustMap,
 } from "./Piece.types";
-import { HexString } from "src/shaders/types";
+import { isEqual2DVectorTuples } from "@utils/isEqual2DVectorTuples";
 
 export abstract class Piece {
     protected blocks: Block[];
+    protected matrix: Matrix;
     /**
      * Should be between 0-3 inclusive as there are four possible rotations.
      * 0 is the the initial rotation.
@@ -22,13 +25,17 @@ export abstract class Piece {
     protected readonly clockwiseWallKickOffsetData: WallKickPositionOffsetTestData;
     protected readonly antiClockwiseWallKickOffsetData: WallKickPositionOffsetTestData;
 
+    protected prevMoveTechnical: TechnicalMove = null;
+
     constructor(
+        matrix: Matrix,
         blocks: Block[],
         clockwiseRotationMap: RotationPositionAdjustMap,
         antiClockwiseRotationMap: RotationPositionAdjustMap,
         clockwiseWallKickOffsetData: WallKickPositionOffsetTestData,
         antiClockwiseWallKickOffsetData: WallKickPositionOffsetTestData
     ) {
+        this.matrix = matrix;
         this.blocks = blocks;
 
         this.rotationState = 0;
@@ -49,6 +56,13 @@ export abstract class Piece {
      */
     getId() {
         return this.id;
+    }
+
+    /**
+     * Gets whether or not the previous move was a full, mini or not a technical move.
+     */
+    getPrevMoveTechnical() {
+        return this.prevMoveTechnical;
     }
 
     // Movement methods
@@ -104,9 +118,18 @@ export abstract class Piece {
     }
 
     /**
+     * Checks if a move is technical, that is, if it was rotated into
+     * a difficult to reach position (such as a T-spin) and sets the `prevMoveTechnicalFlag` accordingly.
+     * Each piece will have its own condition for what counts as a technical move.
+     */
+    technicalMoveCheck(wallKicked: boolean) {
+        this.prevMoveTechnical = null;
+    }
+
+    /**
      * Moves down a piece a certain number of units. If the number of units supplied
      * is greater than maximum possible movement it will move the maximum possible of units.
-     * It returns whether the movement was successful or not, movement of 0 is counted as unsuccessful.
+     * It returns the number of units moved.
      */
     moveDown(units = 1) {
         let unitsToMove = 0;
@@ -123,13 +146,13 @@ export abstract class Piece {
             });
         }
 
-        return unitsToMove > 0;
+        return unitsToMove;
     }
 
     /**
      * Moves left a piece a certain number of units. If the number of units supplied
      * is greater than maximum possible movement it will move the maximum possible of units.
-     * It returns whether the movement was successful or not, movement of 0 is counted as unsuccessful.
+     * It returns the number of units moved.
      */
     moveLeft(units = 1) {
         let unitsToMove = 0;
@@ -146,15 +169,15 @@ export abstract class Piece {
             });
         }
 
-        return unitsToMove > 0;
+        return unitsToMove;
     }
 
     /**
      * Moves right a piece a certain number of units. If the number of units supplied
      * is greater than maximum possible movement it will move the maximum possible of units.
-     * It returns whether the movement was successful or not, movement of 0 is counted as unsuccessful.
+     * It returns the number of units moved.
      */
-    moveRight(units = 1): boolean {
+    moveRight(units = 1) {
         let unitsToMove = 0;
 
         for (let i = 1; i < 1 + units; i++) {
@@ -169,7 +192,7 @@ export abstract class Piece {
             });
         }
 
-        return unitsToMove > 0;
+        return unitsToMove;
     }
 
     // Rotation methods
@@ -248,6 +271,9 @@ export abstract class Piece {
                     console.error(error);
                 }
             });
+
+            // Note: a wall kick happens if offset is not [0, 0]
+            this.technicalMoveCheck(!isEqual2DVectorTuples(wallKickOffset, [0, 0]));
 
             this.updateAllBlocksConnections();
         }

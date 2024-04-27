@@ -43,7 +43,7 @@ export abstract class Tetromino extends Piece {
     ) {
         const blocks = generateBlocks(intervalManager, controllerPortManager, coordinatesList, matrix, color) as Tuple<Block, 4>;
 
-        super(blocks, clockwiseRotationMap, antiClockwiseRotationMap, clockwiseWallKickOffsetData, antiClockwiseWallKickOffsetData);
+        super(matrix, blocks, clockwiseRotationMap, antiClockwiseRotationMap, clockwiseWallKickOffsetData, antiClockwiseWallKickOffsetData);
 
         this.blocks = blocks;
         this.clockwiseRotationMap = clockwiseRotationMap;

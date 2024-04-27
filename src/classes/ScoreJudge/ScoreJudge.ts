@@ -1,6 +1,5 @@
+import { TechnicalMove } from "@classes/Piece/Piece.types";
 import { DropType } from "./ScoreJudge.helpers";
-
-type TechnicalMove = "mini" | "full" | null;
 
 export class ScoreJudge {
     private score = 0;
@@ -45,21 +44,21 @@ export class ScoreJudge {
     private getLineClearPoints(linesCleared: number, technicalMove: TechnicalMove, perfectClear: boolean) {
         let basePoints = technicalMove === "mini" ? 100 : 0;
 
-        if (linesCleared === 0) return basePoints;
+        if (linesCleared === 0) return technicalMove === "full" ? 400 : basePoints;
 
         switch (linesCleared) {
             case 1:
-                basePoints += technicalMove === "full" ? 800 : 100;
+                basePoints = technicalMove === "full" ? 800 : 100 + basePoints;
                 break;
             case 2:
-                basePoints += technicalMove === "full" ? 1200 : 300;
+                basePoints = technicalMove === "full" ? 1200 : 300 + basePoints;
                 break;
-            case 3:
-                basePoints += technicalMove === "full" ? 1600 : 500;
+            case 3: // any technical move that results in a triple will be counted as a 'full' technical move
+                basePoints = technicalMove !== null ? 1600 : 500;
                 break;
             case 4:
             default:
-                basePoints += 800;
+                basePoints = 800 + basePoints;
         }
 
         return basePoints + this.getPerfectClearPoints(linesCleared, perfectClear);
@@ -87,7 +86,15 @@ export class ScoreJudge {
             this.updateB2bCombo(linesCleared, technicalMove);
         }
 
-        this.increaseScore((this.getLineClearPoints(linesCleared, technicalMove, perfectClear) * this.getB2bMultiplier() + this.getComboPoints()) * level);
+        const pointsToAdd = (this.getLineClearPoints(linesCleared, technicalMove, perfectClear) * this.getB2bMultiplier() + this.getComboPoints()) * level;
+        console.log(
+            "Points added:",
+            pointsToAdd,
+            "=",
+            `(${this.getLineClearPoints(linesCleared, technicalMove, perfectClear)} * ${this.getB2bMultiplier()} + ${this.getComboPoints()}) * ${level}`
+        );
+        console.log("LTP:", linesCleared, technicalMove, perfectClear);
+        this.increaseScore(pointsToAdd);
     }
 
     addScoreByDrop(units: number, type: DropType) {
