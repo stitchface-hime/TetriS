@@ -20,6 +20,7 @@ import { GhostPiece } from "@classes/GhostPiece";
 import { ScoreJudge } from "@classes/ScoreJudge";
 import { ProgressionJudge } from "@classes/ProgressionJudge";
 import { DropType } from "@classes/ScoreJudge/ScoreJudge.helpers";
+import { HoldQueue } from "@classes/HoldQueue";
 
 export class Game extends GroupEntity {
     private numRows: number;
@@ -28,7 +29,6 @@ export class Game extends GroupEntity {
     private matrix: Matrix;
     private spawnCoordinates: [x: number, y: number];
 
-    private holdPieceId: PieceId | null = null;
     private activePiece: Piece | null = null;
     private ghostPiece: GhostPiece | null = null;
 
@@ -52,13 +52,12 @@ export class Game extends GroupEntity {
     private groundedMoves = 0;
 
     private hasGrounded = false;
-
-    private canHold = true;
     private softDropEnabled = false;
 
     private gamePaused = false;
     private gameOver = false;
 
+    private holdQueue: HoldQueue;
     private scoreJudge = new ScoreJudge();
 
     private onLevelUpdate = (newLevel: number) => {
@@ -84,6 +83,7 @@ export class Game extends GroupEntity {
         this.numRows = numRows;
         this.numColumns = numColumns;
         this.progressionJudge = new ProgressionJudge(level, this.onLevelUpdate);
+        this.holdQueue = new HoldQueue(intervalManager, controllerPortManager);
         this.progressionJudge.setLinesQuotaTarget(10);
 
         this.matrix = new Matrix(intervalManager, controllerPortManager, numRows, numColumns, this);
@@ -384,7 +384,7 @@ export class Game extends GroupEntity {
 
             // only nullify active piece once all logic above is completed
             this.resetLockDelay();
-            this.canHold = true;
+            this.holdQueue.resetCanHold();
             this.activePiece = null;
         }
     }
@@ -515,22 +515,22 @@ export class Game extends GroupEntity {
     }
 
     hold() {
-        if (this.canHold && this.activePiece !== null) {
-            // take blocks out of play
-            this.matrix.unsetActivePiece();
-
-            if (this.holdPieceId === null) {
-                // when hold piece is null, hold current piece and spawn a new piece
-                this.holdPieceId = this.activePiece.getId();
-                this.spawnNextPiece();
-            } else {
-                const holdId = this.holdPieceId;
-                // otherwise swap active piece and hold piece
-                this.holdPieceId = this.activePiece.getId();
-                this.spawnPiece(holdId);
+        const currentHoldPieceId = this.holdQueue.getHoldPieceId();
+        if (this.activePiece !== null) {
+            const activePieceId = this.activePiece.getId();
+            if (activePieceId !== null) {
+                const holdSuccess = this.holdQueue.hold(activePieceId);
+                if (holdSuccess) {
+                    this.matrix.unsetActivePiece();
+                    if (currentHoldPieceId === null) {
+                        // when hold piece is null, hold current piece and spawn a new piece
+                        this.spawnNextPiece();
+                    } else {
+                        // otherwise swap active piece and hold piece
+                        this.spawnPiece(currentHoldPieceId);
+                    }
+                }
             }
-
-            this.canHold = false;
 
             return true;
         }
@@ -679,8 +679,7 @@ export class Game extends GroupEntity {
             autoDropFrameTarget: this.autoDropFrameTarget,
             groundedMoves: this.groundedMoveLimit - this.groundedMoves,
             blocks: this.matrix.getNumCellsOccupied(),
-            holdPieceId: this.holdPieceId,
-            canHold: this.canHold,
+            holdPieceId: this.holdQueue.getHoldPieceId(),
         };
     }
 
