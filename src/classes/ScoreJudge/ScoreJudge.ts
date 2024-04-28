@@ -63,9 +63,8 @@ export class ScoreJudge {
 
         return basePoints + this.getPerfectClearPoints(linesCleared, perfectClear);
     }
-
-    private getB2bMultiplier() {
-        return this.b2bCombo > 0 ? this.b2bMultiplier : 1;
+    private getB2bMultiplier(linesCleared: number) {
+        return this.b2bCombo > 0 && linesCleared > 0 ? this.b2bMultiplier : 1;
     }
 
     private updateCombo(linesCleared: number) {
@@ -86,12 +85,15 @@ export class ScoreJudge {
             this.updateB2bCombo(linesCleared, technicalMove);
         }
 
-        const pointsToAdd = (this.getLineClearPoints(linesCleared, technicalMove, perfectClear) * this.getB2bMultiplier() + this.getComboPoints()) * level;
+        const pointsToAdd =
+            (this.getLineClearPoints(linesCleared, technicalMove, perfectClear) * this.getB2bMultiplier(linesCleared) + this.getComboPoints()) * level;
         console.log(
             "Points added:",
             pointsToAdd,
             "=",
-            `(${this.getLineClearPoints(linesCleared, technicalMove, perfectClear)} * ${this.getB2bMultiplier()} + ${this.getComboPoints()}) * ${level}`
+            `(${this.getLineClearPoints(linesCleared, technicalMove, perfectClear)} * ${this.getB2bMultiplier(
+                linesCleared
+            )} + ${this.getComboPoints()}) * ${level}`
         );
         console.log("LTP:", linesCleared, technicalMove, perfectClear);
         this.increaseScore(pointsToAdd);
