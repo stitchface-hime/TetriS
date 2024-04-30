@@ -1,11 +1,9 @@
 import { Matrix } from "@classes/Matrix";
 import { Piece } from "@classes/Piece";
 
-import { PieceFactory } from "@classes/PieceFactory";
 import { PieceQueue } from "@classes/PieceQueue";
 import { Interval } from "@classes/TimeMeasure";
 import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
-import { PieceId } from "@data/index";
 import { GameIntervalKeys } from "./GameIntervalKeys";
 import { GameOverCode } from "./GameOverCode";
 import { GroupRenderer } from "@classes/ShaderProgram/GroupRenderer";
@@ -20,22 +18,15 @@ import { GhostPiece } from "@classes/GhostPiece";
 import { ScoreJudge } from "@classes/ScoreJudge";
 import { ProgressionJudge } from "@classes/ProgressionJudge";
 import { DropType } from "@classes/ScoreJudge/ScoreJudge.helpers";
-import { HoldQueue } from "@classes/HoldQueue";
+import { PieceSpawner } from "@classes/PieceSpawner/PieceSpawner";
 
 export class Game extends GroupEntity {
     private numRows: number;
-    private numColumns: number;
 
     private matrix: Matrix;
-    private spawnCoordinates: [x: number, y: number];
 
     private activePiece: Piece | null = null;
     private ghostPiece: GhostPiece | null = null;
-
-    private pieceFactory: PieceFactory;
-    private nextQueue: PieceQueue;
-
-    private spawnRetries = 2;
 
     private lockDelayFrameLimit = 30;
     private lockDelayFrames = 0;
@@ -57,8 +48,8 @@ export class Game extends GroupEntity {
     private gamePaused = false;
     private gameOver = false;
 
-    private holdQueue: HoldQueue;
     private scoreJudge = new ScoreJudge();
+    private pieceSpawner: PieceSpawner;
 
     private onLevelUpdate = (newLevel: number) => {
         this.autoDropFrameBaseline = (0.8 - (newLevel - 1) * 0.007) ** (newLevel - 1) * 60;
@@ -79,11 +70,9 @@ export class Game extends GroupEntity {
         level = 1
     ) {
         super(intervalManager, controllerPortManager);
-        this.pieceFactory = new PieceFactory();
         this.numRows = numRows;
         this.numColumns = numColumns;
         this.progressionJudge = new ProgressionJudge(level, this.onLevelUpdate);
-        this.holdQueue = new HoldQueue(intervalManager, controllerPortManager);
         this.progressionJudge.setLinesQuotaTarget(10);
 
         this.matrix = new Matrix(intervalManager, controllerPortManager, numRows, numColumns, this);
@@ -96,8 +85,7 @@ export class Game extends GroupEntity {
 
         // not ideal - probably don't want group entity as the renderer for a game anymore... unless we want ui to also appear in the screen?
 
-        this.nextQueue = pieceQueue;
-        this.spawnCoordinates = spawnCoordinates;
+        this.pieceSpawner = new PieceSpawner(pieceQueue, spawnCoordinates, intervalManager, controllerPortManager);
     }
 
     /* Game flow methods */
@@ -270,7 +258,7 @@ export class Game extends GroupEntity {
      * one block above the previous attempt up to `this.spawnRetries` times. If spawning the piece
      * was successful, returns `true`, `false` otherwise.
      */
-    private spawnPiece(pieceId?: PieceId) {
+    /* private spawnPiece(pieceId?: PieceId) {
         let spawnSuccessful = false;
 
         for (let spawnAttempt = 0; spawnAttempt < this.spawnRetries; spawnAttempt++) {
@@ -317,27 +305,7 @@ export class Game extends GroupEntity {
         }
 
         return spawnSuccessful;
-    }
-
-    /**
-     * Spawn the next piece from the next queue. If spawning the piece
-     * was successful, returns `true`, `false` otherwise.
-     */
-    private spawnNextPiece() {
-        const nextPiece = this.spawnPiece(this.nextQueue.shiftNext());
-        this.resetAutoDrop();
-        // If gravity xG > 1G drop immediately x units when piece spawns
-
-        this.initAutoDrop();
-        return nextPiece;
-    }
-
-    /**
-     * Get the next `numNext` piece ids from the next queue (Default: 4).
-     */
-    getNextQueue(numNext = 4) {
-        return this.nextQueue.getNext(numNext);
-    }
+    } */
 
     /**
      * Get the coordinates of where the ghost piece will be.
@@ -514,29 +482,6 @@ export class Game extends GroupEntity {
         this.lockPiece();
     }
 
-    hold() {
-        const currentHoldPieceId = this.holdQueue.getHoldPieceId();
-        if (this.activePiece !== null) {
-            const activePieceId = this.activePiece.getId();
-            if (activePieceId !== null) {
-                const holdSuccess = this.holdQueue.hold(activePieceId);
-                if (holdSuccess) {
-                    this.matrix.unsetActivePiece();
-                    if (currentHoldPieceId === null) {
-                        // when hold piece is null, hold current piece and spawn a new piece
-                        this.spawnNextPiece();
-                    } else {
-                        // otherwise swap active piece and hold piece
-                        this.spawnPiece(currentHoldPieceId);
-                    }
-                }
-            }
-
-            return true;
-        }
-        return false;
-    }
-
     togglePause() {
         this.gamePaused = !this.gamePaused;
         if (this.gamePaused) {
@@ -679,7 +624,6 @@ export class Game extends GroupEntity {
             autoDropFrameTarget: this.autoDropFrameTarget,
             groundedMoves: this.groundedMoveLimit - this.groundedMoves,
             blocks: this.matrix.getNumCellsOccupied(),
-            holdPieceId: this.holdQueue.getHoldPieceId(),
         };
     }
 
