@@ -3,7 +3,6 @@ import { Piece } from "@classes/Piece";
 
 import { PieceQueue } from "@classes/PieceQueue";
 import { Interval } from "@classes/TimeMeasure";
-import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
 import { GameIntervalKeys } from "./GameIntervalKeys";
 import { GameOverCode } from "./GameOverCode";
 import { GroupRenderer } from "@classes/ShaderProgram/GroupRenderer";
@@ -12,15 +11,16 @@ import { FRAME_MS } from "src/constants";
 import { ButtonFramesHeld, ButtonsHeld } from "@classes/GameController";
 import { Button } from "@classes/InputBinding/types";
 import { PressedButtons } from "@classes/Controller";
-import { ControllerPortManager } from "@classes/ControllerPortManager";
-import { ControllerPortKey } from "@classes/ControllerPortManager/types";
 import { GhostPiece } from "@classes/GhostPiece";
 import { ScoreJudge } from "@classes/ScoreJudge";
 import { ProgressionJudge } from "@classes/ProgressionJudge";
 import { DropType } from "@classes/ScoreJudge/ScoreJudge.helpers";
 import { PieceSpawner } from "@classes/PieceSpawner/PieceSpawner";
+import { IControllable } from "src/interfaces/IControllable";
+import { ControllerContext } from "@classes/ControllerContext";
+import { Managers } from "@classes/Entity";
 
-export class Game extends GroupEntity {
+export class Game extends GroupEntity implements IControllable {
     private numRows: number;
 
     private matrix: Matrix;
@@ -65,13 +65,11 @@ export class Game extends GroupEntity {
         spawnCoordinates: [x: number, y: number],
         // TODO: why is renderer necessary for anything except getting size of canvas
         renderer: GroupRenderer,
-        intervalManager: IntervalManager,
-        controllerPortManager: ControllerPortManager,
+        managers: Managers = {};
         level = 1
     ) {
-        super(intervalManager, controllerPortManager);
+        super(managers);
         this.numRows = numRows;
-        this.numColumns = numColumns;
         this.progressionJudge = new ProgressionJudge(level, this.onLevelUpdate);
         this.progressionJudge.setLinesQuotaTarget(10);
 
@@ -91,10 +89,8 @@ export class Game extends GroupEntity {
     /* Game flow methods */
 
     async run() {
-        const controller = this.getController(ControllerPortKey.PORT_0);
-        if (controller) {
-            this.registerControllerContext(controller);
-        }
+        if (!this.managers.controllerContext || !this.managers.intervalManager) return;
+        this.controllerContext = new ControllerContext(this, this.managers.controllerContext);
 
         // TODO: This is still testing
         this.registerInterval(
@@ -112,7 +108,9 @@ export class Game extends GroupEntity {
     }
 
     halt() {
-        this.unregisterInterval(GameIntervalKeys.RUN);
+        if (this.managers.intervalManager) {
+            this.unregisterInterval(GameIntervalKeys.RUN);
+        }
     }
 
     /**

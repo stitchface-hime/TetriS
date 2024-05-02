@@ -1,4 +1,4 @@
-import { Controller } from "@classes/Controller";
+import { ControllerPort } from "@classes/ControllerPort";
 
 export enum ControllerPortKey {
     PORT_0,
@@ -11,4 +11,4 @@ export enum ControllerPortKey {
     PORT_7,
 }
 
-export type ControllerPorts = Record<ControllerPortKey, Controller | null>;
+export type ControllerPorts = Record<ControllerPortKey, ControllerPort>;

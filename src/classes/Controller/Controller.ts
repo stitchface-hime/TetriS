@@ -2,52 +2,28 @@ import { InputBinding } from "@classes/InputBinding";
 import { Button } from "@classes/InputBinding/types";
 import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
 import { Interval } from "@classes/TimeMeasure";
-import { ControllerContext } from "@classes/ControllerContext/ControllerContext";
 import { arrayFindAndDelete } from "@utils/arrayFindAndDelete";
+import { ControllerPort } from "@classes/ControllerPort";
 
 export class Controller {
     private pressedButtons: Button[] = [];
-    private subscriptions: ControllerContext[] = [];
     private inputBinding = new InputBinding();
     private intervalManager: IntervalManager;
+    private _port: ControllerPort | null = null;
 
     constructor(intervalManager: IntervalManager) {
         this.intervalManager = intervalManager;
-        this.update();
     }
 
-    /**
-     * Subscribe a controller context to listen to inputs from this controller.
-     */
-    subscribeContext(context: ControllerContext) {
-        if (this.subscriptions.includes(context)) {
-            console.warn("Context already subscribed, ignoring");
-            return;
+    get port() {
+        return this._port;
+    }
+
+    set port(port: ControllerPort | null) {
+        this._port = port;
+        if (port) {
+            this.notify();
         }
-        this.subscriptions.push(context);
-    }
-
-    /**
-     * Unsubscribe a controller context to no longer listen to inputs from this controller.
-     */
-    unsubscribeContext(context: ControllerContext) {
-        const contextIdx = this.subscriptions.findIndex((currentContext) => currentContext === context);
-        if (contextIdx !== -1) {
-            this.subscriptions.splice(contextIdx, 1);
-        }
-    }
-
-    unsubscribeAllContexts() {
-        this.subscriptions = [];
-    }
-
-    /**
-     * Sends inputs to all subscribed entities and also updates input state.
-     */
-    private updateAllSubscriptions() {
-        this.subscriptions.forEach((context) => {
-            context.receivePressSignal(this.pressedButtons);
-        });
     }
 
     private addPressedButton(button: Button) {
@@ -91,14 +67,14 @@ export class Controller {
     }
 
     /**
-     * Run the loop to increment number of frames buttons are pressed down.
+     * Run the loop to increment number of frames buttons are pressed down to connected port.
      */
-    private update() {
+    notify() {
         this.intervalManager.subscribe(
             new Interval(
                 0,
                 () => {
-                    this.updateAllSubscriptions();
+                    this.port?.notify(this.pressedButtons);
                 },
                 Infinity
             )

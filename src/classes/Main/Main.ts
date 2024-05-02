@@ -1,5 +1,4 @@
 import { Game, Standard } from "@classes/Game";
-import { GameController } from "@classes/GameController";
 import { RunStatus } from "./types";
 import { GroupRenderer } from "@classes/ShaderProgram/GroupRenderer";
 import { MainRenderer } from "@classes/ShaderProgram/MainRenderer/renderer";
@@ -99,7 +98,7 @@ export class Main {
     async start() {
         if (!this.game && this.gl) {
             const controller = new Controller(this.intervalManager);
-            this.controllerPortManager.connect(ControllerPortKey.PORT_0, controller);
+            this.controllerPortManager.getPort(ControllerPortKey.PORT_0).plugIn(controller);
 
             this.game = new Game(...Standard.getConfig(), new GroupRenderer(this.gl), this.intervalManager, this.controllerPortManager);
 
@@ -118,7 +117,7 @@ export class Main {
     stop() {
         this.halt();
         this.game = null;
-        this.controllerPortManager.disconnectAll();
+        this.controllerPortManager.plugOutAllControllers();
         this.runStatus = RunStatus.STOPPED;
     }
 
@@ -127,16 +126,11 @@ export class Main {
     }
 
     getControllerEventTriggers(key: ControllerPortKey) {
-        return this.controllerPortManager.getEventTriggerFromControllerAt(key);
+        return this.controllerPortManager.getPort(key).controller?.getEventTriggers();
     }
 
     // debug
     getGame() {
         return this.game;
-    }
-
-    // debug
-    getController(key: ControllerPortKey) {
-        return this.controllerPortManager.getControllerState(key);
     }
 }
