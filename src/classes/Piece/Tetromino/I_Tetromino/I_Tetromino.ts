@@ -23,7 +23,7 @@ export class I_Tetromino extends Tetromino {
     protected static id = PieceId.TETROMINO_I;
     protected static color: HexString = "#009fda";
 
-    constructor(intervalManager: IntervalManager, controllerPortManager: ControllerPortManager, originCoordinates: [x: number, y: number], matrix: Matrix) {
+    constructor(originCoordinates: [x: number, y: number], matrix: Matrix) {
         const [originX, originY] = originCoordinates;
 
         const blockCoordinates: Tuple<[number, number], 4> = [
@@ -34,8 +34,6 @@ export class I_Tetromino extends Tetromino {
         ];
 
         super(
-            intervalManager,
-            controllerPortManager,
             blockCoordinates,
             matrix,
             I_Tetromino.color,

@@ -31,8 +31,6 @@ export abstract class Tetromino extends Piece {
     protected override readonly antiClockwiseRotationMap: TetrominoRotationPositionAdjustMap;
 
     constructor(
-        intervalManager: IntervalManager,
-        controllerPortManager: ControllerPortManager,
         coordinatesList: Tuple<[number, number], 4>,
         matrix: Matrix,
         color: HexString,
@@ -41,7 +39,7 @@ export abstract class Tetromino extends Piece {
         clockwiseWallKickOffsetData: WallKickPositionOffsetTestData,
         antiClockwiseWallKickOffsetData: WallKickPositionOffsetTestData
     ) {
-        const blocks = generateBlocks(intervalManager, controllerPortManager, coordinatesList, matrix, color) as Tuple<Block, 4>;
+        const blocks = generateBlocks(coordinatesList, matrix, color) as Tuple<Block, 4>;
 
         super(matrix, blocks, clockwiseRotationMap, antiClockwiseRotationMap, clockwiseWallKickOffsetData, antiClockwiseWallKickOffsetData);
 

@@ -1,15 +1,13 @@
 import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
-import { Interval } from "@classes/TimeMeasure";
-import { Managers } from "./Entity.types";
+import { Contexts } from "./Entity.types";
 
 export abstract class Entity {
     protected _parent: GroupEntity | null = null;
-    protected intervals: Partial<Record<string, Interval>> = {};
 
-    protected managers: Managers;
+    protected _contexts: Contexts;
 
-    constructor(managers: Managers = {}) {
-        this.managers = managers;
+    constructor(managers: Contexts = {}) {
+        this._contexts = managers;
     }
 
     get parent() {
@@ -20,6 +18,10 @@ export abstract class Entity {
         this._parent = parent;
     }
 
+    get contexts() {
+        return this._contexts;
+    }
+
     /**
      * Alias for `Entity.parent = null`.
      */
@@ -28,7 +30,8 @@ export abstract class Entity {
     }
 
     destroy() {
-        if (this.managers.intervalManager) {
-        }
+        Object.values(this.contexts).forEach((context) => {
+            context?.destroy();
+        });
     }
 }

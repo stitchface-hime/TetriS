@@ -1,8 +1,6 @@
-import { ControllerPortManager } from "@classes/ControllerPortManager";
 import { DrawableEntity } from "@classes/DrawableEntity";
-import { Entity } from "@classes/Entity";
+import { Contexts, Entity } from "@classes/Entity";
 import { TextureManager } from "@classes/TextureManager";
-import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
 import { DrawBuffers } from "src/shaders/types";
 
 /**
@@ -14,8 +12,8 @@ export abstract class GroupEntity extends DrawableEntity {
     protected passives: Entity[] = [];
     protected drawables: DrawableEntity[] = [];
 
-    constructor(intervalManager: IntervalManager, controllerPortManager: ControllerPortManager) {
-        super(intervalManager, controllerPortManager);
+    constructor(contexts: Contexts = {}) {
+        super({}, contexts);
     }
 
     private addEntity<E extends Entity>(subgroup: E[], entity: E) {

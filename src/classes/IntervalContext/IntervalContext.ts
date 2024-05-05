@@ -2,7 +2,7 @@ import { Interval } from "@classes/TimeMeasure";
 import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
 import { IManager } from "src/interfaces/IManager";
 
-export class IntervalManagerD implements IManager {
+export class IntervalContext implements IManager {
     private _globalIntervalManager: IntervalManager;
     protected intervals: Partial<Record<string, Interval>> = {};
 

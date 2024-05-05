@@ -1,20 +1,18 @@
-import { ControllerPortManager } from "@classes/ControllerPortManager";
 import { DrawableEntity } from "@classes/DrawableEntity";
+import { Contexts } from "@classes/Entity";
 import { TextureManager } from "@classes/TextureManager";
-import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
 import { TextureKey } from "@data/TextureKey";
 
 export abstract class TexturedEntity extends DrawableEntity {
     constructor(
-        intervalManager: IntervalManager,
-        controllerPortManager: ControllerPortManager,
         transform: Partial<{
             position: [x: number, y: number];
             scale: [x: number, y: number];
             rotation: number;
-        }> = {}
+        }> = {},
+        contexts: Contexts = {}
     ) {
-        super(intervalManager, controllerPortManager, transform);
+        super(transform, contexts);
     }
 
     /**

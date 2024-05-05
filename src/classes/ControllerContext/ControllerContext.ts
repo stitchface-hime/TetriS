@@ -14,12 +14,15 @@ export class ControllerContext implements IManager {
     private controllerPortManager: ControllerPortManager;
     private pressedButtons: PressedButtons = [];
     private paused: boolean = false;
-    private controllable: IControllable;
+    private controllable: IControllable | null = null;
     private port: ControllerPort | null = null;
 
-    constructor(controllable: IControllable, controllerPortManager: ControllerPortManager) {
-        this.controllable = controllable;
+    constructor(controllerPortManager: ControllerPortManager) {
         this.controllerPortManager = controllerPortManager;
+    }
+
+    assignControllable(controllable: IControllable) {
+        this.controllable = controllable;
     }
 
     subscribeToPort(key: ControllerPortKey) {
@@ -65,7 +68,7 @@ export class ControllerContext implements IManager {
             const newHeldButtonIds = this.pressedButtons.map((heldButtons) => heldButtons.id);
             const releasedButtons = prevHeldButtonIds.filter((button) => !newHeldButtonIds.includes(button));
 
-            this.controllable.acceptInput(this.pressedButtons, releasedButtons);
+            this.controllable?.acceptInput(this.pressedButtons, releasedButtons);
         }
     }
 

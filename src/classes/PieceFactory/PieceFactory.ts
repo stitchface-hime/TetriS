@@ -1,7 +1,5 @@
-import { ControllerPortManager } from "@classes/ControllerPortManager";
 import { Matrix } from "@classes/Matrix";
 import { I_Tetromino, J_Tetromino, L_Tetromino, O_Tetromino, S_Tetromino, T_Tetromino, Z_Tetromino } from "@classes/Piece/Tetromino";
-import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
 import { PieceId } from "@data/index";
 
 const pieceLookUp = {
@@ -18,17 +16,11 @@ export class PieceFactory {
     /**
      * Creates a piece using its piece id in the supplied matrix at specific coordinates.
      */
-    makePiece(
-        intervalManager: IntervalManager,
-        controllerPortManager: ControllerPortManager,
-        originCoordinates: [x: number, y: number],
-        matrix: Matrix,
-        id?: PieceId
-    ) {
+    makePiece(originCoordinates: [x: number, y: number], matrix: Matrix, id?: PieceId) {
         if (id === undefined) {
             return null;
         }
 
-        return new pieceLookUp[id](intervalManager, controllerPortManager, originCoordinates, matrix);
+        return new pieceLookUp[id](originCoordinates, matrix);
     }
 }

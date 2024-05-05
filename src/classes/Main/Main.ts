@@ -9,6 +9,8 @@ import { DrawBuffers } from "src/shaders/types";
 import { ControllerPortManager } from "@classes/ControllerPortManager";
 import { Controller } from "@classes/Controller";
 import { ControllerPortKey } from "@classes/ControllerPortManager/types";
+import { ControllerContext } from "@classes/ControllerContext";
+import { IntervalContext } from "@classes/IntervalContext";
 
 export class Main {
     // Common to all entities within the main progra
@@ -100,7 +102,11 @@ export class Main {
             const controller = new Controller(this.intervalManager);
             this.controllerPortManager.getPort(ControllerPortKey.PORT_0).plugIn(controller);
 
-            this.game = new Game(...Standard.getConfig(), new GroupRenderer(this.gl), this.intervalManager, this.controllerPortManager);
+            this.game = new Game(...Standard.getConfig(), new GroupRenderer(this.gl), {
+                controllerContext: new ControllerContext(this.controllerPortManager),
+                intervalContext: new IntervalContext(this.intervalManager),
+            });
+            this.game.contexts.controllerContext?.assignControllable(this.game);
 
             this.run();
         }

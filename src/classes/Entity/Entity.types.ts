@@ -1,7 +1,8 @@
 import { ControllerContext } from "@classes/ControllerContext";
-import { IntervalManagerD } from "@classes/IntervalManager/IntervalManager";
+import { IntervalContext } from "@classes/IntervalContext";
+import { IManager } from "src/interfaces/IManager";
 
-export interface Managers {
-    intervalManager?: IntervalManagerD;
+export interface Contexts extends Record<string, IManager | undefined> {
+    intervalContext?: IntervalContext;
     controllerContext?: ControllerContext;
 }

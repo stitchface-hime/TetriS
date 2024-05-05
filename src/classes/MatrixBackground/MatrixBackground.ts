@@ -12,8 +12,8 @@ export class MatrixBackground extends TexturedEntity {
     static textureKey: TextureKey = "MATRIX_BG";
     private matrix: Matrix;
 
-    constructor(intervalManager: IntervalManager, controllerPortManager: ControllerPortManager, matrix: Matrix) {
-        super(intervalManager, controllerPortManager);
+    constructor(matrix: Matrix) {
+        super();
         this.setDefaultDimensions(matrix.getDimensions());
 
         this.setParent(matrix);

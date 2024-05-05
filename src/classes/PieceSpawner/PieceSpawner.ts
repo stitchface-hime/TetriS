@@ -1,11 +1,9 @@
-import { ControllerPortManager } from "@classes/ControllerPortManager";
 import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
 import { HoldQueue } from "@classes/HoldQueue";
 import { Matrix } from "@classes/Matrix";
 import { Piece } from "@classes/Piece/Piece";
 import { PieceFactory } from "@classes/PieceFactory";
 import { PieceQueue } from "@classes/PieceQueue";
-import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
 import { PieceId } from "@data/PieceId";
 
 export class PieceSpawner extends GroupEntity {
@@ -18,34 +16,24 @@ export class PieceSpawner extends GroupEntity {
     private spawnRetries = 2;
     private activePiece: Piece | null = null;
 
-    constructor(
-        pieceQueue: PieceQueue,
-        spawnCoordinates: [x: number, y: number],
-        intervalManager: IntervalManager,
-        controllerPortManager: ControllerPortManager
-    ) {
-        super(intervalManager, controllerPortManager);
+    constructor(pieceQueue: PieceQueue, spawnCoordinates: [x: number, y: number]) {
+        super();
         this.spawnCoordinates = spawnCoordinates;
         this.nextQueue = pieceQueue;
-        this.holdQueue = new HoldQueue(intervalManager, controllerPortManager);
+        this.holdQueue = new HoldQueue();
     }
 
-    spawnPiece(matrix: Matrix, pieceId?: PieceId) {
+    spawnPiece(matrix: Matrix, pieceId?: PieceId, fromHold = false) {
         let spawnSuccessful = false;
 
         for (let spawnAttempt = 0; spawnAttempt < this.spawnRetries; spawnAttempt++) {
             const spawnArgs: Parameters<typeof this.pieceFactory.makePiece> = [
-                this.getIntervalManager(),
-                this.getControllerPortManager(),
                 [this.spawnCoordinates[0], this.spawnCoordinates[1] + spawnAttempt],
                 matrix,
                 pieceId,
             ];
 
             const spawnedPiece = this.pieceFactory.makePiece(...spawnArgs);
-            // TODO: Need to make this conditional if the ghost piece is turned off
-
-            const pieceForGhost = this.pieceFactory.makePiece(...spawnArgs);
 
             if (spawnedPiece) {
                 // Does the spawned piece overlap with any blocks in the matrix?
@@ -65,15 +53,15 @@ export class PieceSpawner extends GroupEntity {
 
                 // if it doesn't overlap, spawn successful
                 if (pieceDoesNotOverlap) {
-                    if (pieceForGhost) {
-                        this.ghostPiece = new GhostPiece(pieceForGhost);
-                    }
-                    matrix.setActivePiece(spawnedPiece, this.ghostPiece);
-                    this.ghostPiece?.updateCoordinates(this.getGhostPieceCoordinates());
+                    matrix.setActivePiece(spawnedPiece);
                     spawnSuccessful = true;
                     break;
                 }
             }
+        }
+
+        if (!fromHold) {
+            this.holdQueue.canHold = true;
         }
 
         return spawnSuccessful;
@@ -83,8 +71,8 @@ export class PieceSpawner extends GroupEntity {
      * Spawn the next piece from the next queue. If spawning the piece
      * was successful, returns `true`, `false` otherwise.
      */
-    private spawnNextPiece(matrix: Matrix) {
-        const nextPiece = this.spawnPiece(matrix, this.nextQueue.shiftNext());
+    spawnNextPiece(matrix: Matrix, fromHold = false) {
+        const nextPiece = this.spawnPiece(matrix, this.nextQueue.shiftNext(), fromHold);
         /* this.resetAutoDrop();
         // If gravity xG > 1G drop immediately x units when piece spawns
 
@@ -100,7 +88,7 @@ export class PieceSpawner extends GroupEntity {
     }
 
     hold(matrix: Matrix) {
-        const currentHoldPieceId = this.holdQueue.getHoldPieceId();
+        const currentHoldPieceId = this.holdQueue.holdPieceId;
         if (this.activePiece !== null) {
             const activePieceId = this.activePiece.getId();
             if (activePieceId !== null) {
@@ -109,10 +97,10 @@ export class PieceSpawner extends GroupEntity {
                     matrix.unsetActivePiece();
                     if (currentHoldPieceId === null) {
                         // when hold piece is null, hold current piece and spawn a new piece
-                        this.spawnNextPiece(matrix);
+                        this.spawnNextPiece(matrix, true);
                     } else {
                         // otherwise swap active piece and hold piece
-                        this.spawnPiece(matrix, currentHoldPieceId);
+                        this.spawnPiece(matrix, currentHoldPieceId, true);
                     }
                 }
             }

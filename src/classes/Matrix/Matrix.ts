@@ -1,10 +1,8 @@
-import { ControllerPortManager } from "@classes/ControllerPortManager";
 import { Game } from "@classes/Game";
 import { GhostPiece } from "@classes/GhostPiece";
 import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
 import { MatrixBackground } from "@classes/MatrixBackground/MatrixBackground";
 import { Block, Piece } from "@classes/Piece";
-import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
 import { SpriteSheets } from "@data/SpriteSheets";
 import { isEqual2DVectorTuples, warnIfNotInteger } from "@utils/index";
 import { NATIVE_RESOLUTION_H, NATIVE_RESOLUTION_W } from "src/constants";
@@ -35,8 +33,8 @@ export class Matrix extends GroupEntity {
      * When constructing the matrix, the matrix will have twice the number of rows
      * you specify to account for blocks above the visible part of the matrix.
      */
-    constructor(intervalManager: IntervalManager, controllerPortManager: ControllerPortManager, numRows: number, numColumns: number, game: Game) {
-        super(intervalManager, controllerPortManager);
+    constructor(numRows: number, numColumns: number, game: Game) {
+        super();
 
         this.numRows = numRows * 2;
         this.numVisibleRows = numRows;
@@ -54,7 +52,7 @@ export class Matrix extends GroupEntity {
         ]);
 
         // Background for the matrix
-        this.background = new MatrixBackground(intervalManager, controllerPortManager, this);
+        this.background = new MatrixBackground(this);
         this.addDrawable(this.background);
 
         this.background.setParent(this);
@@ -122,7 +120,7 @@ export class Matrix extends GroupEntity {
     /**
      * Sets the active piece within the matrix and sets the corresponding ghost piece, if not null.
      */
-    setActivePiece(piece: Piece, ghostPiece: GhostPiece | null) {
+    setActivePiece(piece: Piece, ghostPiece: GhostPiece | null = null) {
         if (ghostPiece) {
             this.ghostPiece = ghostPiece;
             const ghostBlocks = ghostPiece.getBlocks();
@@ -296,7 +294,7 @@ export class Matrix extends GroupEntity {
      */
     addBlocksByCoordinates(coordinatesList: [x: number, y: number][]) {
         coordinatesList.forEach((coordinates) => {
-            this.addBlock(new Block(this.getIntervalManager(), this.getControllerPortManager(), coordinates, this));
+            this.addBlock(new Block(coordinates, this));
         });
     }
 
@@ -318,7 +316,7 @@ export class Matrix extends GroupEntity {
 
         setRows.forEach((row) => {
             for (let col = 0; col < this.numColumns; col++) {
-                this.addBlock(new Block(this.getIntervalManager(), this.getControllerPortManager(), this.translateToXY([row, col]), this));
+                this.addBlock(new Block(this.translateToXY([row, col]), this));
             }
         });
     }

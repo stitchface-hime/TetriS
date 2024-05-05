@@ -1,6 +1,5 @@
 import { Matrix } from "@classes/Matrix";
 import { Piece } from "@classes/Piece";
-
 import { PieceQueue } from "@classes/PieceQueue";
 import { Interval } from "@classes/TimeMeasure";
 import { GameIntervalKeys } from "./GameIntervalKeys";
@@ -17,8 +16,7 @@ import { ProgressionJudge } from "@classes/ProgressionJudge";
 import { DropType } from "@classes/ScoreJudge/ScoreJudge.helpers";
 import { PieceSpawner } from "@classes/PieceSpawner/PieceSpawner";
 import { IControllable } from "src/interfaces/IControllable";
-import { ControllerContext } from "@classes/ControllerContext";
-import { Managers } from "@classes/Entity";
+import { Contexts } from "@classes/Entity";
 
 export class Game extends GroupEntity implements IControllable {
     private numRows: number;
@@ -65,15 +63,15 @@ export class Game extends GroupEntity implements IControllable {
         spawnCoordinates: [x: number, y: number],
         // TODO: why is renderer necessary for anything except getting size of canvas
         renderer: GroupRenderer,
-        managers: Managers = {};
+        contexts: Contexts = {},
         level = 1
     ) {
-        super(managers);
+        super(contexts);
         this.numRows = numRows;
         this.progressionJudge = new ProgressionJudge(level, this.onLevelUpdate);
         this.progressionJudge.setLinesQuotaTarget(10);
 
-        this.matrix = new Matrix(intervalManager, controllerPortManager, numRows, numColumns, this);
+        this.matrix = new Matrix(numRows, numColumns, this);
 
         this.addDrawable(this.matrix);
 
@@ -83,17 +81,14 @@ export class Game extends GroupEntity implements IControllable {
 
         // not ideal - probably don't want group entity as the renderer for a game anymore... unless we want ui to also appear in the screen?
 
-        this.pieceSpawner = new PieceSpawner(pieceQueue, spawnCoordinates, intervalManager, controllerPortManager);
+        this.pieceSpawner = new PieceSpawner(pieceQueue, spawnCoordinates);
     }
 
     /* Game flow methods */
 
     async run() {
-        if (!this.managers.controllerContext || !this.managers.intervalManager) return;
-        this.controllerContext = new ControllerContext(this, this.managers.controllerContext);
-
         // TODO: This is still testing
-        this.registerInterval(
+        this.contexts.intervalContext?.registerInterval(
             GameIntervalKeys.RUN,
             new Interval(
                 FRAME_MS,
@@ -108,24 +103,18 @@ export class Game extends GroupEntity implements IControllable {
     }
 
     halt() {
-        if (this.managers.intervalManager) {
-            this.unregisterInterval(GameIntervalKeys.RUN);
-        }
+        this.contexts.intervalContext?.unregisterInterval(GameIntervalKeys.RUN);
     }
 
     /**
      * Ticks the game and decides what happens in the given frame.
      */
     async tick() {
-        if (!this.gameOver) {
-            if (!this.activePiece) {
-                const spawnSuccessful = this.spawnNextPiece();
-                console.log("Spawned piece");
-                if (!spawnSuccessful) {
-                    this.triggerGameOver(GameOverCode.BLOCK_OUT);
-                }
-            }
-        }
+        if (this.gameOver || this.activePiece) return;
+        const spawnSuccessful = this.pieceSpawner.spawnNextPiece(this.matrix);
+        console.log("Spawned piece");
+        if (spawnSuccessful) return;
+        this.triggerGameOver(GameOverCode.BLOCK_OUT);
     }
 
     private resetGroundedState() {
@@ -190,7 +179,8 @@ export class Game extends GroupEntity implements IControllable {
         if (this.lockDelayFrameLimit === 0) {
             this.lockPiece();
         } else {
-            if (this.getInterval(GameIntervalKeys.LOCK_DELAY) === undefined) {
+            const intervalContext = this.contexts.intervalContext;
+            if (intervalContext && intervalContext.getInterval(GameIntervalKeys.LOCK_DELAY) === undefined) {
                 this.initLockDelay();
             }
         }
@@ -203,12 +193,12 @@ export class Game extends GroupEntity implements IControllable {
             this.autoDropPiece(unitsToDrop);
         }
 
-        this.registerInterval(GameIntervalKeys.AUTO_DROP, new Interval(FRAME_MS, () => this.dropFlow(unitsToDrop), Infinity));
+        this.contexts.intervalContext?.registerInterval(GameIntervalKeys.AUTO_DROP, new Interval(FRAME_MS, () => this.dropFlow(unitsToDrop), Infinity));
     }
 
     private resetAutoDrop() {
         this.autoDropFrames = 0;
-        this.unregisterInterval(GameIntervalKeys.AUTO_DROP);
+        this.contexts.intervalContext?.unregisterInterval(GameIntervalKeys.AUTO_DROP);
     }
 
     private autoDropPiece(units = 1) {
@@ -229,11 +219,11 @@ export class Game extends GroupEntity implements IControllable {
 
     private resetLockDelay() {
         this.lockDelayFrames = 0;
-        this.unregisterInterval(GameIntervalKeys.LOCK_DELAY);
+        this.contexts.intervalContext?.unregisterInterval(GameIntervalKeys.LOCK_DELAY);
     }
 
     private initLockDelay() {
-        this.registerInterval(
+        this.contexts.intervalContext?.registerInterval(
             GameIntervalKeys.LOCK_DELAY,
             new Interval(
                 FRAME_MS,
@@ -249,61 +239,6 @@ export class Game extends GroupEntity implements IControllable {
             )
         );
     }
-
-    /**
-     * Spawn a piece with the given piece id at the spawn coordinates.
-     * If it is unable to spawn the piece at that location, it will try spawning it
-     * one block above the previous attempt up to `this.spawnRetries` times. If spawning the piece
-     * was successful, returns `true`, `false` otherwise.
-     */
-    /* private spawnPiece(pieceId?: PieceId) {
-        let spawnSuccessful = false;
-
-        for (let spawnAttempt = 0; spawnAttempt < this.spawnRetries; spawnAttempt++) {
-            const spawnArgs: Parameters<typeof this.pieceFactory.makePiece> = [
-                this.getIntervalManager(),
-                this.getControllerPortManager(),
-                [this.spawnCoordinates[0], this.spawnCoordinates[1] + spawnAttempt],
-                this.matrix,
-                pieceId,
-            ];
-
-            const spawnedPiece = this.pieceFactory.makePiece(...spawnArgs);
-            // TODO: Need to make this conditional if the ghost piece is turned off
-
-            const pieceForGhost = this.pieceFactory.makePiece(...spawnArgs);
-
-            if (spawnedPiece) {
-                // Does the spawned piece overlap with any blocks in the matrix?
-                const pieceDoesNotOverlap = spawnedPiece.getBlocksCoordinates().reduce(
-                    (noOverlap, blockCoordinates) =>
-                        // active piece should always have coordinates
-                        !!blockCoordinates && noOverlap && !this.matrix.hasBlockAt(blockCoordinates),
-                    true
-                );
-
-                // Set the active piece regardless of overlap
-                this.activePiece = spawnedPiece;
-
-                // Reset certain parameters when piece is spawned
-                this.resetGroundedState();
-                this.triggerGroundedCheck();
-
-                // if it doesn't overlap, spawn successful
-                if (pieceDoesNotOverlap) {
-                    if (pieceForGhost) {
-                        this.ghostPiece = new GhostPiece(pieceForGhost);
-                    }
-                    this.matrix.setActivePiece(spawnedPiece, this.ghostPiece);
-                    this.ghostPiece?.updateCoordinates(this.getGhostPieceCoordinates());
-                    spawnSuccessful = true;
-                    break;
-                }
-            }
-        }
-
-        return spawnSuccessful;
-    } */
 
     /**
      * Get the coordinates of where the ghost piece will be.
@@ -350,7 +285,6 @@ export class Game extends GroupEntity implements IControllable {
 
             // only nullify active piece once all logic above is completed
             this.resetLockDelay();
-            this.holdQueue.resetCanHold();
             this.activePiece = null;
         }
     }
@@ -483,9 +417,9 @@ export class Game extends GroupEntity implements IControllable {
     togglePause() {
         this.gamePaused = !this.gamePaused;
         if (this.gamePaused) {
-            this.pauseAllIntervals();
+            this.contexts.intervalContext?.pauseAllIntervals();
         } else {
-            this.resumeAllIntervals();
+            this.contexts.intervalContext?.resumeAllIntervals();
         }
     }
 
@@ -529,7 +463,7 @@ export class Game extends GroupEntity implements IControllable {
                 }
                 case Button.L_TRIGGER_F: {
                     if (button.frames === 1) {
-                        this.hold();
+                        this.pieceSpawner.hold(this.matrix);
                     }
                     break;
                 }
@@ -568,7 +502,7 @@ export class Game extends GroupEntity implements IControllable {
 
     triggerGameOver(code?: GameOverCode) {
         this.gameOver = true;
-        this.unregisterAllIntervals();
+        this.contexts.intervalContext?.unregisterAllIntervals();
         // Debugging feature
         console.log("Game over:", code);
     }
@@ -627,6 +561,61 @@ export class Game extends GroupEntity implements IControllable {
 
     // ! Debug only
     getControllerContext() {
-        return this.controllerContext;
+        return this.contexts.controllerContext;
     }
+
+    /**
+     * Spawn a piece with the given piece id at the spawn coordinates.
+     * If it is unable to spawn the piece at that location, it will try spawning it
+     * one block above the previous attempt up to `this.spawnRetries` times. If spawning the piece
+     * was successful, returns `true`, `false` otherwise.
+     */
+    /* private spawnPiece(pieceId?: PieceId) {
+        let spawnSuccessful = false;
+
+        for (let spawnAttempt = 0; spawnAttempt < this.spawnRetries; spawnAttempt++) {
+            const spawnArgs: Parameters<typeof this.pieceFactory.makePiece> = [
+                this.getIntervalManager(),
+                this.getControllerPortManager(),
+                [this.spawnCoordinates[0], this.spawnCoordinates[1] + spawnAttempt],
+                this.matrix,
+                pieceId,
+            ];
+
+            const spawnedPiece = this.pieceFactory.makePiece(...spawnArgs);
+            // TODO: Need to make this conditional if the ghost piece is turned off
+
+            const pieceForGhost = this.pieceFactory.makePiece(...spawnArgs);
+
+            if (spawnedPiece) {
+                // Does the spawned piece overlap with any blocks in the matrix?
+                const pieceDoesNotOverlap = spawnedPiece.getBlocksCoordinates().reduce(
+                    (noOverlap, blockCoordinates) =>
+                        // active piece should always have coordinates
+                        !!blockCoordinates && noOverlap && !this.matrix.hasBlockAt(blockCoordinates),
+                    true
+                );
+
+                // Set the active piece regardless of overlap
+                this.activePiece = spawnedPiece;
+
+                // Reset certain parameters when piece is spawned
+                this.resetGroundedState();
+                this.triggerGroundedCheck();
+
+                // if it doesn't overlap, spawn successful
+                if (pieceDoesNotOverlap) {
+                    if (pieceForGhost) {
+                        this.ghostPiece = new GhostPiece(pieceForGhost);
+                    }
+                    this.matrix.setActivePiece(spawnedPiece, this.ghostPiece);
+                    this.ghostPiece?.updateCoordinates(this.getGhostPieceCoordinates());
+                    spawnSuccessful = true;
+                    break;
+                }
+            }
+        }
+
+        return spawnSuccessful;
+    } */
 }

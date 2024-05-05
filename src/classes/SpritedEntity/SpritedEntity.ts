@@ -1,13 +1,11 @@
 import { getRectangleCoords } from "@utils/getRectangleCoords";
 import { DrawBuffers, SpriteSheetDetails } from "src/shaders/types";
-import { DrawableEntity } from "@classes/DrawableEntity";
 import { Tuple } from "src/types";
 import { TextureManager } from "@classes/TextureManager";
 import { SpriteSheetLoader } from "@classes/ShaderProgram/SpriteSheetLoader/renderer";
 import { TextureKey } from "@data/TextureKey";
 import { TexturedEntity } from "@classes/TexturedEntity";
-import { ControllerPortManager } from "@classes/ControllerPortManager";
-import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
+import { Contexts } from "@classes/Entity";
 
 /* interface AnimationFrame {
     name: string;
@@ -40,16 +38,11 @@ export abstract class SpritedEntity extends TexturedEntity {
 
     private activeSpriteQuadCoords: Tuple<number, 12> | null = null;
 
-    // TODO: want to add support for multiple kernels
-    private imageKernel: Tuple<number, 9> = SpritedEntity.defaultImageKernel;
-
     /* protected animationCycles: Record<string, number[]> = {};
 
     protected animation: SpriteAnimation | null = {}; */
 
     constructor(
-        intervalManager: IntervalManager,
-        controllerPortManager: ControllerPortManager,
         {
             position,
             scale,
@@ -60,9 +53,10 @@ export abstract class SpritedEntity extends TexturedEntity {
             scale: [x: number, y: number];
             rotation: number;
             spriteSheetDatas: SpriteSheetDetails[];
-        }> = {}
+        }> = {},
+        contexts: Contexts = {}
     ) {
-        super(intervalManager, controllerPortManager, { position, scale, rotation });
+        super({ position, scale, rotation }, contexts);
         spriteSheetDatas.forEach((sheet) => this.registerSpriteSheetData(sheet));
     }
 
@@ -199,13 +193,5 @@ export abstract class SpritedEntity extends TexturedEntity {
         }
 
         return drawBuffers;
-    }
-
-    setImageKernel(kernel: Tuple<number, 9>) {
-        this.imageKernel = kernel;
-    }
-
-    resetImageKernel() {
-        this.imageKernel = SpritedEntity.defaultImageKernel;
     }
 }

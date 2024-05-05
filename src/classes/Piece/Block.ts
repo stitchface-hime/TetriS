@@ -1,12 +1,10 @@
 import { Matrix } from "@classes/Matrix";
-import { Piece } from "./Piece";
 import { Connection } from "@data/Connection";
 import { SpriteSheets } from "@data/SpriteSheets";
 import { SpritedEntity } from "@classes/SpritedEntity";
-import { ControllerPortManager } from "@classes/ControllerPortManager";
-import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
 import { hexToHsv } from "@utils/hexToHsv";
 import { HexString } from "src/shaders/types";
+import { Contexts } from "@classes/Entity";
 
 /**
  * A block is a single unit that takes up one cell in the matrix.
@@ -32,15 +30,8 @@ export class Block extends SpritedEntity {
      */
     private connections: number;
 
-    constructor(
-        intervalManager: IntervalManager,
-        controllerPortManager: ControllerPortManager,
-        activeCoordinates: [x: number, y: number],
-        matrix: Matrix,
-        color: HexString = "#ffffff",
-        coupledBlocks: Block[] = []
-    ) {
-        super(intervalManager, controllerPortManager, { spriteSheetDatas: [SpriteSheets.SPR_MINO_STD] });
+    constructor(activeCoordinates: [x: number, y: number], matrix: Matrix, color: HexString = "#ffffff", coupledBlocks: Block[] = []) {
+        super({ spriteSheetDatas: [SpriteSheets.SPR_MINO_STD] });
         this.setActiveSpriteSheetData(SpriteSheets.SPR_MINO_STD.id);
 
         this.activeCoordinates = activeCoordinates;
