@@ -40,7 +40,7 @@ export class PieceSpawner extends GroupEntity {
                 const pieceDoesNotOverlap = spawnedPiece.getBlocksCoordinates().reduce(
                     (noOverlap, blockCoordinates) =>
                         // active piece should always have coordinates
-                        !!blockCoordinates && noOverlap && matrix.hasBlockAt(blockCoordinates),
+                        !!blockCoordinates && noOverlap && !matrix.hasBlockAt(blockCoordinates),
                     true
                 );
 
@@ -73,10 +73,7 @@ export class PieceSpawner extends GroupEntity {
      */
     spawnNextPiece(matrix: Matrix, fromHold = false) {
         const nextPiece = this.spawnPiece(matrix, this.nextQueue.shiftNext(), fromHold);
-        /* this.resetAutoDrop();
-        // If gravity xG > 1G drop immediately x units when piece spawns
 
-        this.initAutoDrop(); */
         return nextPiece;
     }
 

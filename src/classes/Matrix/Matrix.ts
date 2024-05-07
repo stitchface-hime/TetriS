@@ -13,17 +13,8 @@ export class Matrix extends GroupEntity {
     private numVisibleRows: number;
     private numColumns: number;
 
-    private activePiece: Piece | null = null;
+    private _activePiece: Piece | null = null;
     private ghostPiece: GhostPiece | null = null;
-
-    /**
-     * The play area of the game. This is the area in the scene
-     * where gridlines will be rendered.
-     */
-    private playArea: { width: number; height: number } = {
-        width: 0,
-        height: 0,
-    };
 
     private background: MatrixBackground;
 
@@ -56,6 +47,14 @@ export class Matrix extends GroupEntity {
         this.addDrawable(this.background);
 
         this.background.setParent(this);
+    }
+
+    get activePiece() {
+        return this._activePiece;
+    }
+
+    set activePiece(piece: Piece | null) {
+        this._activePiece = piece;
     }
 
     /**

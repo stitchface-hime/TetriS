@@ -17,6 +17,7 @@ import { DropType } from "@classes/ScoreJudge/ScoreJudge.helpers";
 import { PieceSpawner } from "@classes/PieceSpawner/PieceSpawner";
 import { IControllable } from "src/interfaces/IControllable";
 import { Contexts } from "@classes/Entity";
+import { ControllerPortKey } from "@classes/ControllerPortManager/types";
 
 export class Game extends GroupEntity implements IControllable {
     private numRows: number;
@@ -67,6 +68,7 @@ export class Game extends GroupEntity implements IControllable {
         level = 1
     ) {
         super(contexts);
+        this.contexts.controllerContext?.subscribeToPort(ControllerPortKey.PORT_0);
         this.numRows = numRows;
         this.progressionJudge = new ProgressionJudge(level, this.onLevelUpdate);
         this.progressionJudge.setLinesQuotaTarget(10);
@@ -106,13 +108,24 @@ export class Game extends GroupEntity implements IControllable {
         this.contexts.intervalContext?.unregisterInterval(GameIntervalKeys.RUN);
     }
 
+    spawnPieceReset() {
+        this.resetGroundedState();
+        this.triggerGroundedCheck();
+
+        this.resetAutoDrop();
+        this.initAutoDrop();
+    }
+
     /**
      * Ticks the game and decides what happens in the given frame.
      */
     async tick() {
         if (this.gameOver || this.activePiece) return;
         const spawnSuccessful = this.pieceSpawner.spawnNextPiece(this.matrix);
-        console.log("Spawned piece");
+        this.activePiece = this.matrix.activePiece;
+
+        console.log("Spawned piece?");
+        this.spawnPieceReset();
         if (spawnSuccessful) return;
         this.triggerGameOver(GameOverCode.BLOCK_OUT);
     }
@@ -464,6 +477,8 @@ export class Game extends GroupEntity implements IControllable {
                 case Button.L_TRIGGER_F: {
                     if (button.frames === 1) {
                         this.pieceSpawner.hold(this.matrix);
+                        this.activePiece = this.matrix.activePiece;
+                        this.spawnPieceReset();
                     }
                     break;
                 }
