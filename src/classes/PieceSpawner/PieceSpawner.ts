@@ -14,13 +14,15 @@ export class PieceSpawner extends GroupEntity {
 
     private spawnCoordinates: [x: number, y: number];
     private spawnRetries = 2;
-    private activePiece: Piece | null = null;
 
-    constructor(pieceQueue: PieceQueue, spawnCoordinates: [x: number, y: number]) {
+    private useGhost: boolean;
+
+    constructor(pieceQueue: PieceQueue, spawnCoordinates: [x: number, y: number], useGhost = true) {
         super();
         this.spawnCoordinates = spawnCoordinates;
         this.nextQueue = pieceQueue;
         this.holdQueue = new HoldQueue();
+        this.useGhost = useGhost;
     }
 
     spawnPiece(matrix: Matrix, pieceId?: PieceId, fromHold = false) {
@@ -44,16 +46,12 @@ export class PieceSpawner extends GroupEntity {
                     true
                 );
 
-                // Set the active piece regardless of overlap
-                this.activePiece = spawnedPiece;
-
-                // Reset certain parameters when piece is spawned
-                /* this.resetGroundedState();
-                this.triggerGroundedCheck(); */
-
                 // if it doesn't overlap, spawn successful
                 if (pieceDoesNotOverlap) {
-                    matrix.setActivePiece(spawnedPiece);
+                    if (this.useGhost) {
+                        spawnedPiece.ghost = this.spawnGhostPiece(matrix, pieceId);
+                    }
+                    matrix.activePiece = spawnedPiece;
                     spawnSuccessful = true;
                     break;
                 }
@@ -63,8 +61,14 @@ export class PieceSpawner extends GroupEntity {
         if (!fromHold) {
             this.holdQueue.canHold = true;
         }
-
         return spawnSuccessful;
+    }
+
+    private spawnGhostPiece(matrix: Matrix, pieceId?: PieceId) {
+        const ghostPiece = this.pieceFactory.makePiece([this.spawnCoordinates[0], this.spawnCoordinates[1]], matrix, pieceId);
+        ghostPiece?.setSaturationModifier(0.3);
+
+        return ghostPiece;
     }
 
     /**
@@ -86,12 +90,12 @@ export class PieceSpawner extends GroupEntity {
 
     hold(matrix: Matrix) {
         const currentHoldPieceId = this.holdQueue.holdPieceId;
-        if (this.activePiece !== null) {
-            const activePieceId = this.activePiece.getId();
+        if (matrix.activePiece !== null) {
+            const activePieceId = matrix.activePiece.getId();
             if (activePieceId !== null) {
                 const holdSuccess = this.holdQueue.hold(activePieceId);
                 if (holdSuccess) {
-                    matrix.unsetActivePiece();
+                    matrix.activePiece = null;
                     if (currentHoldPieceId === null) {
                         // when hold piece is null, hold current piece and spawn a new piece
                         this.spawnNextPiece(matrix, true);

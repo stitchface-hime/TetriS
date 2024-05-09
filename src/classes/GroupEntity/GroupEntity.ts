@@ -19,13 +19,20 @@ export abstract class GroupEntity extends DrawableEntity {
     private addEntity<E extends Entity>(subgroup: E[], entity: E) {
         if (!subgroup.includes(entity)) {
             subgroup.push(entity);
+            entity.parent = this;
         }
     }
 
+    /**
+     * Adds entity to the end of the list of passives and parents it to this group entity.
+     */
     addPassive(entity: Entity) {
         this.addEntity(this.passives, entity);
     }
 
+    /**
+     * Adds entity to the end of list of drawables and parents it to this group entity.
+     */
     addDrawable(entity: DrawableEntity) {
         this.addEntity(this.drawables, entity);
     }
@@ -36,10 +43,16 @@ export abstract class GroupEntity extends DrawableEntity {
         });
     }
 
+    /**
+     * Adds multiple entities to the end of list of passives and parents it to this group entity.
+     */
     addPassives(entities: Entity[]) {
         this.addEntities(this.passives, entities);
     }
 
+    /**
+     * Adds multiple entities to the end of list of passives and parents it to this group entity.
+     */
     addDrawables(entities: DrawableEntity[]) {
         this.addEntities(this.drawables, entities);
     }
@@ -50,12 +63,20 @@ export abstract class GroupEntity extends DrawableEntity {
         if (index !== -1) {
             return subgroup.splice(index, 1)[0];
         }
+
+        entity.parent = null;
     }
 
+    /**
+     * Removes entity from the list of passives and unparents it from this group entity.
+     */
     removePassive(entity: Entity) {
         this.removeEntity(this.passives, entity);
     }
 
+    /**
+     * Removes entity from the list of drawables and unparents it from this group entity.
+     */
     removeDrawable(entity: DrawableEntity) {
         this.removeEntity(this.drawables, entity);
     }
@@ -66,10 +87,16 @@ export abstract class GroupEntity extends DrawableEntity {
         });
     }
 
+    /**
+     * Removes multiple entities from the list of passives and unparents them all from this group entity.
+     */
     removePassives(entities: Entity[]) {
         this.removeEntities(this.passives, entities);
     }
 
+    /**
+     * Removes multiple entities from the list of drawables and unparents them all from this group entity.
+     */
     removeDrawables(entities: DrawableEntity[]) {
         this.removeEntities(this.drawables, entities);
     }

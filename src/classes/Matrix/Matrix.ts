@@ -1,5 +1,4 @@
 import { Game } from "@classes/Game";
-import { GhostPiece } from "@classes/GhostPiece";
 import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
 import { MatrixBackground } from "@classes/MatrixBackground/MatrixBackground";
 import { Block, Piece } from "@classes/Piece";
@@ -14,7 +13,6 @@ export class Matrix extends GroupEntity {
     private numColumns: number;
 
     private _activePiece: Piece | null = null;
-    private ghostPiece: GhostPiece | null = null;
 
     private background: MatrixBackground;
 
@@ -36,7 +34,7 @@ export class Matrix extends GroupEntity {
         ];
 
         this.setDefaultDimensions([this.visibleDimensions[0], warnIfNotInteger((NATIVE_RESOLUTION_H + this.visibleDimensions[1]) * 0.5)]);
-        this.setParent(game);
+        this.parent = game;
         this.setRelativePosition([
             warnIfNotInteger((NATIVE_RESOLUTION_W - this.getDimensions()[0]) * 0.5),
             warnIfNotInteger(NATIVE_RESOLUTION_H - this.getDimensions()[1]),
@@ -46,7 +44,7 @@ export class Matrix extends GroupEntity {
         this.background = new MatrixBackground(this);
         this.addDrawable(this.background);
 
-        this.background.setParent(this);
+        this.background.parent = this;
     }
 
     get activePiece() {
@@ -54,6 +52,13 @@ export class Matrix extends GroupEntity {
     }
 
     set activePiece(piece: Piece | null) {
+        if (piece !== null) {
+            this.addDrawable(piece);
+        } else {
+            if (this.activePiece === null) return;
+            this.activePiece.destroy();
+            this.removeDrawable(this.activePiece);
+        }
         this._activePiece = piece;
     }
 
@@ -114,41 +119,6 @@ export class Matrix extends GroupEntity {
      */
     getBlocks(): ReadonlyArray<Block> {
         return this.blocks;
-    }
-
-    /**
-     * Sets the active piece within the matrix and sets the corresponding ghost piece, if not null.
-     */
-    setActivePiece(piece: Piece, ghostPiece: GhostPiece | null = null) {
-        if (ghostPiece) {
-            this.ghostPiece = ghostPiece;
-            const ghostBlocks = ghostPiece.getBlocks();
-
-            if (ghostBlocks) {
-                this.addDrawables(ghostBlocks);
-            }
-        }
-
-        this.activePiece = piece;
-        this.addDrawables(piece.getBlocks());
-    }
-
-    /**
-     * Unsets the active piece within the matrix.
-     */
-    unsetActivePiece() {
-        if (this.activePiece) {
-            this.removeDrawables(this.activePiece.getBlocks());
-            this.activePiece = null;
-        }
-
-        if (this.ghostPiece) {
-            const ghostBlocks = this.ghostPiece.getBlocks();
-            if (ghostBlocks) {
-                this.removeDrawables(ghostBlocks);
-            }
-            this.ghostPiece = null;
-        }
     }
 
     /**
@@ -270,21 +240,11 @@ export class Matrix extends GroupEntity {
 
     /**
      * Locks the active piece and blocks will become part of the matrix.
+     * Note that this does not unset the active piece, this will need to be done separately.
      */
     lockActivePiece() {
-        if (this.activePiece) {
-            this.addBlocks(this.activePiece.getBlocks());
-
-            if (this.ghostPiece) {
-                const ghostBlocks = this.ghostPiece.getBlocks();
-                if (ghostBlocks) {
-                    this.removeDrawables(ghostBlocks);
-                }
-                this.ghostPiece = null;
-            }
-        }
-
-        this.activePiece = null;
+        if (!this.activePiece) return;
+        this.addBlocks(this.activePiece.blocks);
     }
     // Debug methods (do not use in production)
 
@@ -359,7 +319,7 @@ export class Matrix extends GroupEntity {
 
         const numRowsToPrint = showNonVisibleArea ? this.numRows : this.numVisibleRows;
 
-        const activePieceCoordinates = [...(this.activePiece ? this.activePiece.getBlocks().map((block) => block.getActiveCoordinates()) : [])];
+        const activePieceCoordinates = [...(this.activePiece ? this.activePiece.blocks.map((block) => block.getActiveCoordinates()) : [])];
 
         // reverse() reverses in-place
         const gridCopy = [...matrixArrays.slice(0, numRowsToPrint)];

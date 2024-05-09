@@ -26,7 +26,6 @@ export type TetrominoRotationPositionAdjustMap = [
  * A tetromino is a piece that contains four blocks.
  */
 export abstract class Tetromino extends Piece {
-    protected override blocks: Tuple<Block, 4>;
     protected override readonly clockwiseRotationMap: TetrominoRotationPositionAdjustMap;
     protected override readonly antiClockwiseRotationMap: TetrominoRotationPositionAdjustMap;
 
@@ -43,12 +42,7 @@ export abstract class Tetromino extends Piece {
 
         super(matrix, blocks, clockwiseRotationMap, antiClockwiseRotationMap, clockwiseWallKickOffsetData, antiClockwiseWallKickOffsetData);
 
-        this.blocks = blocks;
         this.clockwiseRotationMap = clockwiseRotationMap;
         this.antiClockwiseRotationMap = antiClockwiseRotationMap;
-    }
-
-    getBlocks(): Tuple<Block, 4> {
-        return this.blocks;
     }
 }

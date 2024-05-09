@@ -16,7 +16,7 @@ export class MatrixBackground extends TexturedEntity {
         super();
         this.setDefaultDimensions(matrix.getDimensions());
 
-        this.setParent(matrix);
+        this.parent = matrix;
         this.matrix = matrix;
 
         this.setRelativePosition([0, 0]);

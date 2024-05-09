@@ -24,9 +24,6 @@ export class Game extends GroupEntity implements IControllable {
 
     private matrix: Matrix;
 
-    private activePiece: Piece | null = null;
-    private ghostPiece: GhostPiece | null = null;
-
     private lockDelayFrameLimit = 30;
     private lockDelayFrames = 0;
 
@@ -120,21 +117,19 @@ export class Game extends GroupEntity implements IControllable {
      * Ticks the game and decides what happens in the given frame.
      */
     async tick() {
-        if (this.gameOver || this.activePiece) return;
+        if (this.gameOver || this.matrix.activePiece) return;
         const spawnSuccessful = this.pieceSpawner.spawnNextPiece(this.matrix);
-        this.activePiece = this.matrix.activePiece;
 
-        console.log("Spawned piece?");
         this.spawnPieceReset();
         if (spawnSuccessful) return;
         this.triggerGameOver(GameOverCode.BLOCK_OUT);
     }
 
     private resetGroundedState() {
-        if (this.activePiece) {
+        if (this.matrix.activePiece) {
             this.hasGrounded = false;
             this.groundedMoves = 0;
-            this.lowestGroundedRow = this.activePiece?.getBottomBoundRow();
+            this.lowestGroundedRow = this.matrix.activePiece?.getBottomBoundRow();
         }
     }
 
@@ -142,19 +137,19 @@ export class Game extends GroupEntity implements IControllable {
      * Triggers when the active piece has grounded
      */
     private triggerGroundedCheck(wasRotationMove = false) {
-        if (this.activePiece) {
-            const lowestRowOccupiedByActivePiece = this.activePiece.getBottomBoundRow();
+        if (this.matrix.activePiece) {
+            const lowestRowOccupiedByActivePiece = this.matrix.activePiece.getBottomBoundRow();
 
             // Begin lock delay flow as soon as piece cannot move downwards
             // and reset the number of moves the player can move
             // if the piece has grounded on a row that is lower than any row
             // it grounded on previously
-            if (!this.activePiece?.canMoveDownTogether(1)) {
+            if (!this.matrix.activePiece?.canMoveDownTogether(1)) {
                 if (this.lowestGroundedRow > lowestRowOccupiedByActivePiece) {
-                    this.lowestGroundedRow = this.activePiece?.getBottomBoundRow();
+                    this.lowestGroundedRow = this.matrix.activePiece?.getBottomBoundRow();
                     // If the piece was not grounded by rotation or
                     // the piece was grounded via rotation but it has
-                    // not been grounded before reset the number of available
+                    // not been grounded before, reset the number of available
                     // grounded moves
                     if (!(wasRotationMove && this.hasGrounded)) {
                         this.groundedMoves = 0;
@@ -164,7 +159,7 @@ export class Game extends GroupEntity implements IControllable {
                 this.autoLockFlow();
             }
 
-            if (this.groundedMoves >= this.groundedMoveLimit && !this.activePiece.canMoveDownTogether(1)) {
+            if (this.groundedMoves >= this.groundedMoveLimit && !this.matrix.activePiece.canMoveDownTogether(1)) {
                 this.lockPiece();
             }
         }
@@ -215,7 +210,7 @@ export class Game extends GroupEntity implements IControllable {
     }
 
     private autoDropPiece(units = 1) {
-        const unitsMoved = this.activePiece?.moveDown(units);
+        const unitsMoved = this.matrix.activePiece?.moveDown(units);
 
         // soft drop scoring
         if (this.softDropEnabled && unitsMoved !== undefined) {
@@ -254,33 +249,13 @@ export class Game extends GroupEntity implements IControllable {
     }
 
     /**
-     * Get the coordinates of where the ghost piece will be.
-     */
-    getGhostPieceCoordinates(): [x: number, y: number][] {
-        if (this.activePiece) {
-            const activePieceCoordinates = this.activePiece.getBlocksCoordinates();
-
-            const hardDropUnits = this.activePiece.getHardDropUnits();
-
-            return activePieceCoordinates.map((coordinates) => {
-                // active piece should always have coordinates
-                if (this.activePiece && coordinates) {
-                    return [coordinates[0], coordinates[1] - hardDropUnits];
-                }
-                return coordinates;
-            });
-        }
-        return [];
-    }
-
-    /**
      * Locks the active piece and takes it out of play. Also clears any lines.
      * Piece will not lock if there is still space underneath
      * (this behaviour can be ignored).
      */
     private lockPiece(ignoreMoveCheck = false) {
-        if (!this.activePiece?.canMoveDownTogether(1) || ignoreMoveCheck) {
-            const prevMoveTechnical = this.activePiece?.getPrevMoveTechnical() || null;
+        if (!this.matrix.activePiece?.canMoveDownTogether(1) || ignoreMoveCheck) {
+            const prevMoveTechnical = this.matrix.activePiece?.getPrevMoveTechnical() || null;
 
             this.matrix.lockActivePiece();
 
@@ -297,8 +272,8 @@ export class Game extends GroupEntity implements IControllable {
             this.progressionJudge.addLinesCleared(linesCleared);
 
             // only nullify active piece once all logic above is completed
+            this.matrix.activePiece = null;
             this.resetLockDelay();
-            this.activePiece = null;
         }
     }
 
@@ -315,7 +290,7 @@ export class Game extends GroupEntity implements IControllable {
      */
     // This may be duplicate
     private getActivePieceLowestRow() {
-        if (this.activePiece?.getBottomBoundRow) {
+        if (this.matrix.activePiece) {
             return Math.min(...this.getRowsOccupiedByActivePiece());
         }
         // TODO:
@@ -345,6 +320,7 @@ export class Game extends GroupEntity implements IControllable {
      * Returns which rows have lines that can be cleared.
      * The array of rows must be returned in descending order.
      */
+    // TODO: This overly reliant on matrix maybe move to Matrix instead
     private checkLineClears() {
         return Array.from(new Set(this.getRowsOccupiedByActivePiece()))
             .filter((row) => this.matrix.rowFormsLine(row))
@@ -354,9 +330,10 @@ export class Game extends GroupEntity implements IControllable {
     /**
      * Determines the rows which are occupied by the current piece.
      */
+    // TODO: This overly reliant on matrix maybe move to Matrix instead
     private getRowsOccupiedByActivePiece() {
-        if (this.activePiece) {
-            return this.activePiece.getBlocksCoordinates().map((coordinates) => {
+        if (this.matrix.activePiece) {
+            return this.matrix.activePiece.getBlocksCoordinates().map((coordinates) => {
                 if (coordinates) {
                     return coordinates[1];
                 }
@@ -369,7 +346,6 @@ export class Game extends GroupEntity implements IControllable {
     /* Controller methods */
     private controlledMoveFlow(wasRotationMove = false) {
         this.resetLockDelay();
-        this.ghostPiece?.updateCoordinates(this.getGhostPieceCoordinates());
         if (this.hasGrounded) {
             this.groundedMoves += 1;
             console.log("Moves left before lock:", this.groundedMoveLimit - this.groundedMoves);
@@ -378,25 +354,25 @@ export class Game extends GroupEntity implements IControllable {
     }
 
     moveLeft() {
-        if (this.activePiece?.moveLeft()) {
+        if (this.matrix.activePiece?.moveLeft()) {
             this.controlledMoveFlow();
         }
     }
 
     moveRight() {
-        if (this.activePiece?.moveRight()) {
+        if (this.matrix.activePiece?.moveRight()) {
             this.controlledMoveFlow();
         }
     }
 
     rotateClockwise() {
-        if (this.activePiece?.rotateClockwise()) {
+        if (this.matrix.activePiece?.rotateClockwise()) {
             this.controlledMoveFlow(true);
         }
     }
 
     rotateAntiClockwise() {
-        if (this.activePiece?.rotateAntiClockwise()) {
+        if (this.matrix.activePiece?.rotateAntiClockwise()) {
             this.controlledMoveFlow(true);
         }
     }
@@ -418,7 +394,7 @@ export class Game extends GroupEntity implements IControllable {
     }
 
     hardDrop() {
-        const unitsMoved = this.activePiece?.moveDown(this.activePiece.getHardDropUnits());
+        const unitsMoved = this.matrix.activePiece?.moveDown(this.matrix.activePiece.getHardDropUnits());
 
         if (unitsMoved !== undefined) {
             this.scoreJudge.addScoreByDrop(unitsMoved, DropType.HARD);
@@ -477,7 +453,6 @@ export class Game extends GroupEntity implements IControllable {
                 case Button.L_TRIGGER_F: {
                     if (button.frames === 1) {
                         this.pieceSpawner.hold(this.matrix);
-                        this.activePiece = this.matrix.activePiece;
                         this.spawnPieceReset();
                     }
                     break;
@@ -533,32 +508,6 @@ export class Game extends GroupEntity implements IControllable {
         };
     }
 
-    // Game methods
-    getActivePiece() {
-        return this.activePiece;
-    }
-
-    // Matrix methods
-
-    /**
-     * Returns the grid of the matrix. (Readonly)
-     */
-    getMatrixGrid() {
-        return this.matrix.matrixToArrays();
-    }
-
-    /**
-     * Gets the number of visible rows in the matrix which does NOT include those above the normal field of play.
-     */
-    getNumVisibleRows() {
-        return this.matrix.getNumVisibleRows();
-    }
-
-    // ! Debug only
-    getMatrix() {
-        return this.matrix;
-    }
-
     // ! Debug only
     /**
      * Returns some stats about the game.
@@ -578,59 +527,4 @@ export class Game extends GroupEntity implements IControllable {
     getControllerContext() {
         return this.contexts.controllerContext;
     }
-
-    /**
-     * Spawn a piece with the given piece id at the spawn coordinates.
-     * If it is unable to spawn the piece at that location, it will try spawning it
-     * one block above the previous attempt up to `this.spawnRetries` times. If spawning the piece
-     * was successful, returns `true`, `false` otherwise.
-     */
-    /* private spawnPiece(pieceId?: PieceId) {
-        let spawnSuccessful = false;
-
-        for (let spawnAttempt = 0; spawnAttempt < this.spawnRetries; spawnAttempt++) {
-            const spawnArgs: Parameters<typeof this.pieceFactory.makePiece> = [
-                this.getIntervalManager(),
-                this.getControllerPortManager(),
-                [this.spawnCoordinates[0], this.spawnCoordinates[1] + spawnAttempt],
-                this.matrix,
-                pieceId,
-            ];
-
-            const spawnedPiece = this.pieceFactory.makePiece(...spawnArgs);
-            // TODO: Need to make this conditional if the ghost piece is turned off
-
-            const pieceForGhost = this.pieceFactory.makePiece(...spawnArgs);
-
-            if (spawnedPiece) {
-                // Does the spawned piece overlap with any blocks in the matrix?
-                const pieceDoesNotOverlap = spawnedPiece.getBlocksCoordinates().reduce(
-                    (noOverlap, blockCoordinates) =>
-                        // active piece should always have coordinates
-                        !!blockCoordinates && noOverlap && !this.matrix.hasBlockAt(blockCoordinates),
-                    true
-                );
-
-                // Set the active piece regardless of overlap
-                this.activePiece = spawnedPiece;
-
-                // Reset certain parameters when piece is spawned
-                this.resetGroundedState();
-                this.triggerGroundedCheck();
-
-                // if it doesn't overlap, spawn successful
-                if (pieceDoesNotOverlap) {
-                    if (pieceForGhost) {
-                        this.ghostPiece = new GhostPiece(pieceForGhost);
-                    }
-                    this.matrix.setActivePiece(spawnedPiece, this.ghostPiece);
-                    this.ghostPiece?.updateCoordinates(this.getGhostPieceCoordinates());
-                    spawnSuccessful = true;
-                    break;
-                }
-            }
-        }
-
-        return spawnSuccessful;
-    } */
 }

@@ -74,14 +74,18 @@ export abstract class DrawableEntity extends Entity {
         if (rotation !== undefined) this.rotation = rotation || this.rotation;
     }
 
-    setParent(parent: GroupEntity) {
-        this.parent = parent;
-        this.relativePosition = add2DVectorTuples(this.position, [-this.parent.position[0], -this.parent.position[1]]);
+    get parent() {
+        return this._parent;
     }
 
-    unsetParent() {
-        this.parent = null;
-        this.relativePosition = this.position;
+    /**
+     * Sets and unsets the parent of this drawable entity.
+     * If setting a parent, then the relative position of this entity will reflect its position relative to the parent.
+     * If unsetting parent, then the relative position of this entity will be this entity's current absolute position.
+     */
+    set parent(parent: GroupEntity | null) {
+        this.relativePosition = parent ? add2DVectorTuples(this.position, [-parent.position[0], -parent.position[1]]) : this.position;
+        this._parent = parent;
     }
 
     getDefaultDimensions() {

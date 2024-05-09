@@ -35,7 +35,7 @@ export class Block extends SpritedEntity {
         this.setActiveSpriteSheetData(SpriteSheets.SPR_MINO_STD.id);
 
         this.activeCoordinates = activeCoordinates;
-        this.setParent(matrix);
+        this.parent = matrix;
         this.matrix = matrix;
         this.color = color;
 

@@ -10,9 +10,11 @@ import {
     type RotationPositionAdjustMap,
 } from "./Piece.types";
 import { isEqual2DVectorTuples } from "@utils/isEqual2DVectorTuples";
+import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
 
-export abstract class Piece {
-    protected blocks: Block[];
+export abstract class Piece extends GroupEntity {
+    protected _blocks: Block[];
+    protected _ghost: Piece | null = null;
     protected matrix: Matrix;
     /**
      * Should be between 0-3 inclusive as there are four possible rotations.
@@ -35,14 +37,46 @@ export abstract class Piece {
         clockwiseWallKickOffsetData: WallKickPositionOffsetTestData,
         antiClockwiseWallKickOffsetData: WallKickPositionOffsetTestData
     ) {
+        super();
+        this.parent = matrix;
+        this.setRelativePosition([0, 0]);
+
         this.matrix = matrix;
-        this.blocks = blocks;
+        this._blocks = blocks;
+        this.addDrawables(this.blocks);
 
         this.rotationState = 0;
         this.clockwiseRotationMap = clockwiseRotationMap;
         this.antiClockwiseRotationMap = antiClockwiseRotationMap;
         this.clockwiseWallKickOffsetData = clockwiseWallKickOffsetData;
         this.antiClockwiseWallKickOffsetData = antiClockwiseWallKickOffsetData;
+
+        this.addDrawables(this.blocks);
+    }
+
+    get blocks() {
+        return this._blocks;
+    }
+
+    private set blocks(blocks: Block[]) {
+        this._blocks = blocks;
+    }
+
+    get ghost() {
+        return this._ghost;
+    }
+
+    set ghost(piece: Piece | null) {
+        const currentGhost = this.ghost;
+        this._ghost = piece;
+
+        if (piece) {
+            this.addDrawable(piece);
+            this.updateGhost();
+        } else {
+            if (!currentGhost) return;
+            this.removeDrawable(currentGhost);
+        }
     }
 
     /**
@@ -127,6 +161,19 @@ export abstract class Piece {
     }
 
     /**
+     * Updates the ghost piece's coordinates.
+     * No effect if ghost piece is not used.
+     */
+    private updateGhost() {
+        const ghost = this.ghost;
+        if (!ghost) return;
+
+        const hardDropUnits = this.getHardDropUnits();
+        this.getBlocksCoordinates().forEach((coordinates, idx) => ghost.blocks[idx].setCoordinates([coordinates[0], coordinates[1] - hardDropUnits]));
+        ghost.updateAllBlocksConnections();
+    }
+
+    /**
      * Moves down a piece a certain number of units. If the number of units supplied
      * is greater than maximum possible movement it will move the maximum possible of units.
      * It returns the number of units moved.
@@ -169,6 +216,8 @@ export abstract class Piece {
             });
         }
 
+        this.updateGhost();
+
         return unitsToMove;
     }
 
@@ -191,6 +240,8 @@ export abstract class Piece {
                 block.moveRight(unitsToMove);
             });
         }
+
+        this.updateGhost();
 
         return unitsToMove;
     }
@@ -251,7 +302,7 @@ export abstract class Piece {
      * by translating the blocks in the piece.
      * @returns `true` if rotation successful, `false` otherwise
      */
-    private rotate(rotationStateAdjustMap: RotationPositionAdjustMap, wallKickOffsetTestData: WallKickPositionOffsetTestData): boolean {
+    private rotatePiece(rotationStateAdjustMap: RotationPositionAdjustMap, wallKickOffsetTestData: WallKickPositionOffsetTestData): boolean {
         const rotationStateAdjust = rotationStateAdjustMap[this.rotationState];
         const wallKickOffsetTest = wallKickOffsetTestData[this.rotationState];
 
@@ -303,10 +354,11 @@ export abstract class Piece {
      * @returns `true` if rotation successful, `false` otherwise
      */
     rotateClockwise(): boolean {
-        const rotationSuccess = this.rotate(this.clockwiseRotationMap, this.clockwiseWallKickOffsetData);
+        const rotationSuccess = this.rotatePiece(this.clockwiseRotationMap, this.clockwiseWallKickOffsetData);
 
         if (rotationSuccess) {
             this.incrementRotationState();
+            this.updateGhost();
         }
 
         return rotationSuccess;
@@ -318,22 +370,14 @@ export abstract class Piece {
      * @returns `true` if rotation successful, `false` otherwise
      */
     rotateAntiClockwise(): boolean {
-        const rotationSuccess = this.rotate(this.antiClockwiseRotationMap, this.antiClockwiseWallKickOffsetData);
+        const rotationSuccess = this.rotatePiece(this.antiClockwiseRotationMap, this.antiClockwiseWallKickOffsetData);
 
         if (rotationSuccess) {
             this.decrementRotationState();
+            this.updateGhost();
         }
 
         return rotationSuccess;
-    }
-
-    // Misc. methods
-
-    /**
-     * Returns the blocks that belong to this piece.
-     */
-    getBlocks() {
-        return this.blocks;
     }
 
     /**
@@ -341,5 +385,13 @@ export abstract class Piece {
      */
     getBlocksCoordinates() {
         return this.blocks.map((block) => block.getActiveCoordinates());
+    }
+
+    destroy() {
+        const ghost = this._ghost;
+        if (!ghost) return;
+
+        this.removeDrawable(ghost);
+        this._ghost = null;
     }
 }
