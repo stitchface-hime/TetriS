@@ -43,7 +43,7 @@ export abstract class Piece extends GroupEntity {
 
         this.matrix = matrix;
         this._blocks = blocks;
-        this.addDrawables(this.blocks);
+        this.drawables.push(...this.blocks);
 
         this.rotationState = 0;
         this.clockwiseRotationMap = clockwiseRotationMap;
@@ -51,7 +51,7 @@ export abstract class Piece extends GroupEntity {
         this.clockwiseWallKickOffsetData = clockwiseWallKickOffsetData;
         this.antiClockwiseWallKickOffsetData = antiClockwiseWallKickOffsetData;
 
-        this.addDrawables(this.blocks);
+        this.drawables.push(...this.blocks);
     }
 
     get blocks() {
@@ -71,11 +71,11 @@ export abstract class Piece extends GroupEntity {
         this._ghost = piece;
 
         if (piece) {
-            this.addDrawable(piece);
+            this.drawables.push(piece);
             this.updateGhost();
         } else {
             if (!currentGhost) return;
-            this.removeDrawable(currentGhost);
+            this.drawables.remove(currentGhost);
         }
     }
 
@@ -391,7 +391,7 @@ export abstract class Piece extends GroupEntity {
         const ghost = this._ghost;
         if (!ghost) return;
 
-        this.removeDrawable(ghost);
+        this.drawables.remove(ghost);
         this._ghost = null;
     }
 }

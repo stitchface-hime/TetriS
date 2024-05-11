@@ -42,7 +42,7 @@ export class Matrix extends GroupEntity {
 
         // Background for the matrix
         this.background = new MatrixBackground(this);
-        this.addDrawable(this.background);
+        this.drawables.push(this.background);
 
         this.background.parent = this;
     }
@@ -53,11 +53,11 @@ export class Matrix extends GroupEntity {
 
     set activePiece(piece: Piece | null) {
         if (piece !== null) {
-            this.addDrawable(piece);
+            this.drawables.push(piece);
         } else {
             if (this.activePiece === null) return;
             this.activePiece.destroy();
-            this.removeDrawable(this.activePiece);
+            this.drawables.remove(this.activePiece);
         }
         this._activePiece = piece;
     }
@@ -172,7 +172,7 @@ export class Matrix extends GroupEntity {
             const [block] = this.blocks.splice(blockIdx, 1);
 
             block.getCoupledBlocks().forEach((coupledBlock) => coupledBlock.unsetCoupledBlock(block));
-            this.removeDrawable(block);
+            this.drawables.remove(block);
 
             return block;
         } else {
@@ -228,7 +228,7 @@ export class Matrix extends GroupEntity {
         }
 
         this.blocks.push(block);
-        this.addDrawable(block);
+        this.drawables.push(block);
     }
 
     /**

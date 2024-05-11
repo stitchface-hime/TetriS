@@ -1,0 +1,1 @@
+export { EntityCollection } from "./EntityCollection";

@@ -72,7 +72,7 @@ export class Game extends GroupEntity implements IControllable {
 
         this.matrix = new Matrix(numRows, numColumns, this);
 
-        this.addDrawable(this.matrix);
+        this.drawables.push(this.matrix);
 
         const canvas = renderer.getWebGLRenderingContext().canvas as HTMLCanvasElement;
         this.setDefaultDimensions([canvas.clientWidth, canvas.clientHeight]);
@@ -311,7 +311,7 @@ export class Game extends GroupEntity implements IControllable {
      * Clears a line from the matrix at a given row.
      */
     private clearLine(row: number) {
-        this.removeDrawables(this.matrix.clearRows(row));
+        this.drawables.remove(...this.matrix.clearRows(row));
 
         this.matrix.shiftRowsDown(row, 1);
     }
