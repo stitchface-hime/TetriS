@@ -5,8 +5,7 @@ import { TextureManager } from "@classes/TextureManager";
 import { TextureKey } from "@data/TextureKey";
 import { getRectangleCoords } from "@utils/getRectangleCoords";
 import { TexturedEntity } from "@classes/TexturedEntity";
-import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
-import { ControllerPortManager } from "@classes/ControllerPortManager";
+import { Tuple } from "src/types";
 
 export class MatrixBackground extends TexturedEntity {
     static textureKey: TextureKey = "MATRIX_BG";
@@ -52,17 +51,19 @@ export class MatrixBackground extends TexturedEntity {
         }
     }
 
-    async getDrawBuffers(gl: WebGLRenderingContext, textureManager: TextureManager): Promise<DrawBuffers> {
+    async getDrawBuffers(gl: WebGLRenderingContext, textureManager: TextureManager, hsvaModBuffer: Tuple<number, 4>): Promise<DrawBuffers> {
         if (!textureManager.isLoaded(MatrixBackground.textureKey)) {
             await this.loadIntoTextureManager(gl, textureManager, MatrixBackground.textureKey);
         }
+
+        const sumHsvaMod = this.getHsvaModifier().map((component, idx) => component + hsvaModBuffer[idx]) as Tuple<number, 4>;
 
         return {
             positionBuffer: getRectangleCoords(...this.getPosition(), ...this.getDimensions()),
             textureCoordBuffer: getRectangleCoords(0, 0, 1, 1),
             textureKeyBuffer: [MatrixBackground.textureKey],
             hsvaModBuffer: Array(6)
-                .fill([...this.getColorModifier()])
+                .fill([...sumHsvaMod])
                 .flat(),
         };
     }

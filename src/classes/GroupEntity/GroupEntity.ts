@@ -2,6 +2,7 @@ import { DrawableEntity } from "@classes/DrawableEntity";
 import { Contexts, Entity } from "@classes/Entity";
 import { TextureManager } from "@classes/TextureManager";
 import { DrawBuffers } from "src/shaders/types";
+import { Tuple } from "src/types";
 
 /**
  * A group entity is an entity that consists of
@@ -101,7 +102,7 @@ export abstract class GroupEntity extends DrawableEntity {
         this.removeEntities(this.drawables, entities);
     }
 
-    async getDrawBuffers(gl: WebGLRenderingContext, textureManager: TextureManager): Promise<DrawBuffers> {
+    async getDrawBuffers(gl: WebGLRenderingContext, textureManager: TextureManager, hsvaModBuffer: Tuple<number, 4>): Promise<DrawBuffers> {
         const drawBuffers: DrawBuffers = {
             positionBuffer: [],
             textureCoordBuffer: [],
@@ -111,7 +112,9 @@ export abstract class GroupEntity extends DrawableEntity {
 
         await Promise.all(
             this.drawables.map(async (entity) => {
-                const entityBuffers = await entity.getDrawBuffers(gl, textureManager);
+                const sumHsvaMod = this.getHsvaModifier().map((component, idx) => component + hsvaModBuffer[idx]) as Tuple<number, 4>;
+
+                const entityBuffers = await entity.getDrawBuffers(gl, textureManager, sumHsvaMod);
 
                 drawBuffers.positionBuffer.push(...entityBuffers.positionBuffer);
                 drawBuffers.textureCoordBuffer.push(...entityBuffers.textureCoordBuffer);

@@ -66,7 +66,7 @@ export class PieceSpawner extends GroupEntity {
 
     private spawnGhostPiece(matrix: Matrix, pieceId?: PieceId) {
         const ghostPiece = this.pieceFactory.makePiece([this.spawnCoordinates[0], this.spawnCoordinates[1]], matrix, pieceId);
-        ghostPiece?.setSaturationModifier(0.3);
+        ghostPiece?.setSaturationModifier(-0.5);
 
         return ghostPiece;
     }

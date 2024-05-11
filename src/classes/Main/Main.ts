@@ -92,7 +92,7 @@ export class Main {
             this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
 
             // draw to main texture
-            const drawBuffers: DrawBuffers = await this.game.getDrawBuffers(this.gl, this.textureManager);
+            const drawBuffers: DrawBuffers = await this.game.getDrawBuffers(this.gl, this.textureManager, [0, 0, 0, 0]);
             await this.renderer?.draw(mainTexture, drawBuffers);
         }
     }

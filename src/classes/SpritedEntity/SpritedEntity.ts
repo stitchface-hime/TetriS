@@ -168,7 +168,7 @@ export abstract class SpritedEntity extends TexturedEntity {
         }
     }
 
-    async getDrawBuffers(gl: WebGLRenderingContext, textureManager: TextureManager): Promise<DrawBuffers> {
+    async getDrawBuffers(gl: WebGLRenderingContext, textureManager: TextureManager, hsvaModBuffer: Tuple<number, 4>): Promise<DrawBuffers> {
         const drawBuffers: DrawBuffers = {
             positionBuffer: [],
             textureCoordBuffer: [],
@@ -178,11 +178,13 @@ export abstract class SpritedEntity extends TexturedEntity {
 
         // make sure all buffers have some data in them
         if (this.activeSpriteQuadCoords && this.activeSpriteSheetData) {
+            const sumHsvaMod = this.getHsvaModifier().map((component, idx) => component + hsvaModBuffer[idx]) as Tuple<number, 4>;
+
             drawBuffers.positionBuffer = getRectangleCoords(...this.getPosition(), ...this.getDimensions());
             drawBuffers.textureCoordBuffer = this.activeSpriteQuadCoords;
             drawBuffers.textureKeyBuffer = [this.activeSpriteSheetData.id];
             drawBuffers.hsvaModBuffer = Array(6)
-                .fill([...this.getColorModifier()])
+                .fill([...sumHsvaMod])
                 .flat();
 
             if (!textureManager.isLoaded(this.activeSpriteSheetData.id)) {

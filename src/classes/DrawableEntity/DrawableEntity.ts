@@ -180,11 +180,17 @@ export abstract class DrawableEntity extends Entity {
         this.rotation += rotation;
     }
 
-    getColorModifier() {
+    /**
+     * Gets the HSVA modifier for this entity in order of hue, saturation, value (brightness) and alpha.
+     */
+    getHsvaModifier(): Tuple<number, 4> {
         return [this.hueModifier, this.saturationModifier, this.valueModifier, this.alphaModifier];
     }
 
-    setColorModifier(hsva: Tuple<number, 4>) {
+    /**
+     * Sets the HSVA modifier for this entity in order of hue, saturation, value (brightness) and alpha.
+     */
+    setHsvaModifier(hsva: Tuple<number, 4>) {
         this.hueModifier = hsva[0];
         this.saturationModifier = hsva[1];
         this.valueModifier = hsva[2];
@@ -232,6 +238,9 @@ export abstract class DrawableEntity extends Entity {
      *
      * If a texture does not exist within the supplied texture manager with the returned texture key,
      * this function will be required to create a texture and load it into the texture manager keyed by texture key.
+     *
+     * This also applies any HSVA modifications from the parent to the entity. If the entity is nested underneath multiple group
+     * entities then HSVA modifications will be applied additively starting from the root group entity.
      */
-    abstract getDrawBuffers(gl: WebGLRenderingContext, textureManager: TextureManager): Promise<DrawBuffers>;
+    abstract getDrawBuffers(gl: WebGLRenderingContext, textureManager: TextureManager, parentHsvaMod: Tuple<number, 4>): Promise<DrawBuffers>;
 }
