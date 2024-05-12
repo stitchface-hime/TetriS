@@ -5,8 +5,6 @@ import { WallKickPositionOffsetTestData, type RotationBlockPositionAdjust } from
 import { HexString } from "src/shaders/types";
 import { Matrix } from "@classes/Matrix";
 import { generateBlocks } from "../Piece.helpers";
-import { ControllerPortManager } from "@classes/ControllerPortManager";
-import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
 
 export type TetrominoRotationPositionAdjust = [
     RotationBlockPositionAdjust,

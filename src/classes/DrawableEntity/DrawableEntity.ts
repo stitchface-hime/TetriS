@@ -121,10 +121,13 @@ export abstract class DrawableEntity extends Entity {
     }
 
     setRelativePosition(relativePosition: [x: number, y: number]) {
-        if (this.parent) {
-            this.relativePosition = relativePosition;
-            this.position = add2DVectorTuples(this.parent.position, relativePosition); // can be refactored
+        if (!this.parent) {
+            console.warn("No parent - cannot set relative position", this.constructor.name);
+            return;
         }
+
+        this.relativePosition = relativePosition;
+        this.position = add2DVectorTuples(this.parent.position, relativePosition); // can be refactored
     }
 
     translate(position: [x: number, y: number]) {
