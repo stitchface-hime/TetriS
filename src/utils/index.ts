@@ -5,7 +5,6 @@ export { declareShaderAttribute } from "./declareShaderAttribute";
 export { getRandomInt } from "./getRandomInt";
 export { glsl } from "./glsl";
 export { getRectangleCoords } from "./getRectangleCoords";
-export { getMatrixAnchor } from "./getMatrixAnchor";
 export { getPlayAreaDimensions } from "./getPlayAreaDimensions";
 export { getUniformSetters } from "./getUniformSetters";
 export { hexToHsv } from "./hexToHsv";

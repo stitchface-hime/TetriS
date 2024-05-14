@@ -1,5 +1,4 @@
 import { Playfield } from "@classes/Playfield";
-import { Piece } from "@classes/Piece";
 import { PieceQueue } from "@classes/PieceQueue";
 import { Interval } from "@classes/TimeMeasure";
 import { GameIntervalKeys } from "./GameIntervalKeys";
@@ -7,10 +6,8 @@ import { GameOverCode } from "./GameOverCode";
 import { GroupRenderer } from "@classes/ShaderProgram/GroupRenderer";
 import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
 import { FRAME_MS } from "src/constants";
-import { ButtonFramesHeld, ButtonsHeld } from "@classes/GameController";
+import { ButtonFrames, PressedButtons } from "@classes/Controller";
 import { Button } from "@classes/InputBinding/types";
-import { PressedButtons } from "@classes/Controller";
-import { GhostPiece } from "@classes/GhostPiece";
 import { ScoreJudge } from "@classes/ScoreJudge";
 import { ProgressionJudge } from "@classes/ProgressionJudge";
 import { DropType } from "@classes/ScoreJudge/ScoreJudge.helpers";
@@ -412,7 +409,7 @@ export class Game extends GroupEntity implements IControllable {
         }
     }
 
-    private handlePressInput(button: ButtonFramesHeld) {
+    private handlePressInput(button: ButtonFrames) {
         if (!this.gamePaused) {
             switch (button.id) {
                 case Button.BUTTON_UP: {
@@ -485,7 +482,7 @@ export class Game extends GroupEntity implements IControllable {
         releasedButtons.forEach((button) => this.handleReleaseInput(button));
     }
 
-    handleInputState(heldButtons: ButtonsHeld, releasedButtons: Button[]) {
+    handleInputState(heldButtons: PressedButtons, releasedButtons: Button[]) {
         heldButtons.forEach((button) => this.handlePressInput(button));
         releasedButtons.forEach((button) => this.handleReleaseInput(button));
     }
