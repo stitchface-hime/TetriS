@@ -1,6 +1,5 @@
 import { Game, Standard } from "@classes/Game";
 import { RunStatus } from "./types";
-import { GroupRenderer } from "@classes/ShaderProgram/GroupRenderer";
 import { MainRenderer } from "@classes/ShaderProgram/MainRenderer/renderer";
 import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
 import { Interval } from "@classes/TimeMeasure";
@@ -102,7 +101,7 @@ export class Main {
             const controller = new Controller(this.intervalManager);
             this.controllerPortManager.getPort(ControllerPortKey.PORT_0).plugIn(controller);
 
-            this.game = new Game(...Standard.getConfig(), new GroupRenderer(this.gl), {
+            this.game = new Game(...Standard.getConfig(), this.gl, {
                 controllerContext: new ControllerContext(this.controllerPortManager),
                 intervalContext: new IntervalContext(this.intervalManager),
             });

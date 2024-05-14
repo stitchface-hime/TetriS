@@ -22,7 +22,7 @@ export class Matrix extends GroupEntity {
     /**
      * Returns blocks in the matrix. (Readonly)
      */
-    protected get blocks(): ReadonlyArray<Block> {
+    protected get blocks(): Block[] {
         return this._blocks;
     }
 

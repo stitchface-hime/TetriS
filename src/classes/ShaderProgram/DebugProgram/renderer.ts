@@ -25,7 +25,7 @@ export class DebugProgram extends ShaderProgram {
         this.columns = columns;
     }
 
-    draw() {
+    async draw(destTexture: WebGLTexture | null = null) {
         const gl = this.gl;
         const program = this.program;
         const canvas = gl.canvas as HTMLCanvasElement;

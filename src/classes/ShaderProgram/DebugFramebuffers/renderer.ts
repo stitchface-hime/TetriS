@@ -1,13 +1,10 @@
-import { ShaderProgramError } from "@classes/Error";
 import { ShaderProgram } from "../ShaderProgram";
 import { fragment } from "./fragment";
 import { vertex } from "./vertex";
 import { getRectangleCoords } from "@utils/index";
-import { DEFAULT_MATRIX_GRID_WIDTH, DEFAULT_MATRIX_GRID_OPACITY, MATRIX_BUFFER_ZONE_RATIO } from "src/constants";
+import { DEFAULT_MATRIX_GRID_OPACITY, MATRIX_BUFFER_ZONE_RATIO } from "src/constants";
 import { HexString } from "src/shaders/types";
-import { hexToRgb } from "@utils/hexToRgb";
 import { generateGrid } from "./data";
-import { DrawSprite } from "../DrawSprite";
 
 export class DebugFramebuffers extends ShaderProgram {
     private rows: number;
@@ -24,7 +21,7 @@ export class DebugFramebuffers extends ShaderProgram {
         this.columns = columns;
     }
 
-    draw() {
+    async draw(destTexture: WebGLTexture | null = null) {
         const gl = this.gl;
         const program = this.program;
         gl.useProgram(program);

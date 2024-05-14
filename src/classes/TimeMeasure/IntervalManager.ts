@@ -53,15 +53,15 @@ export class IntervalManager {
     }
 
     /**
-     * Returns the given interval from a given key. Returns `undefined` if no interval
-     * can be found with the given key.
+     * Returns the given interval. Returns `undefined` if no interval
+     * can be found.
      */
     isIntervalSubscribed(interval: Interval): boolean {
         return !!this.subscriptions.find((subscription) => subscription === interval);
     }
 
     /**
-     * Removes an interval from the manager with a given key.
+     * Removes an interval from the manager.
      */
     unsubscribe(interval: Interval) {
         const subIdx = this.subscriptions.findIndex((subscription) => subscription === interval);

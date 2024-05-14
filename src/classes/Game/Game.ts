@@ -3,7 +3,6 @@ import { PieceQueue } from "@classes/PieceQueue";
 import { Interval } from "@classes/TimeMeasure";
 import { GameIntervalKeys } from "./GameIntervalKeys";
 import { GameOverCode } from "./GameOverCode";
-import { GroupRenderer } from "@classes/ShaderProgram/GroupRenderer";
 import { GroupEntity } from "@classes/GroupEntity";
 import { FRAME_MS } from "src/constants";
 import { ButtonFrames, PressedButtons } from "@classes/Controller";
@@ -57,7 +56,7 @@ export class Game extends GroupEntity implements IControllable {
         pieceQueue: PieceQueue,
         spawnCoordinates: [x: number, y: number],
         // TODO: why is renderer necessary for anything except getting size of canvas
-        renderer: GroupRenderer,
+        gl: WebGLRenderingContext,
         contexts: Contexts = {},
         level = 1
     ) {
@@ -71,7 +70,7 @@ export class Game extends GroupEntity implements IControllable {
 
         this.drawables.push(this.playfield);
 
-        const canvas = renderer.getWebGLRenderingContext().canvas as HTMLCanvasElement;
+        const canvas = gl.canvas as HTMLCanvasElement;
         this.setDefaultDimensions([canvas.clientWidth, canvas.clientHeight]);
         this.setPosition([0, 0]);
 
