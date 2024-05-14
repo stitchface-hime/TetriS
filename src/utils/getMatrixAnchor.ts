@@ -1,14 +1,10 @@
-import { Matrix } from "@classes/Matrix";
+import { Playfield } from "@classes/Playfield";
 import { getPlayAreaDimensions } from "./getPlayAreaDimensions";
 /**
  * Obtains the anchor coordinates for a block entity given the canvas and the matrix
  * to determine where to draw the block.
  */
-export const getMatrixAnchor = (
-    canvas: HTMLCanvasElement,
-    matrix: Matrix,
-    blockCoordinates: [x: number, y: number]
-) => {
+export const getMatrixAnchor = (canvas: HTMLCanvasElement, matrix: Playfield, blockCoordinates: [x: number, y: number]) => {
     const { clientWidth, clientHeight } = canvas;
     const columns = matrix.getNumColumns(); // 10
     const rows = matrix.getNumRows(); // 20

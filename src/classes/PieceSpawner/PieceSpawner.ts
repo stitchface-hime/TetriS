@@ -1,6 +1,6 @@
 import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
 import { HoldQueue } from "@classes/HoldQueue";
-import { Matrix } from "@classes/Matrix";
+import { Playfield } from "@classes/Playfield";
 import { Piece } from "@classes/Piece/Piece";
 import { PieceFactory } from "@classes/PieceFactory";
 import { PieceQueue } from "@classes/PieceQueue";
@@ -25,7 +25,7 @@ export class PieceSpawner extends GroupEntity {
         this.useGhost = useGhost;
     }
 
-    spawnPiece(matrix: Matrix, pieceId?: PieceId, fromHold = false) {
+    spawnPiece(matrix: Playfield, pieceId?: PieceId, fromHold = false) {
         let spawnSuccessful = false;
 
         for (let spawnAttempt = 0; spawnAttempt < this.spawnRetries; spawnAttempt++) {
@@ -64,7 +64,7 @@ export class PieceSpawner extends GroupEntity {
         return spawnSuccessful;
     }
 
-    private spawnGhostPiece(matrix: Matrix, pieceId?: PieceId) {
+    private spawnGhostPiece(matrix: Playfield, pieceId?: PieceId) {
         const ghostPiece = this.pieceFactory.makePiece([this.spawnCoordinates[0], this.spawnCoordinates[1]], matrix, pieceId);
         ghostPiece?.setSaturationModifier(-0.5);
 
@@ -75,7 +75,7 @@ export class PieceSpawner extends GroupEntity {
      * Spawn the next piece from the next queue. If spawning the piece
      * was successful, returns `true`, `false` otherwise.
      */
-    spawnNextPiece(matrix: Matrix, fromHold = false) {
+    spawnNextPiece(matrix: Playfield, fromHold = false) {
         const nextPiece = this.spawnPiece(matrix, this.nextQueue.shiftNext(), fromHold);
 
         return nextPiece;
@@ -88,7 +88,7 @@ export class PieceSpawner extends GroupEntity {
         return this.nextQueue.getNext(numNext);
     }
 
-    hold(matrix: Matrix) {
+    hold(matrix: Playfield) {
         const currentHoldPieceId = this.holdQueue.holdPieceId;
         if (matrix.activePiece !== null) {
             const activePieceId = matrix.activePiece.getId();

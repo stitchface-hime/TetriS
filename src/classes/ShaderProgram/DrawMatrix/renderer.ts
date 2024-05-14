@@ -3,12 +3,10 @@ import { getRectangleCoords, hexToRgb } from "@utils/index";
 import { DEFAULT_MATRIX_GRID_WIDTH, DEFAULT_MATRIX_BG_OPACITY } from "src/constants";
 import { HexString } from "src/shaders/types";
 import { generateGrid } from "./data";
-import { Matrix } from "@classes/Matrix";
-import { GroupRenderer } from "../GroupRenderer";
+import { Playfield } from "@classes/Playfield";
 import { ShaderProgram } from "../ShaderProgram";
 import { vertex } from "./vertex";
 import { fragment } from "./fragment";
-import { MatrixBackground } from "@classes/MatrixBackground";
 
 interface RenderMatrixConfig {
     borderOpacity: number;
@@ -18,7 +16,7 @@ interface RenderMatrixConfig {
     bgColor: HexString;
 }
 export class DrawMatrix extends ShaderProgram {
-    private matrix: Matrix | null = null;
+    private matrix: Playfield | null = null;
 
     private config: RenderMatrixConfig = {
         borderOpacity: 1,
@@ -36,7 +34,7 @@ export class DrawMatrix extends ShaderProgram {
         };
     }
 
-    setMatrix(matrix: Matrix) {
+    setMatrix(matrix: Playfield) {
         this.matrix = matrix;
     }
 

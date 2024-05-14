@@ -1,4 +1,4 @@
-import { Matrix } from "@classes/Matrix";
+import { Playfield } from "@classes/Playfield";
 import { Piece } from "@classes/Piece";
 import { PieceQueue } from "@classes/PieceQueue";
 import { Interval } from "@classes/TimeMeasure";
@@ -22,7 +22,7 @@ import { ControllerPortKey } from "@classes/ControllerPortManager/types";
 export class Game extends GroupEntity implements IControllable {
     private numRows: number;
 
-    private matrix: Matrix;
+    private playfield: Playfield;
 
     private lockDelayFrameLimit = 30;
     private lockDelayFrames = 0;
@@ -70,9 +70,9 @@ export class Game extends GroupEntity implements IControllable {
         this.progressionJudge = new ProgressionJudge(level, this.onLevelUpdate);
         this.progressionJudge.setLinesQuotaTarget(10);
 
-        this.matrix = new Matrix(numRows, numColumns, this);
+        this.playfield = new Playfield(numRows, numColumns, this);
 
-        this.drawables.push(this.matrix);
+        this.drawables.push(this.playfield);
 
         const canvas = renderer.getWebGLRenderingContext().canvas as HTMLCanvasElement;
         this.setDefaultDimensions([canvas.clientWidth, canvas.clientHeight]);
@@ -117,8 +117,8 @@ export class Game extends GroupEntity implements IControllable {
      * Ticks the game and decides what happens in the given frame.
      */
     async tick() {
-        if (this.gameOver || this.matrix.activePiece) return;
-        const spawnSuccessful = this.pieceSpawner.spawnNextPiece(this.matrix);
+        if (this.gameOver || this.playfield.activePiece) return;
+        const spawnSuccessful = this.pieceSpawner.spawnNextPiece(this.playfield);
 
         this.spawnPieceReset();
         if (spawnSuccessful) return;
@@ -126,10 +126,10 @@ export class Game extends GroupEntity implements IControllable {
     }
 
     private resetGroundedState() {
-        if (this.matrix.activePiece) {
+        if (this.playfield.activePiece) {
             this.hasGrounded = false;
             this.groundedMoves = 0;
-            this.lowestGroundedRow = this.matrix.activePiece?.getBottomBoundRow();
+            this.lowestGroundedRow = this.playfield.activePiece?.getBottomBoundRow();
         }
     }
 
@@ -137,16 +137,16 @@ export class Game extends GroupEntity implements IControllable {
      * Triggers when the active piece has grounded
      */
     private triggerGroundedCheck(wasRotationMove = false) {
-        if (this.matrix.activePiece) {
-            const lowestRowOccupiedByActivePiece = this.matrix.activePiece.getBottomBoundRow();
+        if (this.playfield.activePiece) {
+            const lowestRowOccupiedByActivePiece = this.playfield.activePiece.getBottomBoundRow();
 
             // Begin lock delay flow as soon as piece cannot move downwards
             // and reset the number of moves the player can move
             // if the piece has grounded on a row that is lower than any row
             // it grounded on previously
-            if (!this.matrix.activePiece?.canMoveDownTogether(1)) {
+            if (!this.playfield.activePiece?.canMoveDownTogether(1)) {
                 if (this.lowestGroundedRow > lowestRowOccupiedByActivePiece) {
-                    this.lowestGroundedRow = this.matrix.activePiece?.getBottomBoundRow();
+                    this.lowestGroundedRow = this.playfield.activePiece?.getBottomBoundRow();
                     // If the piece was not grounded by rotation or
                     // the piece was grounded via rotation but it has
                     // not been grounded before, reset the number of available
@@ -159,7 +159,7 @@ export class Game extends GroupEntity implements IControllable {
                 this.autoLockFlow();
             }
 
-            if (this.groundedMoves >= this.groundedMoveLimit && !this.matrix.activePiece.canMoveDownTogether(1)) {
+            if (this.groundedMoves >= this.groundedMoveLimit && !this.playfield.activePiece.canMoveDownTogether(1)) {
                 this.lockPiece();
             }
         }
@@ -210,7 +210,7 @@ export class Game extends GroupEntity implements IControllable {
     }
 
     private autoDropPiece(units = 1) {
-        const unitsMoved = this.matrix.activePiece?.moveDown(units);
+        const unitsMoved = this.playfield.activePiece?.moveDown(units);
 
         // soft drop scoring
         if (this.softDropEnabled && unitsMoved !== undefined) {
@@ -254,10 +254,10 @@ export class Game extends GroupEntity implements IControllable {
      * (this behaviour can be ignored).
      */
     private lockPiece(ignoreMoveCheck = false) {
-        if (!this.matrix.activePiece?.canMoveDownTogether(1) || ignoreMoveCheck) {
-            const prevMoveTechnical = this.matrix.activePiece?.getPrevMoveTechnical() || null;
+        if (!this.playfield.activePiece?.canMoveDownTogether(1) || ignoreMoveCheck) {
+            const prevMoveTechnical = this.playfield.activePiece?.getPrevMoveTechnical() || null;
 
-            this.matrix.lockActivePiece();
+            this.playfield.lockActivePiece();
 
             if (this.isLockOut()) {
                 this.triggerGameOver(GameOverCode.LOCK_OUT);
@@ -265,14 +265,14 @@ export class Game extends GroupEntity implements IControllable {
 
             // clear lines if any
             const linesCleared = this.clearLines();
-            const isPerfectClear = this.matrix.getNumCellsOccupied() === 0;
+            const isPerfectClear = this.playfield.getNumCellsOccupied() === 0;
 
             // update judges
             this.scoreJudge.addScoreByLock(this.progressionJudge.getLevel(), linesCleared, prevMoveTechnical, isPerfectClear);
             this.progressionJudge.addLinesCleared(linesCleared);
 
             // only nullify active piece once all logic above is completed
-            this.matrix.activePiece = null;
+            this.playfield.activePiece = null;
             this.resetLockDelay();
         }
     }
@@ -290,7 +290,7 @@ export class Game extends GroupEntity implements IControllable {
      */
     // This may be duplicate
     private getActivePieceLowestRow() {
-        if (this.matrix.activePiece) {
+        if (this.playfield.activePiece) {
             return Math.min(...this.getRowsOccupiedByActivePiece());
         }
         // TODO:
@@ -311,9 +311,9 @@ export class Game extends GroupEntity implements IControllable {
      * Clears a line from the matrix at a given row.
      */
     private clearLine(row: number) {
-        this.drawables.remove(...this.matrix.clearRows(row));
+        this.drawables.remove(...this.playfield.clearRows(row));
 
-        this.matrix.shiftRowsDown(row, 1);
+        this.playfield.shiftRowsDown(row, 1);
     }
 
     /**
@@ -323,7 +323,7 @@ export class Game extends GroupEntity implements IControllable {
     // TODO: This overly reliant on matrix maybe move to Matrix instead
     private checkLineClears() {
         return Array.from(new Set(this.getRowsOccupiedByActivePiece()))
-            .filter((row) => this.matrix.rowFormsLine(row))
+            .filter((row) => this.playfield.rowFormsLine(row))
             .sort((row1, row2) => row2 - row1);
     }
 
@@ -332,8 +332,8 @@ export class Game extends GroupEntity implements IControllable {
      */
     // TODO: This overly reliant on matrix maybe move to Matrix instead
     private getRowsOccupiedByActivePiece() {
-        if (this.matrix.activePiece) {
-            return this.matrix.activePiece.getBlocksCoordinates().map((coordinates) => {
+        if (this.playfield.activePiece) {
+            return this.playfield.activePiece.getBlocksCoordinates().map((coordinates) => {
                 if (coordinates) {
                     return coordinates[1];
                 }
@@ -354,25 +354,25 @@ export class Game extends GroupEntity implements IControllable {
     }
 
     moveLeft() {
-        if (this.matrix.activePiece?.moveLeft()) {
+        if (this.playfield.activePiece?.moveLeft()) {
             this.controlledMoveFlow();
         }
     }
 
     moveRight() {
-        if (this.matrix.activePiece?.moveRight()) {
+        if (this.playfield.activePiece?.moveRight()) {
             this.controlledMoveFlow();
         }
     }
 
     rotateClockwise() {
-        if (this.matrix.activePiece?.rotateClockwise()) {
+        if (this.playfield.activePiece?.rotateClockwise()) {
             this.controlledMoveFlow(true);
         }
     }
 
     rotateAntiClockwise() {
-        if (this.matrix.activePiece?.rotateAntiClockwise()) {
+        if (this.playfield.activePiece?.rotateAntiClockwise()) {
             this.controlledMoveFlow(true);
         }
     }
@@ -394,7 +394,7 @@ export class Game extends GroupEntity implements IControllable {
     }
 
     hardDrop() {
-        const unitsMoved = this.matrix.activePiece?.moveDown(this.matrix.activePiece.getHardDropUnits());
+        const unitsMoved = this.playfield.activePiece?.moveDown(this.playfield.activePiece.getHardDropUnits());
 
         if (unitsMoved !== undefined) {
             this.scoreJudge.addScoreByDrop(unitsMoved, DropType.HARD);
@@ -452,7 +452,7 @@ export class Game extends GroupEntity implements IControllable {
                 }
                 case Button.L_TRIGGER_F: {
                     if (button.frames === 1) {
-                        this.pieceSpawner.hold(this.matrix);
+                        this.pieceSpawner.hold(this.playfield);
                         this.spawnPieceReset();
                     }
                     break;
@@ -519,7 +519,7 @@ export class Game extends GroupEntity implements IControllable {
             autoDrop: this.autoDropFrameTarget - this.autoDropFrames,
             autoDropFrameTarget: this.autoDropFrameTarget,
             groundedMoves: this.groundedMoveLimit - this.groundedMoves,
-            blocks: this.matrix.getNumCellsOccupied(),
+            blocks: this.playfield.getNumCellsOccupied(),
         };
     }
 

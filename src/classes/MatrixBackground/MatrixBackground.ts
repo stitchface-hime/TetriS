@@ -1,4 +1,3 @@
-import { Matrix } from "@classes/Matrix/Matrix";
 import { DrawMatrix } from "@classes/ShaderProgram";
 import { DrawBuffers } from "src/shaders/types";
 import { TextureManager } from "@classes/TextureManager";
@@ -6,24 +5,25 @@ import { TextureKey } from "@data/TextureKey";
 import { getRectangleCoords } from "@utils/getRectangleCoords";
 import { TexturedEntity } from "@classes/TexturedEntity";
 import { Tuple } from "src/types";
+import { Playfield } from "@classes/Playfield";
 
 export class MatrixBackground extends TexturedEntity {
     static textureKey: TextureKey = "MATRIX_BG";
-    private matrix: Matrix;
+    private playfield: Playfield;
 
-    constructor(matrix: Matrix) {
+    constructor(playfield: Playfield) {
         super();
-        this.setDefaultDimensions(matrix.getDimensions());
+        this.setDefaultDimensions(playfield.getDimensions());
 
-        this.parent = matrix;
-        this.matrix = matrix;
+        this.parent = playfield;
+        this.playfield = playfield;
 
         this.setRelativePosition([0, 0]);
     }
 
     async loadIntoTextureManager(gl: WebGLRenderingContext, textureManager: TextureManager, textureKey: TextureKey): Promise<void> {
         const loader = new DrawMatrix(gl);
-        loader.setMatrix(this.matrix);
+        loader.setMatrix(this.playfield);
 
         // Set up texture
         const texture = gl.createTexture();

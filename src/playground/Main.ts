@@ -1,35 +1,22 @@
-import { Matrix } from "@classes/Matrix";
-import {
-  L_Tetromino,
-  S_Tetromino,
-  T_Tetromino,
-  J_Tetromino,
-  Z_Tetromino,
-  I_Tetromino,
-  O_Tetromino,
-} from "@classes/Piece/Tetromino";
+import { Playfield } from "@classes/Playfield";
+import { L_Tetromino, S_Tetromino, T_Tetromino, J_Tetromino, Z_Tetromino, I_Tetromino, O_Tetromino } from "@classes/Piece/Tetromino";
 import { Bag, PieceQueue } from "@classes/PieceQueue";
-import {
-  S_Twist_AC_1,
-  S_Twist_C_1_R1,
-  S_Twist_C_1_R3,
-  TST,
-} from "matrixPatterns";
+import { S_Twist_AC_1, S_Twist_C_1_R1, S_Twist_C_1_R3, TST } from "matrixPatterns";
 import { randomizeArray } from "./utils";
 
-const matrix = new Matrix(20, 10);
+const matrix = new Playfield(20, 10);
 const piece = new O_Tetromino([4, 19], matrix);
 matrix.setActivePiece(piece);
 
 matrix.addBlockRows(4);
 matrix.removeBlocks([
-  [5, 3],
-  [5, 2],
-  [4, 2],
-  [3, 2],
-  [3, 1],
-  [3, 0],
-  [4, 0],
+    [5, 3],
+    [5, 2],
+    [4, 2],
+    [3, 2],
+    [3, 1],
+    [3, 0],
+    [4, 0],
 ]);
 
 /* piece.rotateAntiClockwise();

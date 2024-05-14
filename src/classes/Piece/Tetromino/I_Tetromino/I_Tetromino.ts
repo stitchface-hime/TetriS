@@ -1,12 +1,10 @@
-import { Matrix } from "@classes/Matrix";
+import { Playfield } from "@classes/Playfield";
 import { PieceId } from "@data/index";
 import { Tetromino } from "../Tetromino";
 import { I_antiClockwiseWallKickPositionOffsetData, I_clockwiseWallKickPositionOffsetData } from "../Tetromino.wallkick";
 import * as Rotation from "./I_Tetromino.rotation";
 import { Tuple } from "src/types";
 import { HexString } from "src/shaders/types";
-import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
-import { ControllerPortManager } from "@classes/ControllerPortManager";
 
 /**
  * The I tetromino. Below is its initial state:
@@ -23,7 +21,7 @@ export class I_Tetromino extends Tetromino {
     protected static id = PieceId.TETROMINO_I;
     protected static color: HexString = "#009fda";
 
-    constructor(originCoordinates: [x: number, y: number], matrix: Matrix) {
+    constructor(originCoordinates: [x: number, y: number], matrix: Playfield) {
         const [originX, originY] = originCoordinates;
 
         const blockCoordinates: Tuple<[number, number], 4> = [

@@ -1,4 +1,4 @@
-import { Matrix } from "@classes/Matrix";
+import { Playfield } from "@classes/Playfield";
 import { O_Tetromino } from "@classes/Piece/Tetromino";
 import { I_Tetromino } from "@classes/Piece/Tetromino/I_Tetromino/I_Tetromino";
 
@@ -26,7 +26,7 @@ for (let i = 0; i < 4; i++) {
 } */
 
 // Test 3 x 3 bounding box minos
-const matrix = new Matrix(21, 10);
+const matrix = new Playfield(21, 10);
 const piece = new O_Tetromino([4, 19], matrix);
 matrix.setActivePiece(piece);
 
@@ -35,8 +35,8 @@ Clockwise
 =================
 `);
 for (let i = 0; i < 4; i++) {
-  piece.rotateClockwise();
-  matrix.printMatrix(false, true);
+    piece.rotateClockwise();
+    matrix.printMatrix(false, true);
 }
 
 console.log(`
@@ -44,6 +44,6 @@ Anticlockwise
 =================
 `);
 for (let i = 0; i < 4; i++) {
-  piece.rotateAntiClockwise();
-  matrix.printMatrix(false, true);
+    piece.rotateAntiClockwise();
+    matrix.printMatrix(false, true);
 }

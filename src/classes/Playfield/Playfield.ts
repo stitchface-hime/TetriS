@@ -6,7 +6,7 @@ import { SpriteSheets } from "@data/SpriteSheets";
 import { isEqual2DVectorTuples, warnIfNotInteger } from "@utils/index";
 import { NATIVE_RESOLUTION_H, NATIVE_RESOLUTION_W } from "src/constants";
 
-export class Matrix extends GroupEntity {
+export class Playfield extends GroupEntity {
     private blocks: Block[] = [];
     private numRows: number;
     private numVisibleRows: number;
