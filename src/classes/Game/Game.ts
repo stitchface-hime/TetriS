@@ -4,7 +4,7 @@ import { Interval } from "@classes/TimeMeasure";
 import { GameIntervalKeys } from "./GameIntervalKeys";
 import { GameOverCode } from "./GameOverCode";
 import { GroupRenderer } from "@classes/ShaderProgram/GroupRenderer";
-import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
+import { GroupEntity } from "@classes/GroupEntity";
 import { FRAME_MS } from "src/constants";
 import { ButtonFrames, PressedButtons } from "@classes/Controller";
 import { Button } from "@classes/InputBinding/types";

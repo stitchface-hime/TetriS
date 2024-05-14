@@ -10,7 +10,7 @@ import {
     type RotationPositionAdjustMap,
 } from "./Piece.types";
 import { isEqual2DVectorTuples } from "@utils/isEqual2DVectorTuples";
-import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
+import { GroupEntity } from "@classes/GroupEntity";
 
 export abstract class Piece extends GroupEntity {
     protected _blocks: Block[];

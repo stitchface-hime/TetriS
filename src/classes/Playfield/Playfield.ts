@@ -1,5 +1,5 @@
 import { Game } from "@classes/Game";
-import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
+import { GroupEntity } from "@classes/GroupEntity";
 import { MatrixBackground } from "@classes/MatrixBackground/MatrixBackground";
 import { Block, Piece } from "@classes/Piece";
 import { SpriteSheets } from "@data/SpriteSheets";

@@ -1,4 +1,4 @@
-import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
+import { GroupEntity } from "@classes/GroupEntity";
 import { PieceId } from "@data/PieceId";
 
 export class HoldQueue extends GroupEntity {

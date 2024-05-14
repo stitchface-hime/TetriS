@@ -1,4 +1,4 @@
-import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
+import { GroupEntity } from "@classes/GroupEntity";
 import { Contexts } from "./Entity.types";
 
 export abstract class Entity {

@@ -1,7 +1,6 @@
-import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
+import { GroupEntity } from "@classes/GroupEntity";
 import { HoldQueue } from "@classes/HoldQueue";
 import { Playfield } from "@classes/Playfield";
-import { Piece } from "@classes/Piece/Piece";
 import { PieceFactory } from "@classes/PieceFactory";
 import { PieceQueue } from "@classes/PieceQueue";
 import { PieceId } from "@data/PieceId";

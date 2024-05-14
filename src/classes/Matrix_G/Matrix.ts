@@ -1,4 +1,4 @@
-import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
+import { GroupEntity } from "@classes/GroupEntity";
 import { Block } from "@classes/Piece/Block";
 import { SpriteSheets } from "@data/SpriteSheets";
 import { isEqual2DVectorTuples } from "@utils/index";

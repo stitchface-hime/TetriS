@@ -1,5 +1,5 @@
 import { Contexts, Entity } from "@classes/Entity";
-import { GroupEntity } from "@classes/GroupEntity/GroupEntity";
+import { GroupEntity } from "@classes/GroupEntity";
 import { TextureManager } from "@classes/TextureManager";
 import { add2DVectorTuples, product2DVectorTuples } from "@utils/index";
 import { DrawBuffers } from "src/shaders/types";
