@@ -1,16 +1,14 @@
 import { Game } from "@classes/Game";
 import { GroupEntity } from "@classes/GroupEntity";
 import { MatrixBackground } from "@classes/MatrixBackground/MatrixBackground";
+import { Matrix } from "@classes/Matrix";
 import { Block, Piece } from "@classes/Piece";
 import { SpriteSheets } from "@data/SpriteSheets";
 import { isEqual2DVectorTuples, warnIfNotInteger } from "@utils/index";
 import { NATIVE_RESOLUTION_H, NATIVE_RESOLUTION_W } from "src/constants";
 
-export class Playfield extends GroupEntity {
-    private blocks: Block[] = [];
-    private numRows: number;
-    private numVisibleRows: number;
-    private numColumns: number;
+export class Playfield extends Matrix {
+    private trueNumRows: number;
 
     private _activePiece: Piece | null = null;
 
@@ -23,14 +21,13 @@ export class Playfield extends GroupEntity {
      * you specify to account for blocks above the visible part of the matrix.
      */
     constructor(numRows: number, numColumns: number, game: Game) {
-        super();
+        super(numRows, numColumns);
 
-        this.numRows = numRows * 2;
-        this.numVisibleRows = numRows;
-        this.numColumns = numColumns;
+        this.trueNumRows = numRows * 2;
+
         this.visibleDimensions = [
             warnIfNotInteger(SpriteSheets.SPR_MINO_STD.spriteSize.width * this.numColumns),
-            warnIfNotInteger(SpriteSheets.SPR_MINO_STD.spriteSize.height * this.numVisibleRows),
+            warnIfNotInteger(SpriteSheets.SPR_MINO_STD.spriteSize.height * this.numRows),
         ];
 
         this.setDefaultDimensions([this.visibleDimensions[0], warnIfNotInteger((NATIVE_RESOLUTION_H + this.visibleDimensions[1]) * 0.5)]);
@@ -88,8 +85,8 @@ export class Playfield extends GroupEntity {
      * Gets the number of visible rows in the matrix which does NOT include those above the normal
      * field of play.
      */
-    getNumVisibleRows() {
-        return this.numVisibleRows;
+    getTrueNumRows() {
+        return this.trueNumRows;
     }
 
     /**
@@ -136,17 +133,8 @@ export class Playfield extends GroupEntity {
         });
     }
 
-    private findBlockPredicate = (coordinates: [x: number, y: number]) => (block: Block) => isEqual2DVectorTuples(block.getActiveCoordinates(), coordinates);
-
     getBlock(coordinates: [x: number, y: number]) {
         return this.blocks.find(this.findBlockPredicate(coordinates));
-    }
-
-    /**
-     * Returns the index of the block with coordinates is found in the array, -1 otherwise.
-     */
-    private getBlockIndex(coordinates: [x: number, y: number]) {
-        return this.blocks.findIndex(this.findBlockPredicate(coordinates));
     }
 
     /**
@@ -205,8 +193,8 @@ export class Playfield extends GroupEntity {
         return blocksCleared;
     }
 
-    private areCoordinatesOutOfBounds(coordinates: [x: number, y: number]) {
-        return coordinates[0] < 0 || coordinates[0] >= this.numColumns || coordinates[1] < 0 || coordinates[1] >= this.numRows;
+    protected areCoordinatesOutOfBounds(coordinates: [x: number, y: number]) {
+        return coordinates[0] < 0 || coordinates[0] >= this.numColumns || coordinates[1] < 0 || coordinates[1] >= this.trueNumRows;
     }
 
     /**
@@ -317,7 +305,7 @@ export class Playfield extends GroupEntity {
     printMatrix(showNonVisibleArea = false, showRowNumbers = false) {
         const matrixArrays = this.matrixToArrays();
 
-        const numRowsToPrint = showNonVisibleArea ? this.numRows : this.numVisibleRows;
+        const numRowsToPrint = showNonVisibleArea ? this.numRows : this.trueNumRows;
 
         const activePieceCoordinates = [...(this.activePiece ? this.activePiece.blocks.map((block) => block.getActiveCoordinates()) : [])];
 

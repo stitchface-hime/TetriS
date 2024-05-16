@@ -63,7 +63,7 @@ export class DrawMatrix extends ShaderProgram {
                 try {
                     const matrixBg = getRectangleCoords(0, 0, ...this.matrix.getDimensions());
                     // gridlines generated overflow
-                    const gridlines = generateGrid(this.matrix.getNumVisibleRows(), this.matrix.getNumColumns(), this.config.borderWidth, ...visibleDimensions);
+                    const gridlines = generateGrid(this.matrix.getNumRows(), this.matrix.getNumColumns(), this.config.borderWidth, ...visibleDimensions);
 
                     const positionLocation = gl.getAttribLocation(program, "a_position");
                     const colorLocation = gl.getAttribLocation(program, "a_gridColor");

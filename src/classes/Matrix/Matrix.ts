@@ -30,6 +30,14 @@ export class Matrix extends GroupEntity {
         this._blocks = blocks;
     }
 
+    get numRows() {
+        return this._numRows;
+    }
+
+    get numColumns() {
+        return this._numColumns;
+    }
+
     /**
      * Gets the number of rows in the matrix which includes those above the normal
      * field of play.
@@ -64,7 +72,7 @@ export class Matrix extends GroupEntity {
         return this.blocks.length;
     }
 
-    private findBlockPredicate = (coordinates: [x: number, y: number]) => (block: Block) => isEqual2DVectorTuples(block.getActiveCoordinates(), coordinates);
+    protected findBlockPredicate = (coordinates: [x: number, y: number]) => (block: Block) => isEqual2DVectorTuples(block.getActiveCoordinates(), coordinates);
 
     getBlock(coordinates: [x: number, y: number]) {
         return this.blocks.find(this.findBlockPredicate(coordinates));
