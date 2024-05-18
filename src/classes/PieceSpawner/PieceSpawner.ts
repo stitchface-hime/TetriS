@@ -24,13 +24,13 @@ export class PieceSpawner extends GroupEntity {
         this.useGhost = useGhost;
     }
 
-    spawnPiece(matrix: Playfield, pieceId?: PieceId, fromHold = false) {
+    spawnPiece(playfield: Playfield, pieceId?: PieceId, fromHold = false) {
         let spawnSuccessful = false;
 
         for (let spawnAttempt = 0; spawnAttempt < this.spawnRetries; spawnAttempt++) {
             const spawnArgs: Parameters<typeof this.pieceFactory.makePiece> = [
                 [this.spawnCoordinates[0], this.spawnCoordinates[1] + spawnAttempt],
-                matrix,
+                playfield,
                 pieceId,
             ];
 
@@ -41,16 +41,16 @@ export class PieceSpawner extends GroupEntity {
                 const pieceDoesNotOverlap = spawnedPiece.getBlocksCoordinates().reduce(
                     (noOverlap, blockCoordinates) =>
                         // active piece should always have coordinates
-                        !!blockCoordinates && noOverlap && !matrix.hasBlockAt(blockCoordinates),
+                        !!blockCoordinates && noOverlap && !playfield.hasBlockAt(blockCoordinates),
                     true
                 );
 
                 // if it doesn't overlap, spawn successful
                 if (pieceDoesNotOverlap) {
                     if (this.useGhost) {
-                        spawnedPiece.ghost = this.spawnGhostPiece(matrix, pieceId);
+                        spawnedPiece.ghost = this.spawnGhostPiece(playfield, pieceId);
                     }
-                    matrix.activePiece = spawnedPiece;
+                    playfield.activePiece = spawnedPiece;
                     spawnSuccessful = true;
                     break;
                 }
@@ -63,8 +63,8 @@ export class PieceSpawner extends GroupEntity {
         return spawnSuccessful;
     }
 
-    private spawnGhostPiece(matrix: Playfield, pieceId?: PieceId) {
-        const ghostPiece = this.pieceFactory.makePiece([this.spawnCoordinates[0], this.spawnCoordinates[1]], matrix, pieceId);
+    private spawnGhostPiece(playfield: Playfield, pieceId?: PieceId) {
+        const ghostPiece = this.pieceFactory.makePiece([this.spawnCoordinates[0], this.spawnCoordinates[1]], playfield, pieceId);
         ghostPiece?.setSaturationModifier(-0.5);
 
         return ghostPiece;
@@ -74,8 +74,8 @@ export class PieceSpawner extends GroupEntity {
      * Spawn the next piece from the next queue. If spawning the piece
      * was successful, returns `true`, `false` otherwise.
      */
-    spawnNextPiece(matrix: Playfield, fromHold = false) {
-        const nextPiece = this.spawnPiece(matrix, this.nextQueue.shiftNext(), fromHold);
+    spawnNextPiece(playfield: Playfield, fromHold = false) {
+        const nextPiece = this.spawnPiece(playfield, this.nextQueue.shiftNext(), fromHold);
 
         return nextPiece;
     }
@@ -87,20 +87,20 @@ export class PieceSpawner extends GroupEntity {
         return this.nextQueue.getNext(numNext);
     }
 
-    hold(matrix: Playfield) {
+    hold(playfield: Playfield) {
         const currentHoldPieceId = this.holdQueue.holdPieceId;
-        if (matrix.activePiece !== null) {
-            const activePieceId = matrix.activePiece.getId();
+        if (playfield.activePiece !== null) {
+            const activePieceId = playfield.activePiece.getId();
             if (activePieceId !== null) {
                 const holdSuccess = this.holdQueue.hold(activePieceId);
                 if (holdSuccess) {
-                    matrix.activePiece = null;
+                    playfield.activePiece = null;
                     if (currentHoldPieceId === null) {
                         // when hold piece is null, hold current piece and spawn a new piece
-                        this.spawnNextPiece(matrix, true);
+                        this.spawnNextPiece(playfield, true);
                     } else {
                         // otherwise swap active piece and hold piece
-                        this.spawnPiece(matrix, currentHoldPieceId, true);
+                        this.spawnPiece(playfield, currentHoldPieceId, true);
                     }
                 }
             }

@@ -1,4 +1,4 @@
-import { Playfield } from "@classes/Playfield";
+import { Matrix } from "@classes/Matrix";
 import { PieceId } from "../../data/PieceId";
 import { Block } from "./Block";
 import {
@@ -15,7 +15,7 @@ import { GroupEntity } from "@classes/GroupEntity";
 export abstract class Piece extends GroupEntity {
     protected _blocks: Block[];
     protected _ghost: Piece | null = null;
-    protected matrix: Playfield;
+    protected matrix: Matrix;
     /**
      * Should be between 0-3 inclusive as there are four possible rotations.
      * 0 is the the initial rotation.
@@ -30,7 +30,7 @@ export abstract class Piece extends GroupEntity {
     protected prevMoveTechnical: TechnicalMove = null;
 
     constructor(
-        matrix: Playfield,
+        matrix: Matrix,
         blocks: Block[],
         clockwiseRotationMap: RotationPositionAdjustMap,
         antiClockwiseRotationMap: RotationPositionAdjustMap,

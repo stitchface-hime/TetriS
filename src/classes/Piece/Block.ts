@@ -1,4 +1,4 @@
-import { Playfield } from "@classes/Playfield";
+import { Matrix } from "@classes/Matrix";
 import { Connection } from "@data/Connection";
 import { SpriteSheets } from "@data/SpriteSheets";
 import { SpritedEntity } from "@classes/SpritedEntity";
@@ -16,7 +16,7 @@ export class Block extends SpritedEntity {
      */
     private activeCoordinates: [x: number, y: number];
     private color: string;
-    private matrix: Playfield;
+    private matrix: Matrix;
     /**
      * The blocks that are coupled to this block in cardinal directions.
      */
@@ -29,7 +29,7 @@ export class Block extends SpritedEntity {
      */
     private connections: number;
 
-    constructor(activeCoordinates: [x: number, y: number], matrix: Playfield, color: HexString = "#ffffff", coupledBlocks: Block[] = []) {
+    constructor(activeCoordinates: [x: number, y: number], matrix: Matrix, color: HexString = "#ffffff", coupledBlocks: Block[] = []) {
         super({ spriteSheetDatas: [SpriteSheets.SPR_MINO_STD] });
         this.setActiveSpriteSheetData(SpriteSheets.SPR_MINO_STD.id);
 

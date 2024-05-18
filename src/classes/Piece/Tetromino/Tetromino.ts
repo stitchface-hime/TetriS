@@ -3,7 +3,7 @@ import { Block } from "../Block";
 import { Piece } from "../Piece";
 import { WallKickPositionOffsetTestData, type RotationBlockPositionAdjust } from "../Piece.types";
 import { HexString } from "src/shaders/types";
-import { Playfield } from "@classes/Playfield";
+import { Matrix } from "@classes/Matrix";
 import { generateBlocks } from "../Piece.helpers";
 
 export type TetrominoRotationPositionAdjust = [
@@ -29,7 +29,7 @@ export abstract class Tetromino extends Piece {
 
     constructor(
         coordinatesList: Tuple<[number, number], 4>,
-        matrix: Playfield,
+        matrix: Matrix,
         color: HexString,
         clockwiseRotationMap: TetrominoRotationPositionAdjustMap,
         antiClockwiseRotationMap: TetrominoRotationPositionAdjustMap,
