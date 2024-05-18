@@ -1,10 +1,9 @@
 import { Game } from "@classes/Game";
-import { GroupEntity } from "@classes/GroupEntity";
 import { MatrixBackground } from "@classes/MatrixBackground/MatrixBackground";
 import { Matrix } from "@classes/Matrix";
 import { Block, Piece } from "@classes/Piece";
 import { SpriteSheets } from "@data/SpriteSheets";
-import { isEqual2DVectorTuples, warnIfNotInteger } from "@utils/index";
+import { warnIfNotInteger } from "@utils/index";
 import { NATIVE_RESOLUTION_H, NATIVE_RESOLUTION_W } from "src/constants";
 
 export class Playfield extends Matrix {
@@ -67,55 +66,11 @@ export class Playfield extends Matrix {
     }
 
     /**
-     * Transforms x-y coordinates to rows and columns.
-     */
-    private translateToRowsColumns(coordinates: [x: number, y: number]): [row: number, column: number] {
-        return [coordinates[1], coordinates[0]];
-    }
-
-    /**
-     * Transforms rows and columns coordinates to x-y coordinates.
-     * Syntactical sugar - performs the same function as `translateToRowsColumns`.
-     */
-    private translateToXY(rowCol: [row: number, column: number]): [x: number, y: number] {
-        return this.translateToRowsColumns(rowCol);
-    }
-
-    /**
      * Gets the number of visible rows in the matrix which does NOT include those above the normal
      * field of play.
      */
     getTrueNumRows() {
         return this.trueNumRows;
-    }
-
-    /**
-     * Gets the number of rows in the matrix which includes those above the normal
-     * field of play.
-     */
-    getNumRows() {
-        return this.numRows;
-    }
-
-    /**
-     * Gets the number of columns in the matrix.
-     */
-    getNumColumns() {
-        return this.numColumns;
-    }
-
-    /**
-     * Gets the number of cells occupied by blocks.
-     */
-    getNumCellsOccupied() {
-        return this.blocks.length;
-    }
-
-    /**
-     * Returns blocks in the matrix. (Readonly)
-     */
-    getBlocks(): ReadonlyArray<Block> {
-        return this.blocks;
     }
 
     /**
@@ -133,10 +88,6 @@ export class Playfield extends Matrix {
         });
     }
 
-    getBlock(coordinates: [x: number, y: number]) {
-        return this.blocks.find(this.findBlockPredicate(coordinates));
-    }
-
     /**
      * Determines whether the given row forms a line.
      */
@@ -150,25 +101,6 @@ export class Playfield extends Matrix {
     }
 
     /**
-     * Clears a block in the matrix at specified coordinates.
-     * Blocks that are coupled to this block will be decoupled.
-     * Returns `Block` if it was cleared, `null` otherwise.
-     */
-    clearBlock(coordinates: [x: number, y: number]): Block | null {
-        const blockIdx = this.getBlockIndex(coordinates);
-        if (blockIdx !== -1) {
-            const [block] = this.blocks.splice(blockIdx, 1);
-
-            block.getCoupledBlocks().forEach((coupledBlock) => coupledBlock.unsetCoupledBlock(block));
-            this.drawables.remove(block);
-
-            return block;
-        } else {
-            return null;
-        }
-    }
-
-    /**
      * Clears blocks in a range of rows, regardless if the rows are fully filled.
      * When clearing lines don't forget to shift rows down.
      * @param from clear rows starting from this row
@@ -179,7 +111,7 @@ export class Playfield extends Matrix {
         const blocksCleared: Block[] = [];
         for (let rowIdx = from; rowIdx < to; rowIdx++) {
             for (let colIdx = 0; colIdx < this.numColumns; colIdx++) {
-                const block = this.getBlock(this.translateToXY([rowIdx, colIdx]));
+                const block = this.getBlock(Playfield.translateToXY([rowIdx, colIdx]));
 
                 if (block) {
                     const clearedBlock = this.clearBlock([colIdx, rowIdx]);
@@ -195,35 +127,6 @@ export class Playfield extends Matrix {
 
     protected areCoordinatesOutOfBounds(coordinates: [x: number, y: number]) {
         return coordinates[0] < 0 || coordinates[0] >= this.numColumns || coordinates[1] < 0 || coordinates[1] >= this.trueNumRows;
-    }
-
-    /**
-     * Checks whether a block is occupying a cell at a given coordinate.
-     * A cell that is out of bounds is considered occupied.
-     */
-    hasBlockAt(coordinates: [x: number, y: number]) {
-        return this.areCoordinatesOutOfBounds(coordinates) || this.getBlock(coordinates) !== undefined;
-    }
-
-    /**
-     * Adds a block to the matrix. If a block already exists at that location clears existing block, then adds it.
-     */
-    addBlock(block: Block) {
-        const activeCoordinates = block.getActiveCoordinates();
-
-        if (this.hasBlockAt(activeCoordinates)) {
-            this.clearBlock(activeCoordinates);
-        }
-
-        this.blocks.push(block);
-        this.drawables.push(block);
-    }
-
-    /**
-     * Adds blocks to the matrix. If a block already exists at that location clears existing block, then adds it.
-     */
-    addBlocks(blocks: Block[]) {
-        blocks.forEach((block) => this.addBlock(block));
     }
 
     /**
@@ -263,32 +166,9 @@ export class Playfield extends Matrix {
 
         setRows.forEach((row) => {
             for (let col = 0; col < this.numColumns; col++) {
-                this.addBlock(new Block(this.translateToXY([row, col]), this));
+                this.addBlock(new Block(Playfield.translateToXY([row, col]), this));
             }
         });
-    }
-
-    /**
-     * Prints the matrix in array form.
-     * `null` is used to represent a free cell.
-     * (This is an expensive operation - Debug only)
-     */
-    matrixToArrays() {
-        const arrays: (Block | null)[][] = new Array(this.numRows).fill(null);
-
-        // we want each row to have a unique array
-        arrays.forEach((_, rowIdx) => {
-            console.log("Filling row", rowIdx);
-            arrays[rowIdx] = new Array(this.numColumns).fill(null);
-        });
-
-        this.blocks.forEach((block) => {
-            const [row, column] = this.translateToRowsColumns(block.getActiveCoordinates());
-
-            arrays[row][column] = block;
-        });
-        console.log("Return", this.blocks);
-        return arrays;
     }
 
     /**

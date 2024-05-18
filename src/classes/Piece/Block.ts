@@ -4,7 +4,6 @@ import { SpriteSheets } from "@data/SpriteSheets";
 import { SpritedEntity } from "@classes/SpritedEntity";
 import { hexToHsv } from "@utils/hexToHsv";
 import { HexString } from "src/shaders/types";
-import { Contexts } from "@classes/Entity";
 
 /**
  * A block is a single unit that takes up one cell in the matrix.

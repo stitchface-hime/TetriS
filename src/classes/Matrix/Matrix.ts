@@ -20,7 +20,7 @@ export class Matrix extends GroupEntity {
     }
 
     /**
-     * Returns blocks in the matrix. (Readonly)
+     * Returns blocks in the matrix.
      */
     protected get blocks(): Block[] {
         return this._blocks;
@@ -28,6 +28,13 @@ export class Matrix extends GroupEntity {
 
     protected set blocks(blocks: Block[]) {
         this._blocks = blocks;
+    }
+
+    /**
+     * Returns a shallow copy of the blocks in the matrix.
+     */
+    getBlocks() {
+        return [...this.blocks];
     }
 
     get numRows() {
@@ -39,18 +46,10 @@ export class Matrix extends GroupEntity {
     }
 
     /**
-     * Gets the number of rows in the matrix which includes those above the normal
-     * field of play.
+     * Gets the number of cells occupied by blocks.
      */
-    getNumRows() {
-        return this._numRows;
-    }
-
-    /**
-     * Gets the number of columns in the matrix.
-     */
-    getNumColumns() {
-        return this._numColumns;
+    getNumCellsOccupied() {
+        return this.blocks.length;
     }
 
     protected areCoordinatesOutOfBounds(coordinates: [x: number, y: number]) {
@@ -63,13 +62,6 @@ export class Matrix extends GroupEntity {
      */
     hasBlockAt(coordinates: [x: number, y: number]) {
         return this.areCoordinatesOutOfBounds(coordinates) || this.getBlock(coordinates) !== undefined;
-    }
-
-    /**
-     * Gets the number of cells occupied by blocks.
-     */
-    getNumCellsOccupied() {
-        return this.blocks.length;
     }
 
     protected findBlockPredicate = (coordinates: [x: number, y: number]) => (block: Block) => isEqual2DVectorTuples(block.getActiveCoordinates(), coordinates);
@@ -89,14 +81,13 @@ export class Matrix extends GroupEntity {
      * Adds a block to the matrix. If a block already exists at that location clears existing block, then adds it.
      */
     addBlock(block: Block) {
-        const blocks = [...this.blocks];
         const activeCoordinates = block.getActiveCoordinates();
 
         if (this.hasBlockAt(activeCoordinates)) {
             this.clearBlock(activeCoordinates);
         }
 
-        blocks.push(block);
+        this.blocks = [...this.blocks, block];
         this.drawables.push(block);
     }
 
@@ -135,12 +126,12 @@ export class Matrix extends GroupEntity {
      * (This is an expensive operation - Debug only)
      */
     matrixToArrays() {
-        const arrays: (Block | null)[][] = new Array(this.getNumRows()).fill(null);
+        const arrays: (Block | null)[][] = new Array(this.numRows).fill(null);
 
         // we want each row to have a unique array
         arrays.forEach((_, rowIdx) => {
             console.log("Filling row", rowIdx);
-            arrays[rowIdx] = new Array(this.getNumColumns()).fill(null);
+            arrays[rowIdx] = new Array(this.numColumns).fill(null);
         });
 
         this.blocks.forEach((block) => {
