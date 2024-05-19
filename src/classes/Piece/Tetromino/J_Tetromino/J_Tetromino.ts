@@ -1,4 +1,4 @@
-import { Playfield } from "@classes/Playfield";
+import { Matrix } from "@classes/Matrix";
 import { PieceId } from "@data/index";
 import { Tetromino } from "../Tetromino";
 import { J_antiClockwiseWallKickPositionOffsetData, J_clockwiseWallKickPositionOffsetData } from "../Tetromino.wallkick";
@@ -20,7 +20,7 @@ export class J_Tetromino extends Tetromino {
     protected static id = PieceId.TETROMINO_J;
     protected static color: HexString = "#0058b5";
 
-    constructor(originCoordinates: [x: number, y: number], matrix: Playfield) {
+    constructor(originCoordinates: [x: number, y: number], matrix: Matrix) {
         const [originX, originY] = originCoordinates;
 
         const blockCoordinates: Tuple<[number, number], 4> = [

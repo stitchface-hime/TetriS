@@ -21,6 +21,8 @@ export class PieceSpawner extends GroupEntity {
         this.spawnCoordinates = spawnCoordinates;
         this.nextQueue = pieceQueue;
         this.holdQueue = new HoldQueue();
+
+        this.drawables.push(this.holdQueue);
         this.useGhost = useGhost;
     }
 

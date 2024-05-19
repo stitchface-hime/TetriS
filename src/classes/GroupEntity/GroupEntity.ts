@@ -13,8 +13,8 @@ import { Tuple } from "src/types";
  * When a group entity is rendered, child entities are rendered in the order they are pushed into the group entity.
  */
 export abstract class GroupEntity extends DrawableEntity {
-    protected _passives = new EntityCollection<Entity>();
-    protected _drawables = new EntityCollection<DrawableEntity>();
+    private _passives = new EntityCollection<Entity>();
+    private _drawables = new EntityCollection<DrawableEntity>();
 
     constructor(contexts: Contexts = {}) {
         super({}, contexts);

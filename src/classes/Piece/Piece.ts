@@ -43,6 +43,7 @@ export abstract class Piece extends GroupEntity {
 
         this.matrix = matrix;
         this._blocks = blocks;
+        blocks.forEach((block) => (block.parent = this));
         this.drawables.push(...this.blocks);
 
         this.rotationState = 0;

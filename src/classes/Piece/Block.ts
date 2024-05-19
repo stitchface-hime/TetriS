@@ -4,6 +4,7 @@ import { SpriteSheets } from "@data/SpriteSheets";
 import { SpritedEntity } from "@classes/SpritedEntity";
 import { hexToHsv } from "@utils/hexToHsv";
 import { HexString } from "src/shaders/types";
+import { GroupEntity } from "@classes/GroupEntity";
 
 /**
  * A block is a single unit that takes up one cell in the matrix.
@@ -14,13 +15,13 @@ export class Block extends SpritedEntity {
      * The coordinates of the block in the matrix.
      * NOTE: `x` refers to columns and `y` refers to the rows!
      */
-    private activeCoordinates: [x: number, y: number];
+    private matrixCoordinates: [x: number, y: number];
     private color: string;
     private matrix: Matrix;
     /**
      * The blocks that are coupled to this block in cardinal directions.
      */
-    private coupledBlocks: Block[];
+    private coupledBlocks: Block[] = [];
     /**
      * A 4-bit number to represent where the coupled blocks are.
      * A `0` bit representing no connection and a `1` bit representing a connection.
@@ -29,12 +30,11 @@ export class Block extends SpritedEntity {
      */
     private connections: number;
 
-    constructor(activeCoordinates: [x: number, y: number], matrix: Matrix, color: HexString = "#ffffff", coupledBlocks: Block[] = []) {
+    constructor(matrixCoordinates: [x: number, y: number], matrix: Matrix, color: HexString = "#ffffff") {
         super({ spriteSheetDatas: [SpriteSheets.SPR_MINO_STD] });
         this.setActiveSpriteSheetData(SpriteSheets.SPR_MINO_STD.id);
 
-        this.activeCoordinates = activeCoordinates;
-        this.parent = matrix;
+        this.matrixCoordinates = matrixCoordinates;
         this.matrix = matrix;
         this.color = color;
 
@@ -43,15 +43,23 @@ export class Block extends SpritedEntity {
         this.setSaturationModifier(hsv[1]);
         this.setValueModifier(hsv[2] - 1);
 
-        this.coupledBlocks = [];
-        this.setCoupledBlocks(coupledBlocks);
         this.connections = 0;
+    }
 
-        this.updateCoordinates(this.activeCoordinates);
+    override get parent() {
+        return this._parent;
+    }
+
+    override set parent(parent: GroupEntity | null) {
+        this._parent = parent;
+
+        if (parent === null) return;
+
+        this.updateCoordinates(this.matrixCoordinates);
     }
 
     getActiveCoordinates() {
-        return this.activeCoordinates;
+        return this.matrixCoordinates;
     }
 
     /**
@@ -81,7 +89,7 @@ export class Block extends SpritedEntity {
      * If this block is not in a cardinal direction to the coupled block returns undefined.
      */
     private determineConnection(coupledBlock: Block) {
-        const [thisX, thisY] = this.activeCoordinates;
+        const [thisX, thisY] = this.matrixCoordinates;
         const [coupledX, coupledY] = coupledBlock.getActiveCoordinates();
 
         if (coupledX > thisX) return Connection.RIGHT;
@@ -139,13 +147,13 @@ export class Block extends SpritedEntity {
      * This also moves the block entity within the canvas.
      */
     private updateCoordinates(coordinates: [x: number, y: number]) {
-        this.activeCoordinates = coordinates;
+        this.matrixCoordinates = coordinates;
         // console.log("Matrix:", this.matrix);
 
         // Move the entity
         this.setRelativePosition([
-            Math.trunc(this.activeCoordinates[0] * SpriteSheets.SPR_MINO_STD.spriteSize.width),
-            Math.trunc(this.activeCoordinates[1] * SpriteSheets.SPR_MINO_STD.spriteSize.height),
+            Math.trunc(this.matrixCoordinates[0] * SpriteSheets.SPR_MINO_STD.spriteSize.width),
+            Math.trunc(this.matrixCoordinates[1] * SpriteSheets.SPR_MINO_STD.spriteSize.height),
         ]);
     }
 
@@ -169,7 +177,7 @@ export class Block extends SpritedEntity {
      * @returns number of units movable.
      */
     canMoveDown(units = 1, ignoreOtherBlocks = false) {
-        const activeCoordinates = this.activeCoordinates;
+        const activeCoordinates = this.matrixCoordinates;
         let unitsMoved = 0;
 
         if (activeCoordinates) {
@@ -194,7 +202,7 @@ export class Block extends SpritedEntity {
      * You can also choose to ignore other blocks when moving down. (e.g for when moving blocks down on line clears)
      */
     moveDown(units = 1, ignoreOtherBlocks = false) {
-        this.updateCoordinates([this.activeCoordinates[0], this.activeCoordinates[1] - this.canMoveDown(units, ignoreOtherBlocks)]);
+        this.updateCoordinates([this.matrixCoordinates[0], this.matrixCoordinates[1] - this.canMoveDown(units, ignoreOtherBlocks)]);
     }
 
     /**
@@ -204,7 +212,7 @@ export class Block extends SpritedEntity {
      * @returns number of units moved.
      */
     canMoveLeft(units = 1) {
-        const activeCoordinates = this.activeCoordinates;
+        const activeCoordinates = this.matrixCoordinates;
         let unitsMoved = 0;
 
         for (let i = activeCoordinates[0] - 1; i >= activeCoordinates[0] - units; i--) {
@@ -226,7 +234,7 @@ export class Block extends SpritedEntity {
      * Move the block left a specified number of units. (Default: 1 unit)
      */
     moveLeft(units = 1) {
-        this.updateCoordinates([this.activeCoordinates[0] - this.canMoveLeft(units), this.activeCoordinates[1]]);
+        this.updateCoordinates([this.matrixCoordinates[0] - this.canMoveLeft(units), this.matrixCoordinates[1]]);
     }
 
     /**
@@ -237,7 +245,7 @@ export class Block extends SpritedEntity {
      * and whether or not the move would be successful. Movement of 0 is unsuccessful.
      */
     canMoveRight(units = 1) {
-        const activeCoordinates = this.activeCoordinates;
+        const activeCoordinates = this.matrixCoordinates;
         let unitsMoved = 0;
 
         for (let i = activeCoordinates[0] + 1; i <= activeCoordinates[0] + units; i++) {
@@ -259,7 +267,7 @@ export class Block extends SpritedEntity {
      * Move the block right a specified number of units.
      */
     moveRight(units = 1) {
-        this.updateCoordinates([this.activeCoordinates[0] + this.canMoveRight(units), this.activeCoordinates[1]]);
+        this.updateCoordinates([this.matrixCoordinates[0] + this.canMoveRight(units), this.matrixCoordinates[1]]);
     }
 
     /**
@@ -270,10 +278,10 @@ export class Block extends SpritedEntity {
      * and whether or not the move would be successful.
      */
     canTranslate(xUnits = 0, yUnits = 0): { newCoordinates: [x: number, y: number]; canTranslate: boolean } {
-        let [newX, newY] = this.activeCoordinates;
+        let [newX, newY] = this.matrixCoordinates;
 
-        const potentialX = this.activeCoordinates[0] + xUnits;
-        const potentialY = this.activeCoordinates[1] + yUnits;
+        const potentialX = this.matrixCoordinates[0] + xUnits;
+        const potentialY = this.matrixCoordinates[1] + yUnits;
 
         const canTranslate = !this.matrix.hasBlockAt([potentialX, potentialY]);
 

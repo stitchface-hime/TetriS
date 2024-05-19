@@ -82,6 +82,7 @@ export class Matrix extends GroupEntity {
      */
     addBlock(block: Block) {
         const activeCoordinates = block.getActiveCoordinates();
+        block.parent = this;
 
         if (this.hasBlockAt(activeCoordinates)) {
             this.clearBlock(activeCoordinates);

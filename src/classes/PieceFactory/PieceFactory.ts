@@ -1,4 +1,4 @@
-import { Playfield } from "@classes/Playfield";
+import { Matrix } from "@classes/Matrix";
 import { I_Tetromino, J_Tetromino, L_Tetromino, O_Tetromino, S_Tetromino, T_Tetromino, Z_Tetromino } from "@classes/Piece/Tetromino";
 import { PieceId } from "@data/index";
 
@@ -16,7 +16,7 @@ export class PieceFactory {
     /**
      * Creates a piece using its piece id in the supplied matrix at specific coordinates.
      */
-    makePiece(originCoordinates: [x: number, y: number], matrix: Playfield, id?: PieceId) {
+    makePiece(originCoordinates: [x: number, y: number], matrix: Matrix, id?: PieceId) {
         if (id === undefined) {
             return null;
         }

@@ -68,8 +68,6 @@ export class Game extends GroupEntity implements IControllable {
 
         this.playfield = new Playfield(numRows, numColumns, this);
 
-        this.drawables.push(this.playfield);
-
         const canvas = gl.canvas as HTMLCanvasElement;
         this.setDefaultDimensions([canvas.clientWidth, canvas.clientHeight]);
         this.setPosition([0, 0]);
@@ -77,6 +75,7 @@ export class Game extends GroupEntity implements IControllable {
         // not ideal - probably don't want group entity as the renderer for a game anymore... unless we want ui to also appear in the screen?
 
         this.pieceSpawner = new PieceSpawner(pieceQueue, spawnCoordinates);
+        this.drawables.push(this.playfield, this.pieceSpawner);
     }
 
     /* Game flow methods */
@@ -117,6 +116,7 @@ export class Game extends GroupEntity implements IControllable {
         const spawnSuccessful = this.pieceSpawner.spawnNextPiece(this.playfield);
 
         this.spawnPieceReset();
+        console.log(this.drawables);
         if (spawnSuccessful) return;
         this.triggerGameOver(GameOverCode.BLOCK_OUT);
     }
@@ -269,6 +269,7 @@ export class Game extends GroupEntity implements IControllable {
 
             // only nullify active piece once all logic above is completed
             this.playfield.activePiece = null;
+            console.log(this.drawables);
             this.resetLockDelay();
         }
     }
