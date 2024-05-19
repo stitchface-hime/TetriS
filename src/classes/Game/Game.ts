@@ -69,8 +69,8 @@ export class Game extends GroupEntity implements IControllable {
         this.playfield = new Playfield(numRows, numColumns, this);
 
         const canvas = gl.canvas as HTMLCanvasElement;
-        this.setDefaultDimensions([canvas.clientWidth, canvas.clientHeight]);
-        this.setPosition([0, 0]);
+        this.defaultDimensions = [canvas.clientWidth, canvas.clientHeight];
+        this.position = [0, 0];
 
         // not ideal - probably don't want group entity as the renderer for a game anymore... unless we want ui to also appear in the screen?
 

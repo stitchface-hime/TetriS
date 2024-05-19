@@ -29,12 +29,12 @@ export class Playfield extends Matrix {
             warnIfNotInteger(SpriteSheets.SPR_MINO_STD.spriteSize.height * this.numRows),
         ];
 
-        this.setDefaultDimensions([this.visibleDimensions[0], warnIfNotInteger((NATIVE_RESOLUTION_H + this.visibleDimensions[1]) * 0.5)]);
+        this.defaultDimensions = [this.visibleDimensions[0], warnIfNotInteger((NATIVE_RESOLUTION_H + this.visibleDimensions[1]) * 0.5)];
         this.parent = game;
-        this.setRelativePosition([
-            warnIfNotInteger((NATIVE_RESOLUTION_W - this.getDimensions()[0]) * 0.5),
-            warnIfNotInteger(NATIVE_RESOLUTION_H - this.getDimensions()[1]),
-        ]);
+        this.relativePosition = [
+            warnIfNotInteger((NATIVE_RESOLUTION_W - this.dimensions[0]) * 0.5),
+            warnIfNotInteger(NATIVE_RESOLUTION_H - this.dimensions[1]),
+        ];
 
         // Background for the matrix
         this.background = new MatrixBackground(this);

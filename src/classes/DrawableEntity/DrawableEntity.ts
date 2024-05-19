@@ -6,34 +6,34 @@ import { DrawBuffers } from "src/shaders/types";
 import { Tuple } from "src/types";
 
 export abstract class DrawableEntity extends Entity {
-    private defaultScale: [x: number, y: number] = [1, 1];
+    private _defaultScale: [x: number, y: number] = [1, 1];
 
-    private dimensions: [width: number, height: number] = [0, 0];
+    private _dimensions: [width: number, height: number] = [0, 0];
 
     /**
      * Width and height of the entity at scale 1.
      */
-    private defaultDimensions: [width: number, height: number] = [0, 0];
+    private _defaultDimensions: [width: number, height: number] = [0, 0];
 
     /**
-     * Position of the bottom-left pixel of an entity within the canvas
+     * Position of the bottom-left pixel of an entity within the canvas, the entity's absolute position.
      */
-    private position: [x: number, y: number] = [0, 0];
+    protected _position: [x: number, y: number] = [0, 0];
 
     /**
      * Position of the bottom-left pixel of an entity relative to the bottom-left pixel of the parent.
      * Otherwise this value is equal to `position`.
      */
-    private relativePosition: [x: number, y: number] = [0, 0];
+    private _relativePosition: [x: number, y: number] = [0, 0];
 
     /**
      * Scale of the entity within a scene.
      */
-    private scale: [x: number, y: number] = this.defaultScale;
+    private _scale: [x: number, y: number] = this.defaultScale;
     /**
      * Rotation of the entity in degrees within a scene.
      */
-    private rotation = 0;
+    private _rotation = 0;
 
     /**
      * Color
@@ -42,19 +42,19 @@ export abstract class DrawableEntity extends Entity {
     /**
      * Additive modifier of the hue of this drawable (degrees `[0, 360)`).
      */
-    private hueModifier = 0;
+    private _hueModifier = 0;
     /**
      * Additive modifier of the saturation of this drawable (values `[0, 1]`).
      */
-    private saturationModifier = 0;
+    private _saturationModifier = 0;
     /**
      * Additive modifier of the value (brightness) of this drawable (values `[0, 1]`).
      */
-    private valueModifier = 0;
+    private _valueModifier = 0;
     /**
      * Additive modifier of the alpha (transparency) of this drawable (values `[0, 1]`).
      */
-    private alphaModifier = 0;
+    private _alphaModifier = 0;
 
     constructor(
         {
@@ -69,7 +69,7 @@ export abstract class DrawableEntity extends Entity {
         contexts: Contexts = {}
     ) {
         super(contexts);
-        if (position !== undefined) this.setPosition(position);
+        if (position !== undefined) this.position = position;
         if (scale !== undefined) this.scale = scale || this.scale;
         if (rotation !== undefined) this.rotation = rotation || this.rotation;
     }
@@ -84,62 +84,80 @@ export abstract class DrawableEntity extends Entity {
      * If unsetting parent, then the relative position of this entity will be this entity's current absolute position.
      */
     set parent(parent: GroupEntity | null) {
-        this.relativePosition = parent ? add2DVectorTuples(this.position, [-parent.position[0], -parent.position[1]]) : this.position;
         this._parent = parent;
-    }
-
-    getDefaultDimensions() {
-        return this.defaultDimensions;
+        this.relativePosition = parent ? add2DVectorTuples(this.position, [-parent.position[0], -parent.position[1]]) : this.position;
     }
 
     /**
      * Gets the dimensions of the entity including any scaling that has occurred.
      */
-    getDimensions() {
-        return this.dimensions;
+    get dimensions() {
+        return this._dimensions;
+    }
+
+    private set dimensions(dimensions: [width: number, height: number]) {
+        this._dimensions = dimensions;
+    }
+
+    get defaultDimensions() {
+        return this._defaultDimensions;
     }
 
     /**
-     * Sets the dimensions of the entity. Also resets dimensions of entity to the new default.
+     * Sets the dimensions of the entity for the default scale. Also resets dimensions of entity to the new default.
      */
-    setDefaultDimensions(dimensions: number | [width: number, height: number]) {
-        this.defaultDimensions = typeof dimensions == "number" ? [dimensions, dimensions] : dimensions;
-        this.dimensions = this.defaultDimensions;
+    set defaultDimensions(dimensions: [width: number, height: number]) {
+        this._defaultDimensions = dimensions;
+        this.dimensions = this._defaultDimensions;
     }
 
-    getPosition() {
-        return this.position;
+    get position() {
+        return this._position;
     }
 
-    getRelativePosition() {
-        return this.relativePosition;
+    /**
+     * Updates the absolute position of the entity to its parent, which also updates its relative position accordingly.
+     *
+     * If this entity has no parent then the absolute and relative positions will both be updated to the supplied value.
+     */
+    set position(position: [x: number, y: number]) {
+        const deltaPosition = add2DVectorTuples(position, [-this.position[0], -this.position[1]]);
+        this._position = position;
+        this._relativePosition = add2DVectorTuples(this._relativePosition, deltaPosition);
     }
 
-    setPosition(position: [x: number, y: number]) {
-        this.position = position;
-        // TODO: need to update relative position too and children entities!!!
+    get relativePosition() {
+        return this._relativePosition;
     }
 
-    setRelativePosition(relativePosition: [x: number, y: number]) {
-        if (!this.parent) {
-            console.warn("No parent - cannot set relative position", this.constructor.name);
-            return;
+    /**
+     * Updates the relative position of the entity to its parent, which also updates its absolute position accordingly.
+     *
+     * If this entity has no parent then the absolute and relative positions will both be updated to the supplied value.
+     */
+    set relativePosition(relativePosition: [x: number, y: number]) {
+        if (this.parent) {
+            this._relativePosition = relativePosition;
+            this.position = add2DVectorTuples(this.parent.position, relativePosition); // can be refactored
+        } else {
+            console.warn("Warning - no parent, setting absolute position instead", this.constructor.name);
+            this.position = relativePosition;
+            this._relativePosition = relativePosition;
         }
-
-        this.relativePosition = relativePosition;
-        this.position = add2DVectorTuples(this.parent.position, relativePosition); // can be refactored
     }
 
     translate(position: [x: number, y: number]) {
-        this.position = add2DVectorTuples(this.position, position); // can be refactored to use setPosition
-        this.relativePosition = this.parent ? add2DVectorTuples(this.relativePosition, position) : this.position; // can be refactored to use setRelativePosition
+        this.relativePosition = add2DVectorTuples(this.relativePosition, position); // can be refactored to use setRelativePosition
     }
 
-    getScale() {
-        return this.scale;
+    get scale() {
+        return this._scale;
     }
 
-    setScale(scale: [x: number, y: number]) {
+    /**
+     * Sets the scale and adjusts this entity's dimensions accordingly.
+     */
+    set scale(scale: [x: number, y: number]) {
         this.scale = scale;
         this.dimensions = product2DVectorTuples(this.defaultDimensions, this.scale);
     }
@@ -148,11 +166,11 @@ export abstract class DrawableEntity extends Entity {
      * Additively adjust the scale of the entity.
      */
     adjustScale(scale: [x: number, y: number]) {
-        this.setScale(add2DVectorTuples(this.scale, scale));
+        this.scale = add2DVectorTuples(this.scale, scale);
     }
 
-    setDefaultScale(scale: [x: number, y: number]) {
-        this.defaultScale = scale;
+    set defaultScale(scale: [x: number, y: number]) {
+        this._defaultScale = scale;
     }
 
     /**
@@ -160,7 +178,7 @@ export abstract class DrawableEntity extends Entity {
      */
     scaleToWidthHeight(dimensions: [width: number, height: number]) {
         if (this.defaultDimensions[0] !== 0 && this.defaultDimensions[1] !== 0) {
-            this.setScale(product2DVectorTuples(dimensions, [1 / this.defaultDimensions[0], 1 / this.defaultDimensions[1]]));
+            this.scale = product2DVectorTuples(dimensions, [1 / this.defaultDimensions[0], 1 / this.defaultDimensions[1]]);
         }
     }
 
@@ -171,16 +189,48 @@ export abstract class DrawableEntity extends Entity {
         this.scale = this.defaultScale;
     }
 
-    getRotation() {
-        return this.rotation;
+    get rotation() {
+        return this._rotation;
     }
 
-    setRotation(rotation: number) {
-        this.rotation = rotation;
+    set rotation(rotation: number) {
+        this._rotation = rotation;
     }
 
     rotate(rotation: number) {
         this.rotation += rotation;
+    }
+
+    get hueModifier() {
+        return this._hueModifier;
+    }
+
+    set hueModifier(hueModifier: number) {
+        this._hueModifier = hueModifier;
+    }
+
+    get saturationModifier() {
+        return this._saturationModifier;
+    }
+
+    set saturationModifier(saturationModifier: number) {
+        this._saturationModifier = saturationModifier;
+    }
+
+    get valueModifier() {
+        return this._valueModifier;
+    }
+
+    set valueModifier(valueModifier: number) {
+        this._valueModifier = valueModifier;
+    }
+
+    get alphaModifier() {
+        return this._alphaModifier;
+    }
+
+    set alphaModifier(alphaModifier: number) {
+        this._alphaModifier = alphaModifier;
     }
 
     /**
@@ -198,38 +248,6 @@ export abstract class DrawableEntity extends Entity {
         this.saturationModifier = hsva[1];
         this.valueModifier = hsva[2];
         this.alphaModifier = hsva[3];
-    }
-
-    getHueModifier() {
-        return this.hueModifier;
-    }
-
-    setHueModifier(hueModifier: number) {
-        this.hueModifier = hueModifier;
-    }
-
-    getSaturationModifier() {
-        return this.saturationModifier;
-    }
-
-    setSaturationModifier(saturationModifier: number) {
-        this.saturationModifier = saturationModifier;
-    }
-
-    getValueModifier() {
-        return this.valueModifier;
-    }
-
-    setValueModifier(valueModifier: number) {
-        this.valueModifier = valueModifier;
-    }
-
-    getAlphaModifier() {
-        return this.alphaModifier;
-    }
-
-    setAlphaModifier(alphaModifier: number) {
-        this.alphaModifier = alphaModifier;
     }
 
     /**

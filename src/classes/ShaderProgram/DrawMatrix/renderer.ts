@@ -47,7 +47,7 @@ export class DrawMatrix extends ShaderProgram {
         if (gl && this.matrix) {
             const program = this.program;
             const visibleDimensions = this.matrix.getVisibleDimensions();
-            const dimensions = this.matrix.getDimensions();
+            const dimensions = this.matrix.dimensions;
 
             const fb = gl.createFramebuffer();
             gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
@@ -61,7 +61,7 @@ export class DrawMatrix extends ShaderProgram {
             if (program) {
                 gl.useProgram(program);
                 try {
-                    const matrixBg = getRectangleCoords(0, 0, ...this.matrix.getDimensions());
+                    const matrixBg = getRectangleCoords(0, 0, ...this.matrix.dimensions);
                     // gridlines generated overflow
                     const gridlines = generateGrid(this.matrix.numRows, this.matrix.numColumns, this.config.borderWidth, ...visibleDimensions);
 

@@ -16,7 +16,7 @@ export class Matrix extends GroupEntity {
         this._numRows = numRows;
         this._numColumns = numColumns;
 
-        this.setDefaultDimensions([SpriteSheets.SPR_MINO_STD.spriteSize.width * numColumns, SpriteSheets.SPR_MINO_STD.spriteSize.width * numRows]);
+        this.defaultDimensions = [SpriteSheets.SPR_MINO_STD.spriteSize.width * numColumns, SpriteSheets.SPR_MINO_STD.spriteSize.width * numRows];
     }
 
     /**

@@ -77,7 +77,7 @@ export abstract class SpritedEntity extends TexturedEntity {
 
         if (spriteSheetData) {
             this.activeSpriteSheetData = spriteSheetData;
-            this.setDefaultDimensions([spriteSheetData.spriteSize.width, spriteSheetData.spriteSize.height]);
+            this.defaultDimensions = [spriteSheetData.spriteSize.width, spriteSheetData.spriteSize.height];
             this.activeSpriteQuadCoords = null;
         } else {
             throw new Error("Could not set active sprite sheet data. Did you forget to register the sprite sheet first?");
@@ -180,7 +180,7 @@ export abstract class SpritedEntity extends TexturedEntity {
         if (this.activeSpriteQuadCoords && this.activeSpriteSheetData) {
             const sumHsvaMod = this.getHsvaModifier().map((component, idx) => component + hsvaModBuffer[idx]) as Tuple<number, 4>;
 
-            drawBuffers.positionBuffer = getRectangleCoords(...this.getPosition(), ...this.getDimensions());
+            drawBuffers.positionBuffer = getRectangleCoords(...this.position, ...this.dimensions);
             drawBuffers.textureCoordBuffer = this.activeSpriteQuadCoords;
             drawBuffers.textureKeyBuffer = [this.activeSpriteSheetData.id];
             drawBuffers.hsvaModBuffer = Array(6)

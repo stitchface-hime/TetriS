@@ -39,7 +39,7 @@ export abstract class Piece extends GroupEntity {
     ) {
         super();
         this.parent = matrix;
-        this.setRelativePosition([0, 0]);
+        this.relativePosition = [0, 0];
 
         this.matrix = matrix;
         this._blocks = blocks;

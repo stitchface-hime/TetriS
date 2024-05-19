@@ -39,9 +39,9 @@ export class Block extends SpritedEntity {
         this.color = color;
 
         const hsv = hexToHsv(color);
-        this.setHueModifier(hsv[0]);
-        this.setSaturationModifier(hsv[1]);
-        this.setValueModifier(hsv[2] - 1);
+        this.hueModifier = hsv[0];
+        this.saturationModifier = hsv[1];
+        this.valueModifier = hsv[2] - 1;
 
         this.connections = 0;
     }
@@ -151,10 +151,10 @@ export class Block extends SpritedEntity {
         // console.log("Matrix:", this.matrix);
 
         // Move the entity
-        this.setRelativePosition([
+        this.relativePosition = [
             Math.trunc(this.matrixCoordinates[0] * SpriteSheets.SPR_MINO_STD.spriteSize.width),
             Math.trunc(this.matrixCoordinates[1] * SpriteSheets.SPR_MINO_STD.spriteSize.height),
-        ]);
+        ];
     }
 
     /*  private updateSpriteScale() {

@@ -13,12 +13,12 @@ export class MatrixBackground extends TexturedEntity {
 
     constructor(playfield: Playfield) {
         super();
-        this.setDefaultDimensions(playfield.getDimensions());
+        this.defaultDimensions = playfield.dimensions;
 
         this.parent = playfield;
         this.playfield = playfield;
 
-        this.setRelativePosition([0, 0]);
+        this.relativePosition = [0, 0];
     }
 
     async loadIntoTextureManager(gl: WebGLRenderingContext, textureManager: TextureManager, textureKey: TextureKey): Promise<void> {
@@ -36,7 +36,7 @@ export class MatrixBackground extends TexturedEntity {
         const type = gl.UNSIGNED_BYTE;
         const data = null;
 
-        gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, ...this.getDimensions(), border, format, type, data);
+        gl.texImage2D(gl.TEXTURE_2D, level, internalFormat, ...this.dimensions, border, format, type, data);
 
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
@@ -59,7 +59,7 @@ export class MatrixBackground extends TexturedEntity {
         const sumHsvaMod = this.getHsvaModifier().map((component, idx) => component + hsvaModBuffer[idx]) as Tuple<number, 4>;
 
         return {
-            positionBuffer: getRectangleCoords(...this.getPosition(), ...this.getDimensions()),
+            positionBuffer: getRectangleCoords(...this.position, ...this.dimensions),
             textureCoordBuffer: getRectangleCoords(0, 0, 1, 1),
             textureKeyBuffer: [MatrixBackground.textureKey],
             hsvaModBuffer: Array(6)

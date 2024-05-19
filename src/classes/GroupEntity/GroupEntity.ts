@@ -2,6 +2,7 @@ import { DrawableEntity } from "@classes/DrawableEntity";
 import { Contexts, Entity } from "@classes/Entity";
 import { EntityCollection } from "@classes/EntityCollection";
 import { TextureManager } from "@classes/TextureManager";
+import { add2DVectorTuples } from "@utils/add2DVectorTuples";
 import { DrawBuffers } from "src/shaders/types";
 import { Tuple } from "src/types";
 
@@ -26,6 +27,20 @@ export abstract class GroupEntity extends DrawableEntity {
 
     get drawables() {
         return this._drawables;
+    }
+
+    override get position() {
+        return this._position;
+    }
+
+    override set position(position: [x: number, y: number]) {
+        const deltaPosition = add2DVectorTuples(position, [-this.position[0], -this.position[1]]);
+        this._position = position;
+
+        this.drawables.entities.forEach((drawable) => {
+            drawable.translate(deltaPosition);
+        });
+        // TODO: need to update relative position too and children entities!!!
     }
 
     async getDrawBuffers(gl: WebGLRenderingContext, textureManager: TextureManager, hsvaModBuffer: Tuple<number, 4>): Promise<DrawBuffers> {
