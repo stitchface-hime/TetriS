@@ -23,5 +23,6 @@ export class PiecePreview extends Matrix {
         if (piece === null) return;
 
         this.drawables.push(piece);
+        this.goToPosition([64, 64]);
     }
 }

@@ -31,10 +31,10 @@ export class Playfield extends Matrix {
 
         this.defaultDimensions = [this.visibleDimensions[0], warnIfNotInteger((NATIVE_RESOLUTION_H + this.visibleDimensions[1]) * 0.5)];
         this.parent = game;
-        this.relativePosition = [
+        this.goToRelativePosition([
             warnIfNotInteger((NATIVE_RESOLUTION_W - this.dimensions[0]) * 0.5),
             warnIfNotInteger(NATIVE_RESOLUTION_H - this.dimensions[1]),
-        ];
+        ]);
 
         // Background for the matrix
         this.background = new MatrixBackground(this);

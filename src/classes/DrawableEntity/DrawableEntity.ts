@@ -24,7 +24,7 @@ export abstract class DrawableEntity extends Entity {
      * Position of the bottom-left pixel of an entity relative to the bottom-left pixel of the parent.
      * Otherwise this value is equal to `position`.
      */
-    private _relativePosition: [x: number, y: number] = [0, 0];
+    protected _relativePosition: [x: number, y: number] = [0, 0];
 
     /**
      * Scale of the entity within a scene.
@@ -115,39 +115,34 @@ export abstract class DrawableEntity extends Entity {
         return this._position;
     }
 
-    /**
-     * Updates the absolute position of the entity to its parent, which also updates its relative position accordingly.
-     *
-     * If this entity has no parent then the absolute and relative positions will both be updated to the supplied value.
-     */
-    set position(position: [x: number, y: number]) {
-        const deltaPosition = add2DVectorTuples(position, [-this.position[0], -this.position[1]]);
+    private set position(position: [x: number, y: number]) {
         this._position = position;
-        this._relativePosition = add2DVectorTuples(this._relativePosition, deltaPosition);
     }
 
     get relativePosition() {
         return this._relativePosition;
     }
 
-    /**
-     * Updates the relative position of the entity to its parent, which also updates its absolute position accordingly.
-     *
-     * If this entity has no parent then the absolute and relative positions will both be updated to the supplied value.
-     */
-    set relativePosition(relativePosition: [x: number, y: number]) {
-        if (this.parent) {
-            this._relativePosition = relativePosition;
-            this.position = add2DVectorTuples(this.parent.position, relativePosition); // can be refactored
-        } else {
-            console.warn("Warning - no parent, setting absolute position instead", this.constructor.name);
-            this.position = relativePosition;
-            this._relativePosition = relativePosition;
-        }
+    private set relativePosition(relativePosition: [x: number, y: number]) {
+        this._relativePosition = relativePosition;
     }
 
-    translate(position: [x: number, y: number]) {
-        this.relativePosition = add2DVectorTuples(this.relativePosition, position); // can be refactored to use setRelativePosition
+    /**
+     * Translates the entity a given number of units in both the x and y direction.
+     */
+    translate(translation: [x: number, y: number]) {
+        this.position = add2DVectorTuples(this.position, translation);
+        this.relativePosition = this.parent ? add2DVectorTuples(this.position, [-this.parent.position[0], -this.parent.position[1]]) : this.position;
+    }
+
+    goToPosition(position: [x: number, y: number]) {
+        const delta = add2DVectorTuples(position, [-this.position[0], -this.position[1]]);
+        this.translate(delta);
+    }
+
+    goToRelativePosition(relativePosition: [x: number, y: number]) {
+        const delta = add2DVectorTuples(relativePosition, [-this.relativePosition[0], -this.relativePosition[1]]);
+        this.translate(delta);
     }
 
     get scale() {

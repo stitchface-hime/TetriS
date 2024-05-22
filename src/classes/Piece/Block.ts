@@ -4,7 +4,7 @@ import { SpriteSheets } from "@data/SpriteSheets";
 import { SpritedEntity } from "@classes/SpritedEntity";
 import { hexToHsv } from "@utils/hexToHsv";
 import { HexString } from "src/shaders/types";
-import { GroupEntity } from "@classes/GroupEntity";
+import { Piece } from "./Piece";
 
 /**
  * A block is a single unit that takes up one cell in the matrix.
@@ -46,16 +46,9 @@ export class Block extends SpritedEntity {
         this.connections = 0;
     }
 
-    override get parent() {
-        return this._parent;
-    }
-
-    override set parent(parent: GroupEntity | null) {
-        this._parent = parent;
-
-        if (parent === null) return;
-
-        this.updateCoordinates(this.matrixCoordinates);
+    parentToPiece(piece: Piece) {
+        this.parent = piece;
+        this.updateCoordinates();
     }
 
     getActiveCoordinates() {
@@ -144,30 +137,19 @@ export class Block extends SpritedEntity {
 
     /**
      * Should be used whenever you need to move a block within the matrix.
-     * This also moves the block entity within the canvas.
+     * This also sets the relative position of the block to the parent.
+     * By default, it uses this block's current matrix coordinates for the update, meaning it will only
+     * update the relative position of the block.
      */
-    private updateCoordinates(coordinates: [x: number, y: number]) {
+    private updateCoordinates(coordinates: [x: number, y: number] = this.matrixCoordinates) {
         this.matrixCoordinates = coordinates;
-        // console.log("Matrix:", this.matrix);
 
         // Move the entity
-        this.relativePosition = [
+        this.goToRelativePosition([
             Math.trunc(this.matrixCoordinates[0] * SpriteSheets.SPR_MINO_STD.spriteSize.width),
             Math.trunc(this.matrixCoordinates[1] * SpriteSheets.SPR_MINO_STD.spriteSize.height),
-        ];
+        ]);
     }
-
-    /*  private updateSpriteScale() {
-        const playArea = this.matrix.getPlayArea();
-
-        if (playArea) {
-            const matrixRows = this.matrix.getNumVisibleRows();
-            const matrixColumns = this.matrix.getNumColumns();
-
-            // Scale the entity
-            this.scaleToWidthHeight([playArea.width / matrixColumns, playArea.height / matrixRows]);
-        }
-    } */
 
     /**
      * Determines if the block can move down a specified number of units (default: 1 unit).

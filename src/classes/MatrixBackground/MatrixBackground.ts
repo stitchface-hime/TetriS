@@ -18,7 +18,7 @@ export class MatrixBackground extends TexturedEntity {
         this.parent = playfield;
         this.playfield = playfield;
 
-        this.relativePosition = [0, 0];
+        this.goToRelativePosition([0, 0]);
     }
 
     async loadIntoTextureManager(gl: WebGLRenderingContext, textureManager: TextureManager, textureKey: TextureKey): Promise<void> {

@@ -39,11 +39,11 @@ export abstract class Piece extends GroupEntity {
     ) {
         super();
         this.parent = matrix;
-        this.relativePosition = [0, 0];
+        this.goToRelativePosition([0, 0]);
 
         this.matrix = matrix;
         this._blocks = blocks;
-        blocks.forEach((block) => (block.parent = this));
+        blocks.forEach((block) => block.parentToPiece(this));
         this.drawables.push(...this.blocks);
 
         this.rotationState = 0;
@@ -72,7 +72,7 @@ export abstract class Piece extends GroupEntity {
         this._ghost = piece;
 
         if (piece) {
-            this.drawables.push(piece);
+            this.drawables.unshift(piece);
             this.updateGhost();
         } else {
             if (!currentGhost) return;

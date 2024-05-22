@@ -29,18 +29,12 @@ export abstract class GroupEntity extends DrawableEntity {
         return this._drawables;
     }
 
-    override get position() {
-        return this._position;
-    }
-
-    override set position(position: [x: number, y: number]) {
-        const deltaPosition = add2DVectorTuples(position, [-this.position[0], -this.position[1]]);
-        this._position = position;
+    override translate(translation: [x: number, y: number]) {
+        super.translate(translation);
 
         this.drawables.entities.forEach((drawable) => {
-            drawable.translate(deltaPosition);
+            drawable.translate(translation);
         });
-        // TODO: need to update relative position too and children entities!!!
     }
 
     async getDrawBuffers(gl: WebGLRenderingContext, textureManager: TextureManager, hsvaModBuffer: Tuple<number, 4>): Promise<DrawBuffers> {
