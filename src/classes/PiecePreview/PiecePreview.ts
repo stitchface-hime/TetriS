@@ -5,7 +5,7 @@ export class PiecePreview extends Matrix {
     private _piece: Piece | null = null;
 
     constructor() {
-        super(5, 3);
+        super(3, 5);
     }
 
     get piece() {

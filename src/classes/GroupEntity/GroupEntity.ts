@@ -1,8 +1,8 @@
+import { BoundingBox } from "@classes/BoundingBox";
 import { DrawableEntity } from "@classes/DrawableEntity";
 import { Contexts, Entity } from "@classes/Entity";
 import { EntityCollection } from "@classes/EntityCollection";
 import { TextureManager } from "@classes/TextureManager";
-import { add2DVectorTuples } from "@utils/add2DVectorTuples";
 import { DrawBuffers } from "src/shaders/types";
 import { Tuple } from "src/types";
 
@@ -16,6 +16,7 @@ import { Tuple } from "src/types";
 export abstract class GroupEntity extends DrawableEntity {
     private _passives = new EntityCollection<Entity>();
     private _drawables = new EntityCollection<DrawableEntity>();
+    private boundingBox = new BoundingBox(this);
 
     constructor(contexts: Contexts = {}) {
         super({}, contexts);
@@ -57,6 +58,12 @@ export abstract class GroupEntity extends DrawableEntity {
                 drawBuffers.hsvaModBuffer.push(...entityBuffers.hsvaModBuffer);
             })
         );
+
+        const boundingBoxBuffers = await this.boundingBox.getDrawBuffers(gl, textureManager);
+        drawBuffers.positionBuffer.push(...boundingBoxBuffers.positionBuffer);
+        drawBuffers.textureCoordBuffer.push(...boundingBoxBuffers.textureCoordBuffer);
+        drawBuffers.textureKeyBuffer.push(...boundingBoxBuffers.textureKeyBuffer);
+        drawBuffers.hsvaModBuffer.push(...boundingBoxBuffers.hsvaModBuffer);
 
         return drawBuffers;
     }

@@ -247,10 +247,10 @@ export abstract class DrawableEntity extends Entity {
 
     /**
      * Returns entity buffers containing:
-     * - entity position (12 elements in buffer per entity, 2 coord * 6)
-     * - entity texture coordinates (12 elements in buffer per entity, 2 coord * 6)
-     * - entity texture key (1 element in buffer per entity)
-     * - entity hsva modifier (24 elements in buffer per entity, 4 hsva * 6)
+     * - entity position (12 elements in buffer per rectangle in entity, `2 coord * 6 vert * numRectangles`)
+     * - entity texture coordinates (12 elements in buffer per rectangle in entity, `2 coord * 6 vert * numRectangles`)
+     * - entity texture key (1 element in buffer per rectangle in entity, `1 textureKey * numRectangles`)
+     * - entity hsva modifier (24 elements in buffer per rectangle in entity, `4 hsva * 6 vert * numRectangles`)
      *
      * If a texture does not exist within the supplied texture manager with the returned texture key,
      * this function will be required to create a texture and load it into the texture manager keyed by texture key.
