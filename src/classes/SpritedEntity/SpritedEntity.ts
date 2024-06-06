@@ -6,6 +6,7 @@ import { SpriteSheetLoader } from "@classes/ShaderProgram/SpriteSheetLoader/rend
 import { TextureKey } from "@data/TextureKey";
 import { TexturedEntity } from "@classes/TexturedEntity";
 import { Contexts } from "@classes/Entity";
+import { BoundingBox } from "@classes/BoundingBox";
 
 /* interface AnimationFrame {
     name: string;
@@ -42,6 +43,8 @@ export abstract class SpritedEntity extends TexturedEntity {
 
     protected animation: SpriteAnimation | null = {}; */
 
+    private boundingBox = new BoundingBox(this);
+
     constructor(
         {
             position,
@@ -57,6 +60,7 @@ export abstract class SpritedEntity extends TexturedEntity {
         contexts: Contexts = {}
     ) {
         super({ position, scale, rotation }, contexts);
+        this.boundingBox.hueModifier = 120;
         spriteSheetDatas.forEach((sheet) => this.registerSpriteSheetData(sheet));
     }
 
@@ -153,6 +157,7 @@ export abstract class SpritedEntity extends TexturedEntity {
 
         // Set up texture
         const texture = gl.createTexture();
+
         gl.bindTexture(gl.TEXTURE_2D, texture);
 
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
@@ -177,22 +182,31 @@ export abstract class SpritedEntity extends TexturedEntity {
         };
 
         // make sure all buffers have some data in them
+        const boundingBoxBuffers = await this.boundingBox.getDrawBuffers(gl, textureManager);
+
         if (this.activeSpriteQuadCoords && this.activeSpriteSheetData) {
+            if (!textureManager.isLoaded(this.activeSpriteSheetData.id)) {
+                await this.loadIntoTextureManager(gl, textureManager, this.activeSpriteSheetData.id);
+            }
+
             const sumHsvaMod = this.getHsvaModifier().map((component, idx) => component + hsvaModBuffer[idx]) as Tuple<number, 4>;
 
             drawBuffers.positionBuffer = getRectangleCoords(...this.position, ...this.dimensions);
-            drawBuffers.textureCoordBuffer = this.activeSpriteQuadCoords;
+            drawBuffers.textureCoordBuffer = [...this.activeSpriteQuadCoords];
             drawBuffers.textureKeyBuffer = [this.activeSpriteSheetData.id];
             drawBuffers.hsvaModBuffer = Array(6)
                 .fill([...sumHsvaMod])
                 .flat();
-
-            if (!textureManager.isLoaded(this.activeSpriteSheetData.id)) {
-                await this.loadIntoTextureManager(gl, textureManager, this.activeSpriteSheetData.id);
-            }
         } else {
             console.warn(`Skip drawing this ${this.constructor.name} entity, either no quad coords or active sprite sheet data.`);
         }
+
+        drawBuffers.positionBuffer.push(...boundingBoxBuffers.positionBuffer);
+        drawBuffers.textureCoordBuffer.push(...boundingBoxBuffers.textureCoordBuffer);
+        drawBuffers.textureKeyBuffer.push(...boundingBoxBuffers.textureKeyBuffer);
+        drawBuffers.hsvaModBuffer.push(...boundingBoxBuffers.hsvaModBuffer);
+
+        // bounding box
 
         return drawBuffers;
     }

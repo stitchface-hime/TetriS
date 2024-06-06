@@ -130,4 +130,29 @@ export abstract class ShaderProgram {
      * Draw to a specified texture.
      */
     abstract draw(destTexture: WebGLTexture | null, ...args: any[]): Promise<void>;
+
+    // Debug functions
+
+    protected arrayBufferToBase64(array: Uint8Array) {
+        var binary = "";
+        var len = array.byteLength;
+        for (var i = 0; i < len; i++) {
+            binary += String.fromCharCode(array[i]);
+        }
+        return window.btoa(binary);
+    }
+
+    protected debugTexture(gl: WebGLRenderingContext, texture: WebGLTexture) {
+        var framebuffer = this.gl.createFramebuffer();
+
+        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, framebuffer);
+        this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, texture, 0);
+        if (gl) {
+            const canvas = gl.canvas as HTMLCanvasElement;
+
+            let data = new Uint8Array(canvas.clientWidth * canvas.clientHeight * 4);
+            gl.readPixels(0, 0, canvas.clientWidth, canvas.clientHeight, gl.RGBA, gl.UNSIGNED_BYTE, data);
+            return data;
+        }
+    }
 }
