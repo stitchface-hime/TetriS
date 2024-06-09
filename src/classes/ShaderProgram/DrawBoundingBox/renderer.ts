@@ -48,7 +48,7 @@ export class DrawBoundingBox extends ShaderProgram {
                     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
                     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(getRectangleCoords(0, 0, 1, 1)), gl.STATIC_DRAW);
                     gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-                    console.log(new Array(6).fill([...hexToRgb(this.color), 255]));
+                    // console.log(new Array(6).fill([...hexToRgb(this.color), 255]));
                     gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(new Array(6).fill([...hexToRgb(this.color), 255]).flat()), gl.STATIC_DRAW);
 
                     gl.enableVertexAttribArray(positionLocation);

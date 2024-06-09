@@ -201,10 +201,10 @@ export abstract class SpritedEntity extends TexturedEntity {
             console.warn(`Skip drawing this ${this.constructor.name} entity, either no quad coords or active sprite sheet data.`);
         }
 
-        drawBuffers.positionBuffer.push(...boundingBoxBuffers.positionBuffer);
+        /*  drawBuffers.positionBuffer.push(...boundingBoxBuffers.positionBuffer);
         drawBuffers.textureCoordBuffer.push(...boundingBoxBuffers.textureCoordBuffer);
         drawBuffers.textureKeyBuffer.push(...boundingBoxBuffers.textureKeyBuffer);
-        drawBuffers.hsvaModBuffer.push(...boundingBoxBuffers.hsvaModBuffer);
+        drawBuffers.hsvaModBuffer.push(...boundingBoxBuffers.hsvaModBuffer); */
 
         // bounding box
 

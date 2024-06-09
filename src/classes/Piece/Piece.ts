@@ -55,8 +55,11 @@ export abstract class Piece extends GroupEntity {
         this.drawables.push(...this.blocks);
     }
 
+    /**
+     * Get a shallow copy of the blocks in the piece.
+     */
     get blocks() {
-        return this._blocks;
+        return [...this._blocks];
     }
 
     private set blocks(blocks: Block[]) {
@@ -85,6 +88,12 @@ export abstract class Piece extends GroupEntity {
      * (Should only be called once in the constructor.)
      */
     protected abstract coupleBlocks(): void;
+
+    toggleDisabledBlocks(disabled: boolean) {
+        this.blocks.forEach((block) => {
+            block.disabled = disabled;
+        });
+    }
 
     /**
      * Gets the piece id.

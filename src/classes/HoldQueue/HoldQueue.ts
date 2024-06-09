@@ -12,6 +12,8 @@ export class HoldQueue extends GroupEntity {
     constructor() {
         super();
         this.drawables.push(this.preview);
+
+        this.defaultDimensions = this.getDrawablesMinRectDim();
     }
 
     get holdPieceId() {
@@ -24,6 +26,10 @@ export class HoldQueue extends GroupEntity {
 
     set canHold(canHold: boolean) {
         this._canHold = canHold;
+
+        if (!this.preview.piece) return;
+
+        this.preview.piece.toggleDisabledBlocks(!canHold);
     }
 
     hold(pieceId: PieceId) {

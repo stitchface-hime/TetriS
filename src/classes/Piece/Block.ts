@@ -16,7 +16,7 @@ export class Block extends SpritedEntity {
      * NOTE: `x` refers to columns and `y` refers to the rows!
      */
     private matrixCoordinates: [x: number, y: number];
-    private color: string;
+    private color: HexString;
     private matrix: Matrix;
     /**
      * The blocks that are coupled to this block in cardinal directions.
@@ -29,6 +29,8 @@ export class Block extends SpritedEntity {
      * 9 (`1001`). This needs to be updated everytime the piece rotates.
      */
     private connections: number;
+
+    private _disabled = false;
 
     constructor(matrixCoordinates: [x: number, y: number], matrix: Matrix, color: HexString = "#ffffff") {
         super({ spriteSheetDatas: [SpriteSheets.SPR_MINO_STD] });
@@ -44,6 +46,17 @@ export class Block extends SpritedEntity {
         this.valueModifier = hsv[2] - 1;
 
         this.connections = 0;
+    }
+
+    get disabled() {
+        return this._disabled;
+    }
+
+    set disabled(disabled: boolean) {
+        this._disabled = disabled;
+        const [h, s, v]: [h: number, s: number, v: number] = hexToHsv(this.color);
+
+        this.setHsvaModifier(disabled ? [0, 0, -0.25, 0] : [h, s, v - 1, 0]);
     }
 
     parentToPiece(piece: Piece) {
@@ -73,7 +86,7 @@ export class Block extends SpritedEntity {
         return this.color;
     }
 
-    setColor(color: string) {
+    setColor(color: HexString) {
         this.color = color;
     }
 

@@ -74,7 +74,7 @@ export class Game extends GroupEntity implements IControllable {
 
         // not ideal - probably don't want group entity as the renderer for a game anymore... unless we want ui to also appear in the screen?
 
-        this.pieceSpawner = new PieceSpawner(pieceQueue, spawnCoordinates);
+        this.pieceSpawner = new PieceSpawner(this.playfield, pieceQueue, spawnCoordinates);
         this.drawables.push(this.playfield, this.pieceSpawner);
     }
 

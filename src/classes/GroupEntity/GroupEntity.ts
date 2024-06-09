@@ -38,6 +38,36 @@ export abstract class GroupEntity extends DrawableEntity {
         });
     }
 
+    /**
+     * Get the dimensions of a minimum rectangle that encapsulates all child entities.
+     */
+    getDrawablesMinRectDim(): [width: number, height: number] {
+        console.warn("TODO: does not cover case where the max rel x/y does not touch the bounds of the rectangle");
+        const drawablesByRelX = this.drawables.entities.sort((e1, e2) => e1.relativePosition[0] - e2.relativePosition[0]);
+        const drawablesByRelY = this.drawables.entities.sort((e1, e2) => e1.relativePosition[1] - e2.relativePosition[1]);
+
+        const minRelXDrawable = drawablesByRelX[0];
+        const maxRelXDrawable = drawablesByRelX[drawablesByRelX.length - 1];
+
+        const minRelYDrawable = drawablesByRelY[0];
+        const maxRelYDrawable = drawablesByRelY[drawablesByRelX.length - 1];
+
+        return [
+            maxRelXDrawable.relativePosition[0] + maxRelXDrawable.dimensions[0] - minRelXDrawable.relativePosition[0],
+            maxRelYDrawable.relativePosition[1] + maxRelYDrawable.dimensions[1] - minRelYDrawable.relativePosition[1],
+        ];
+    }
+
+    /**
+     * Get the relative position of minimum rectangle that encapsulates all child drawable entities.
+     */
+    getDrawablesMinRectRelPos(): [x: number, y: number] {
+        const drawablesByRelX = this.drawables.entities.sort((e1, e2) => e1.relativePosition[0] - e2.relativePosition[0]);
+        const drawablesByRelY = this.drawables.entities.sort((e1, e2) => e1.relativePosition[1] - e2.relativePosition[1]);
+
+        return [drawablesByRelX[0].relativePosition[0], drawablesByRelY[0].relativePosition[1]];
+    }
+
     async getDrawBuffers(gl: WebGLRenderingContext, textureManager: TextureManager, hsvaModBuffer: Tuple<number, 4>): Promise<DrawBuffers> {
         const drawBuffers: DrawBuffers = {
             positionBuffer: [],

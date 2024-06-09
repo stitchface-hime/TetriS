@@ -4,8 +4,10 @@ import { Playfield } from "@classes/Playfield";
 import { PieceFactory } from "@classes/PieceFactory";
 import { PieceQueue } from "@classes/PieceQueue";
 import { PieceId } from "@data/PieceId";
+import { NATIVE_RESOLUTION_H } from "src/constants";
 
 export class PieceSpawner extends GroupEntity {
+    private playfield: Playfield;
     private pieceFactory = new PieceFactory();
 
     private holdQueue: HoldQueue;
@@ -16,14 +18,21 @@ export class PieceSpawner extends GroupEntity {
 
     private useGhost: boolean;
 
-    constructor(pieceQueue: PieceQueue, spawnCoordinates: [x: number, y: number], useGhost = true) {
+    constructor(playfield: Playfield, pieceQueue: PieceQueue, spawnCoordinates: [x: number, y: number], useGhost = true) {
         super();
+        this.playfield = playfield;
+
         this.spawnCoordinates = spawnCoordinates;
         this.nextQueue = pieceQueue;
         this.holdQueue = new HoldQueue();
 
         this.drawables.push(this.holdQueue);
         this.useGhost = useGhost;
+
+        this.holdQueue.goToRelativePosition([
+            this.playfield.relativePosition[0] - this.holdQueue.dimensions[0],
+            NATIVE_RESOLUTION_H - this.holdQueue.dimensions[1],
+        ]);
     }
 
     spawnPiece(playfield: Playfield, pieceId?: PieceId, fromHold = false) {

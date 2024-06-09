@@ -30,6 +30,7 @@ export abstract class DrawableEntity extends Entity {
      * Scale of the entity within a scene.
      */
     private _scale: [x: number, y: number] = this.defaultScale;
+
     /**
      * Rotation of the entity in degrees within a scene.
      */
