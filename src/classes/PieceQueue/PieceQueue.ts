@@ -1,15 +1,23 @@
+import { GroupEntity } from "@classes/GroupEntity";
 import { PieceId } from "@data/index";
+import { Renderer_PieceQueue } from "./PieceQueue.renderer";
 
 /**
  * A queue containing the ids of the pieces that will fall into the matrix next.
  */
-export abstract class PieceQueue {
+export abstract class PieceQueue extends GroupEntity {
     protected queue: PieceId[];
     protected readonly possiblePieceIds: PieceId[];
+    protected renderer: Renderer_PieceQueue;
 
-    constructor(possiblePieceIds: PieceId[], initialQueue: PieceId[]) {
+    constructor(possiblePieceIds: PieceId[], initialQueue: PieceId[], previewCount = 4) {
+        super();
         this.possiblePieceIds = possiblePieceIds;
         this.queue = initialQueue;
+
+        this.renderer = new Renderer_PieceQueue(this, previewCount);
+        this.defaultDimensions = this.renderer.getDrawablesMinRectDim();
+        this.drawables.push(this.renderer);
     }
 
     /**
@@ -17,7 +25,10 @@ export abstract class PieceQueue {
      * Returns `undefined` if the queue is empty.
      */
     shiftNext() {
-        return this.queue.shift();
+        const nextId = this.queue.shift();
+        this.renderer.update();
+
+        return nextId;
     }
 
     /**

@@ -18,8 +18,8 @@ export class Bag extends PieceQueue {
      */
     private reserveBag: PieceId[];
 
-    constructor(possiblePieceIds: PieceId[]) {
-        super(possiblePieceIds, randomizeArray(possiblePieceIds));
+    constructor(possiblePieceIds: PieceId[], previewCount = 4) {
+        super(possiblePieceIds, randomizeArray(possiblePieceIds), previewCount);
         this.reserveBag = randomizeArray(possiblePieceIds);
     }
 
@@ -35,6 +35,8 @@ export class Bag extends PieceQueue {
         if (this.reserveBag.length === 0) {
             this.reserveBag = randomizeArray(this.possiblePieceIds);
         }
+
+        this.renderer.update();
 
         return nextPiece;
     }

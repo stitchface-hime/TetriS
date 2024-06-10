@@ -18,7 +18,12 @@ export class PieceSpawner extends GroupEntity {
 
     private useGhost: boolean;
 
-    constructor(playfield: Playfield, pieceQueue: PieceQueue, spawnCoordinates: [x: number, y: number], useGhost = true) {
+    constructor(
+        playfield: Playfield,
+        pieceQueue: PieceQueue,
+        spawnCoordinates: [x: number, y: number],
+        useGhost = true
+    ) {
         super();
         this.playfield = playfield;
 
@@ -27,12 +32,21 @@ export class PieceSpawner extends GroupEntity {
         this.holdQueue = new HoldQueue();
 
         this.drawables.push(this.holdQueue);
+        this.drawables.push(pieceQueue);
         this.useGhost = useGhost;
 
         this.holdQueue.goToRelativePosition([
             this.playfield.relativePosition[0] - this.holdQueue.dimensions[0],
-            NATIVE_RESOLUTION_H - this.holdQueue.dimensions[1],
+            NATIVE_RESOLUTION_H - this.holdQueue.dimensions[1] - this.playfield.relativePosition[1],
         ]);
+
+        this.nextQueue.goToRelativePosition([
+            this.playfield.relativePosition[0] + this.playfield.dimensions[0],
+            NATIVE_RESOLUTION_H - this.nextQueue.dimensions[1] - this.playfield.relativePosition[1],
+        ]);
+
+        this.holdQueue.parent = this;
+        this.nextQueue.parent = this;
     }
 
     spawnPiece(playfield: Playfield, pieceId?: PieceId, fromHold = false) {
@@ -75,7 +89,11 @@ export class PieceSpawner extends GroupEntity {
     }
 
     private spawnGhostPiece(playfield: Playfield, pieceId?: PieceId) {
-        const ghostPiece = this.pieceFactory.makePiece([this.spawnCoordinates[0], this.spawnCoordinates[1]], playfield, pieceId);
+        const ghostPiece = this.pieceFactory.makePiece(
+            [this.spawnCoordinates[0], this.spawnCoordinates[1]],
+            playfield,
+            pieceId
+        );
         if (ghostPiece !== null) ghostPiece.saturationModifier = -0.5;
 
         return ghostPiece;

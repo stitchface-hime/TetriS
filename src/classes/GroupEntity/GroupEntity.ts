@@ -43,8 +43,12 @@ export abstract class GroupEntity extends DrawableEntity {
      */
     getDrawablesMinRectDim(): [width: number, height: number] {
         console.warn("TODO: does not cover case where the max rel x/y does not touch the bounds of the rectangle");
-        const drawablesByRelX = this.drawables.entities.sort((e1, e2) => e1.relativePosition[0] - e2.relativePosition[0]);
-        const drawablesByRelY = this.drawables.entities.sort((e1, e2) => e1.relativePosition[1] - e2.relativePosition[1]);
+        const drawablesByRelX = this.drawables.entities.sort(
+            (e1, e2) => e1.relativePosition[0] - e2.relativePosition[0]
+        );
+        const drawablesByRelY = this.drawables.entities.sort(
+            (e1, e2) => e1.relativePosition[1] - e2.relativePosition[1]
+        );
 
         const minRelXDrawable = drawablesByRelX[0];
         const maxRelXDrawable = drawablesByRelX[drawablesByRelX.length - 1];
@@ -62,13 +66,21 @@ export abstract class GroupEntity extends DrawableEntity {
      * Get the relative position of minimum rectangle that encapsulates all child drawable entities.
      */
     getDrawablesMinRectRelPos(): [x: number, y: number] {
-        const drawablesByRelX = this.drawables.entities.sort((e1, e2) => e1.relativePosition[0] - e2.relativePosition[0]);
-        const drawablesByRelY = this.drawables.entities.sort((e1, e2) => e1.relativePosition[1] - e2.relativePosition[1]);
+        const drawablesByRelX = this.drawables.entities.sort(
+            (e1, e2) => e1.relativePosition[0] - e2.relativePosition[0]
+        );
+        const drawablesByRelY = this.drawables.entities.sort(
+            (e1, e2) => e1.relativePosition[1] - e2.relativePosition[1]
+        );
 
         return [drawablesByRelX[0].relativePosition[0], drawablesByRelY[0].relativePosition[1]];
     }
 
-    async getDrawBuffers(gl: WebGLRenderingContext, textureManager: TextureManager, hsvaModBuffer: Tuple<number, 4>): Promise<DrawBuffers> {
+    async getDrawBuffers(
+        gl: WebGLRenderingContext,
+        textureManager: TextureManager,
+        hsvaModBuffer: Tuple<number, 4>
+    ): Promise<DrawBuffers> {
         const drawBuffers: DrawBuffers = {
             positionBuffer: [],
             textureCoordBuffer: [],
@@ -78,7 +90,9 @@ export abstract class GroupEntity extends DrawableEntity {
 
         await Promise.all(
             this.drawables.entities.map(async (entity) => {
-                const sumHsvaMod = this.getHsvaModifier().map((component, idx) => component + hsvaModBuffer[idx]) as Tuple<number, 4>;
+                const sumHsvaMod = this.getHsvaModifier().map(
+                    (component, idx) => component + hsvaModBuffer[idx]
+                ) as Tuple<number, 4>;
 
                 const entityBuffers = await entity.getDrawBuffers(gl, textureManager, sumHsvaMod);
 
@@ -89,11 +103,11 @@ export abstract class GroupEntity extends DrawableEntity {
             })
         );
 
-        const boundingBoxBuffers = await this.boundingBox.getDrawBuffers(gl, textureManager);
+        /* const boundingBoxBuffers = await this.boundingBox.getDrawBuffers(gl, textureManager);
         drawBuffers.positionBuffer.push(...boundingBoxBuffers.positionBuffer);
         drawBuffers.textureCoordBuffer.push(...boundingBoxBuffers.textureCoordBuffer);
         drawBuffers.textureKeyBuffer.push(...boundingBoxBuffers.textureKeyBuffer);
-        drawBuffers.hsvaModBuffer.push(...boundingBoxBuffers.hsvaModBuffer);
+        drawBuffers.hsvaModBuffer.push(...boundingBoxBuffers.hsvaModBuffer); */
 
         return drawBuffers;
     }

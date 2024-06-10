@@ -26,7 +26,10 @@ export class PiecePreview extends Matrix {
 
         const relPos = this.piece.getDrawablesMinRectRelPos();
 
-        const translation: [x: number, y: number] = [matrixMidX - pieceBounds[0] / 2 - relPos[0], matrixMidY - pieceBounds[1] / 2];
+        const translation: [x: number, y: number] = [
+            matrixMidX - pieceBounds[0] / 2 - relPos[0],
+            matrixMidY - pieceBounds[1] / 2,
+        ];
 
         this.piece.translate(translation);
     }
@@ -37,6 +40,9 @@ export class PiecePreview extends Matrix {
         this._piece = piece;
         if (piece === null) return;
 
+        piece.parent = this;
+
+        piece.goToRelativePosition([0, 0]);
         this.drawables.push(piece);
         this.positionPiece();
     }
