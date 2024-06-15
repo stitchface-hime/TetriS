@@ -4,8 +4,8 @@ export class ImageAsset extends Asset {
     private src: string;
     private _image: HTMLImageElement | null = null;
 
-    constructor(src: string) {
-        super(src);
+    constructor(id: string, src: string) {
+        super(id);
         this.src = src;
     }
 

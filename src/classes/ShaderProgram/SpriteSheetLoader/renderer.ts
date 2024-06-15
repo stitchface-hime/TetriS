@@ -11,7 +11,7 @@ export class SpriteSheetLoader extends ShaderProgram {
      * Loads a sprite sheet from a source into a texture.
      */
     async draw(destTexture: WebGLTexture, src: string) {
-        const gl = this.getWebGLRenderingContext();
+        const gl = this.gl;
         gl.bindTexture(gl.TEXTURE_2D, destTexture);
 
         // load the sprite sheet

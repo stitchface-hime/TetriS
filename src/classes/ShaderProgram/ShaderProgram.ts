@@ -10,32 +10,31 @@ export abstract class ShaderProgram {
     private vertexShader: WebGLShader | null = null;
     private fragmentShader: WebGLShader | null = null;
 
-    protected gl: WebGLRenderingContext;
+    protected _gl: WebGLRenderingContext;
     protected program: WebGLProgram | null = null;
 
     constructor(vertexSrc: string, fragmentSrc: string, gl: WebGLRenderingContext, autoBuild = true) {
         this.vertexSrc = vertexSrc;
         this.fragmentSrc = fragmentSrc;
-        this.gl = gl;
+        this._gl = gl;
 
         if (autoBuild && gl) {
             this.build();
         }
     }
 
-    getWebGLRenderingContext() {
-        return this.gl;
+    get gl() {
+        return this._gl;
     }
 
-    setWebGLRenderingContext(gl: WebGLRenderingContext, autoBuild = true) {
-        this.gl = gl;
-
-        if (autoBuild && gl) {
-            this.build();
-        }
+    set gl(gl: WebGLRenderingContext) {
+        this._gl = gl;
     }
 
-    private compileShader(src: string, type: WebGLRenderingContext["FRAGMENT_SHADER"] | WebGLRenderingContext["VERTEX_SHADER"]) {
+    private compileShader(
+        src: string,
+        type: WebGLRenderingContext["FRAGMENT_SHADER"] | WebGLRenderingContext["VERTEX_SHADER"]
+    ) {
         if (this.gl) {
             const shader = this.gl.createShader(type);
             if (shader) {
@@ -47,14 +46,19 @@ export abstract class ShaderProgram {
                 if (!ok) {
                     throw new ShaderProgramError(
                         this.id,
-                        `Failed to compile shader of type ${type} (${type === this.gl.FRAGMENT_SHADER ? "fragment" : "vertex"}). ${this.gl.getShaderInfoLog(
-                            shader
-                        )}`
+                        `Failed to compile shader of type ${type} (${
+                            type === this.gl.FRAGMENT_SHADER ? "fragment" : "vertex"
+                        }). ${this.gl.getShaderInfoLog(shader)}`
                     );
                 }
                 return shader;
             } else {
-                throw new ShaderProgramError(this.id, `Failed to create shader of type ${type} (${type === this.gl.FRAGMENT_SHADER ? "fragment" : "vertex"}).`);
+                throw new ShaderProgramError(
+                    this.id,
+                    `Failed to create shader of type ${type} (${
+                        type === this.gl.FRAGMENT_SHADER ? "fragment" : "vertex"
+                    }).`
+                );
             }
         } else {
             throw new ShaderProgramError(this.id, `Could not compile shader, no WebGL context.`);
