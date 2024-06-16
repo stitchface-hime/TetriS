@@ -76,11 +76,7 @@ export abstract class GroupEntity extends DrawableEntity {
         return [drawablesByRelX[0].relativePosition[0], drawablesByRelY[0].relativePosition[1]];
     }
 
-    async getDrawBuffers(
-        gl: WebGLRenderingContext,
-        textureManager: TextureManager,
-        hsvaModBuffer: Tuple<number, 4>
-    ): Promise<DrawBuffers> {
+    getDrawBuffers(hsvaModBuffer: Tuple<number, 4>): DrawBuffers {
         const drawBuffers: DrawBuffers = {
             positionBuffer: [],
             textureCoordBuffer: [],
@@ -88,20 +84,19 @@ export abstract class GroupEntity extends DrawableEntity {
             hsvaModBuffer: [],
         };
 
-        await Promise.all(
-            this.drawables.entities.map(async (entity) => {
-                const sumHsvaMod = this.getHsvaModifier().map(
-                    (component, idx) => component + hsvaModBuffer[idx]
-                ) as Tuple<number, 4>;
+        this.drawables.entities.map((entity) => {
+            const sumHsvaMod = this.getHsvaModifier().map((component, idx) => component + hsvaModBuffer[idx]) as Tuple<
+                number,
+                4
+            >;
 
-                const entityBuffers = await entity.getDrawBuffers(gl, textureManager, sumHsvaMod);
+            const entityBuffers = entity.getDrawBuffers(sumHsvaMod);
 
-                drawBuffers.positionBuffer.push(...entityBuffers.positionBuffer);
-                drawBuffers.textureCoordBuffer.push(...entityBuffers.textureCoordBuffer);
-                drawBuffers.textureKeyBuffer.push(...entityBuffers.textureKeyBuffer);
-                drawBuffers.hsvaModBuffer.push(...entityBuffers.hsvaModBuffer);
-            })
-        );
+            drawBuffers.positionBuffer.push(...entityBuffers.positionBuffer);
+            drawBuffers.textureCoordBuffer.push(...entityBuffers.textureCoordBuffer);
+            drawBuffers.textureKeyBuffer.push(...entityBuffers.textureKeyBuffer);
+            drawBuffers.hsvaModBuffer.push(...entityBuffers.hsvaModBuffer);
+        });
 
         /* const boundingBoxBuffers = await this.boundingBox.getDrawBuffers(gl, textureManager);
         drawBuffers.positionBuffer.push(...boundingBoxBuffers.positionBuffer);

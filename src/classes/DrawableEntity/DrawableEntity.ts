@@ -86,7 +86,9 @@ export abstract class DrawableEntity extends Entity {
      */
     set parent(parent: GroupEntity | null) {
         this._parent = parent;
-        this.relativePosition = parent ? add2DVectorTuples(this.position, [-parent.position[0], -parent.position[1]]) : this.position;
+        this.relativePosition = parent
+            ? add2DVectorTuples(this.position, [-parent.position[0], -parent.position[1]])
+            : this.position;
     }
 
     /**
@@ -133,7 +135,9 @@ export abstract class DrawableEntity extends Entity {
      */
     translate(translation: [x: number, y: number]) {
         this.position = add2DVectorTuples(this.position, translation);
-        this.relativePosition = this.parent ? add2DVectorTuples(this.position, [-this.parent.position[0], -this.parent.position[1]]) : this.position;
+        this.relativePosition = this.parent
+            ? add2DVectorTuples(this.position, [-this.parent.position[0], -this.parent.position[1]])
+            : this.position;
     }
 
     goToPosition(position: [x: number, y: number]) {
@@ -174,7 +178,10 @@ export abstract class DrawableEntity extends Entity {
      */
     scaleToWidthHeight(dimensions: [width: number, height: number]) {
         if (this.defaultDimensions[0] !== 0 && this.defaultDimensions[1] !== 0) {
-            this.scale = product2DVectorTuples(dimensions, [1 / this.defaultDimensions[0], 1 / this.defaultDimensions[1]]);
+            this.scale = product2DVectorTuples(dimensions, [
+                1 / this.defaultDimensions[0],
+                1 / this.defaultDimensions[1],
+            ]);
         }
     }
 
@@ -253,11 +260,8 @@ export abstract class DrawableEntity extends Entity {
      * - entity texture key (1 element in buffer per rectangle in entity, `1 textureKey * numRectangles`)
      * - entity hsva modifier (24 elements in buffer per rectangle in entity, `4 hsva * 6 vert * numRectangles`)
      *
-     * If a texture does not exist within the supplied texture manager with the returned texture key,
-     * this function will be required to create a texture and load it into the texture manager keyed by texture key.
-     *
      * This also applies any HSVA modifications from the parent to the entity. If the entity is nested underneath multiple group
      * entities then HSVA modifications will be applied additively starting from the root group entity.
      */
-    abstract getDrawBuffers(gl: WebGLRenderingContext, textureManager: TextureManager, parentHsvaMod: Tuple<number, 4>): Promise<DrawBuffers>;
+    abstract getDrawBuffers(parentHsvaMod: Tuple<number, 4>): DrawBuffers;
 }

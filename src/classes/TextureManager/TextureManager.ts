@@ -1,15 +1,13 @@
-import { TextureKey } from "@data/index";
-
 export class TextureManager {
-    private loaded: Partial<Record<TextureKey, WebGLTexture>> = {};
+    private loaded: Record<string, WebGLTexture> = {};
 
     constructor() {}
 
-    isLoaded(key: TextureKey) {
+    isLoaded(key: string) {
         return !!this.loaded[key];
     }
 
-    getTexture(key: TextureKey) {
+    getTexture(key: string) {
         return this.loaded[key];
     }
 
@@ -18,11 +16,11 @@ export class TextureManager {
      * If it already exists, nothing will happen unless specifically called with overwrite flag, which
      * will replace the currently stored texture if it exists.
      */
-    load(key: TextureKey, texture: WebGLTexture, overwrite = false) {
+    load(key: string, texture: WebGLTexture, overwrite = false) {
         if (!this.isLoaded(key) || overwrite) this.loaded[key] = texture;
     }
 
-    unload(key: TextureKey) {
+    unload(key: string) {
         delete this.loaded[key];
     }
 }

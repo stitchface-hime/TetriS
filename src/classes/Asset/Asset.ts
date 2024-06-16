@@ -23,5 +23,8 @@ export abstract class Asset {
         this._isLoaded = isLoaded;
     }
 
+    /**
+     * Loads an asset into the game. Throws an error if the asset failed to load.
+     */
     abstract load(onLoad?: () => void): void;
 }

@@ -1,12 +1,18 @@
-import { Asset } from "../Asset";
+import { SpriteSheetLoader } from "@classes/ShaderProgram/SpriteSheetLoader";
+import { ShaderTextureAsset } from "../ShaderTextureAsset";
+import { TextureManager } from "@classes/TextureManager";
 
-export class ImageAsset extends Asset {
+export class ImageAsset extends ShaderTextureAsset {
     private src: string;
     private _image: HTMLImageElement | null = null;
 
-    constructor(id: string, src: string) {
-        super(id);
-        this.src = src;
+    constructor(
+        id: string,
+        program: SpriteSheetLoader,
+        textureManager: TextureManager
+    ) {
+        super(id, program, textureManager);
+        this.src = program.src;
     }
 
     get image() {
@@ -18,16 +24,19 @@ export class ImageAsset extends Asset {
     }
 
     load(onLoad?: () => void) {
+        let texture: WebGLTexture | null = null;
+
         this.isLoaded = false;
         const image = new Image();
         image.src = this.src;
         image.onload = () => {
-            if (onLoad) onLoad();
             this.image = image;
-            this.isLoaded = true;
+            texture = this.createTexture();
+
+            if (onLoad) onLoad();
         };
         image.onerror = (e) => {
-            console.error(e);
+            throw new Error("Image asset failed to load.");
         };
     }
 }

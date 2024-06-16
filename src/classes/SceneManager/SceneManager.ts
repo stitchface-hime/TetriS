@@ -1,14 +1,17 @@
 import { Scene } from "@classes/Scene";
 import { SceneKey } from "./Scene.keys";
+import { TextureManager } from "@classes/TextureManager";
 
 export class SceneManager {
     private scenes: Partial<Record<SceneKey, Scene>> = {};
     private _currentScene: Scene | null = null;
     private isCurrentSceneLoaded = false;
+    private textureManager: TextureManager;
 
-    constructor(initialScene: Scene) {
+    constructor(initialScene: Scene, textureManager: TextureManager) {
         this.addScene(initialScene);
         this.loadScene(initialScene.key);
+        this.textureManager = textureManager;
     }
 
     get currentScene() {
@@ -43,21 +46,22 @@ export class SceneManager {
     /**
      * Loads a scene asynchronously and optionally makes a callback once loaded.
      */
-    async loadScene(sceneKey: SceneKey, onLoad?: (scene: Scene) => void) {
+    loadScene(sceneKey: SceneKey, onLoad?: (scene: Scene) => void) {
         const scene = this.scenes[sceneKey];
 
-        if (!scene) return Promise.reject("Scene not found");
+        if (!scene) throw new Error("Scene not found.");
 
-        return scene.load().then(() => {
-            if (onLoad) onLoad(scene);
-        });
+        scene.load(onLoad);
     }
 
     /**
-     * Loads a scene asynchronous and sets it as current once loading completes.
+     * Loads a scene asynchronously and sets it as current once loading completes.
      * An optional callback can also be provided for once the scene finishes loading.
      */
-    async loadAndSetCurrentScene(sceneKey: SceneKey, onLoad?: (scene: Scene) => void) {
+    loadAndSetCurrentScene(
+        sceneKey: SceneKey,
+        onLoad?: (scene: Scene) => void
+    ) {
         return this.loadScene(sceneKey, (scene) => {
             if (onLoad) onLoad(scene);
 

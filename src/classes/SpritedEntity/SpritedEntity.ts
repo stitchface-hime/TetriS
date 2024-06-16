@@ -84,7 +84,9 @@ export abstract class SpritedEntity extends TexturedEntity {
             this.defaultDimensions = [spriteSheetData.spriteSize.width, spriteSheetData.spriteSize.height];
             this.activeSpriteQuadCoords = null;
         } else {
-            throw new Error("Could not set active sprite sheet data. Did you forget to register the sprite sheet first?");
+            throw new Error(
+                "Could not set active sprite sheet data. Did you forget to register the sprite sheet first?"
+            );
         }
     }
 
@@ -146,34 +148,19 @@ export abstract class SpritedEntity extends TexturedEntity {
             const {
                 spriteSize: { width, height },
             } = this.activeSpriteSheetData;
-            this.activeSpriteQuadCoords = getRectangleCoords(u, v, width / this.activeSpriteSheetData.width, height / this.activeSpriteSheetData.height, true);
+            this.activeSpriteQuadCoords = getRectangleCoords(
+                u,
+                v,
+                width / this.activeSpriteSheetData.width,
+                height / this.activeSpriteSheetData.height,
+                true
+            );
         } else {
             throw new Error("There is no active sprite sheet set. Did not set active sprite.");
         }
     }
 
-    async loadIntoTextureManager(gl: WebGLRenderingContext, textureManager: TextureManager, textureKey: TextureKey): Promise<void> {
-        const loader = new SpriteSheetLoader(gl);
-
-        // Set up texture
-        const texture = gl.createTexture();
-
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-
-        if (texture && this.activeSpriteSheetData) {
-            await loader.draw(texture, this.activeSpriteSheetData.src);
-            textureManager.load(textureKey, texture);
-        } else {
-            throw Error("Failed to load texture");
-        }
-    }
-
-    async getDrawBuffers(gl: WebGLRenderingContext, textureManager: TextureManager, hsvaModBuffer: Tuple<number, 4>): Promise<DrawBuffers> {
+    getDrawBuffers(hsvaModBuffer: Tuple<number, 4>): DrawBuffers {
         const drawBuffers: DrawBuffers = {
             positionBuffer: [],
             textureCoordBuffer: [],
@@ -182,14 +169,13 @@ export abstract class SpritedEntity extends TexturedEntity {
         };
 
         // make sure all buffers have some data in them
-        const boundingBoxBuffers = await this.boundingBox.getDrawBuffers(gl, textureManager);
+        const boundingBoxBuffers = this.boundingBox.getDrawBuffers();
 
         if (this.activeSpriteQuadCoords && this.activeSpriteSheetData) {
-            if (!textureManager.isLoaded(this.activeSpriteSheetData.id)) {
-                await this.loadIntoTextureManager(gl, textureManager, this.activeSpriteSheetData.id);
-            }
-
-            const sumHsvaMod = this.getHsvaModifier().map((component, idx) => component + hsvaModBuffer[idx]) as Tuple<number, 4>;
+            const sumHsvaMod = this.getHsvaModifier().map((component, idx) => component + hsvaModBuffer[idx]) as Tuple<
+                number,
+                4
+            >;
 
             drawBuffers.positionBuffer = getRectangleCoords(...this.position, ...this.dimensions);
             drawBuffers.textureCoordBuffer = [...this.activeSpriteQuadCoords];
@@ -198,7 +184,9 @@ export abstract class SpritedEntity extends TexturedEntity {
                 .fill([...sumHsvaMod])
                 .flat();
         } else {
-            console.warn(`Skip drawing this ${this.constructor.name} entity, either no quad coords or active sprite sheet data.`);
+            console.warn(
+                `Skip drawing this ${this.constructor.name} entity, either no quad coords or active sprite sheet data.`
+            );
         }
 
         /*  drawBuffers.positionBuffer.push(...boundingBoxBuffers.positionBuffer);

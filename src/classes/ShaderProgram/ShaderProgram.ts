@@ -13,7 +13,12 @@ export abstract class ShaderProgram {
     protected _gl: WebGLRenderingContext;
     protected program: WebGLProgram | null = null;
 
-    constructor(vertexSrc: string, fragmentSrc: string, gl: WebGLRenderingContext, autoBuild = true) {
+    constructor(
+        vertexSrc: string,
+        fragmentSrc: string,
+        gl: WebGLRenderingContext,
+        autoBuild = true
+    ) {
         this.vertexSrc = vertexSrc;
         this.fragmentSrc = fragmentSrc;
         this._gl = gl;
@@ -33,7 +38,9 @@ export abstract class ShaderProgram {
 
     private compileShader(
         src: string,
-        type: WebGLRenderingContext["FRAGMENT_SHADER"] | WebGLRenderingContext["VERTEX_SHADER"]
+        type:
+            | WebGLRenderingContext["FRAGMENT_SHADER"]
+            | WebGLRenderingContext["VERTEX_SHADER"]
     ) {
         if (this.gl) {
             const shader = this.gl.createShader(type);
@@ -41,13 +48,18 @@ export abstract class ShaderProgram {
                 this.gl.shaderSource(shader, src);
                 this.gl.compileShader(shader);
 
-                const ok = this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS);
+                const ok = this.gl.getShaderParameter(
+                    shader,
+                    this.gl.COMPILE_STATUS
+                );
 
                 if (!ok) {
                     throw new ShaderProgramError(
                         this.id,
                         `Failed to compile shader of type ${type} (${
-                            type === this.gl.FRAGMENT_SHADER ? "fragment" : "vertex"
+                            type === this.gl.FRAGMENT_SHADER
+                                ? "fragment"
+                                : "vertex"
                         }). ${this.gl.getShaderInfoLog(shader)}`
                     );
                 }
@@ -61,19 +73,28 @@ export abstract class ShaderProgram {
                 );
             }
         } else {
-            throw new ShaderProgramError(this.id, `Could not compile shader, no WebGL context.`);
+            throw new ShaderProgramError(
+                this.id,
+                `Could not compile shader, no WebGL context.`
+            );
         }
     }
 
     private compileVertexShader() {
         if (this.gl) {
-            this.vertexShader = this.compileShader(this.vertexSrc, this.gl.VERTEX_SHADER);
+            this.vertexShader = this.compileShader(
+                this.vertexSrc,
+                this.gl.VERTEX_SHADER
+            );
         }
     }
 
     private compileFragmentShader() {
         if (this.gl) {
-            this.fragmentShader = this.compileShader(this.fragmentSrc, this.gl.FRAGMENT_SHADER);
+            this.fragmentShader = this.compileShader(
+                this.fragmentSrc,
+                this.gl.FRAGMENT_SHADER
+            );
         }
     }
 
@@ -87,18 +108,30 @@ export abstract class ShaderProgram {
                     this.gl.attachShader(program, this.fragmentShader);
 
                     this.gl.linkProgram(program);
-                    const ok = this.gl.getProgramParameter(program, this.gl.LINK_STATUS);
+                    const ok = this.gl.getProgramParameter(
+                        program,
+                        this.gl.LINK_STATUS
+                    );
 
                     if (!ok) {
-                        throw new ShaderProgramError(this.id, `Failed to compile program.`);
+                        throw new ShaderProgramError(
+                            this.id,
+                            `Failed to compile program.`
+                        );
                     }
 
                     this.program = program;
                 } else {
-                    throw new ShaderProgramError(this.id, `Failed to compile program, shaders incomplete.`);
+                    throw new ShaderProgramError(
+                        this.id,
+                        `Failed to compile program, shaders incomplete.`
+                    );
                 }
             } else {
-                throw new ShaderProgramError(this.id, `Failed to create program.`);
+                throw new ShaderProgramError(
+                    this.id,
+                    `Failed to create program.`
+                );
             }
         }
     }
@@ -133,7 +166,7 @@ export abstract class ShaderProgram {
     /**
      * Draw to a specified texture.
      */
-    abstract draw(destTexture: WebGLTexture | null, ...args: any[]): Promise<void>;
+    abstract draw(destTexture: WebGLTexture | null, ...args: any[]): void;
 
     // Debug functions
 
@@ -150,12 +183,28 @@ export abstract class ShaderProgram {
         var framebuffer = this.gl.createFramebuffer();
 
         this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, framebuffer);
-        this.gl.framebufferTexture2D(this.gl.FRAMEBUFFER, this.gl.COLOR_ATTACHMENT0, this.gl.TEXTURE_2D, texture, 0);
+        this.gl.framebufferTexture2D(
+            this.gl.FRAMEBUFFER,
+            this.gl.COLOR_ATTACHMENT0,
+            this.gl.TEXTURE_2D,
+            texture,
+            0
+        );
         if (gl) {
             const canvas = gl.canvas as HTMLCanvasElement;
 
-            let data = new Uint8Array(canvas.clientWidth * canvas.clientHeight * 4);
-            gl.readPixels(0, 0, canvas.clientWidth, canvas.clientHeight, gl.RGBA, gl.UNSIGNED_BYTE, data);
+            let data = new Uint8Array(
+                canvas.clientWidth * canvas.clientHeight * 4
+            );
+            gl.readPixels(
+                0,
+                0,
+                canvas.clientWidth,
+                canvas.clientHeight,
+                gl.RGBA,
+                gl.UNSIGNED_BYTE,
+                data
+            );
             return data;
         }
     }
