@@ -10,6 +10,12 @@ import { Controller } from "@classes/Controller";
 import { ControllerPortKey } from "@classes/ControllerPortManager/types";
 import { ControllerContext } from "@classes/ControllerContext";
 import { IntervalContext } from "@classes/IntervalContext";
+import { SceneManager } from "@classes/SceneManager/SceneManager";
+import { Scene_Game } from "@classes/Scene/scenes/Scene_Game";
+import { SceneRenderer } from "@classes/ShaderProgram/SceneRenderer";
+import { ShaderTextureAsset } from "@classes/Asset/ShaderTextureAsset";
+import { DrawMatrix } from "@classes/ShaderProgram";
+import { SceneKey } from "@classes/SceneManager/Scene.keys";
 
 export class Main {
     // Common to all entities within the main progra
@@ -19,11 +25,14 @@ export class Main {
     private intervalManager = new IntervalManager();
     private controllerPortManager = new ControllerPortManager();
 
+    private sceneRenderer: SceneRenderer | null = null;
+    private sceneManager = new SceneManager(this.textureManager);
+
     private clock = this.intervalManager.subscribe(
         new Interval(
             0,
             () => {
-                this.draw();
+                this.run();
             },
             Infinity // debug
         )
@@ -32,34 +41,23 @@ export class Main {
     private game: Game | null = null;
 
     private runStatus: RunStatus = RunStatus.STOPPED;
-    private renderer: MainRenderer | null = null;
 
     constructor(canvas?: HTMLCanvasElement) {
-        if (canvas) {
-            this.setWebGLRenderingContext(canvas);
-            if (this.gl) {
-                this.renderer = new MainRenderer(this.gl, this.textureManager);
-            }
-        }
+        if (!canvas) return;
+
+        this.setWebGLRenderingContext(canvas);
     }
 
     /**
      * Sets the rendering context for the main program. This also assigns a renderer to main.
      */
     setWebGLRenderingContext(canvas: HTMLCanvasElement) {
-        this.gl = canvas.getContext("webgl");
-        if (this.gl) {
-            this.renderer = new MainRenderer(this.gl, this.textureManager);
-        }
-    }
+        const gl = canvas.getContext("webgl");
 
-    private run() {
-        if (this.gl) {
-            this.game?.run();
-            this.runStatus = RunStatus.RUNNING;
+        if (!gl) return;
 
-            // draw from game into canvas
-        }
+        this.gl = gl;
+        this.sceneRenderer = new SceneRenderer(gl, this.textureManager);
     }
 
     private halt() {
@@ -69,46 +67,59 @@ export class Main {
         }
     }
 
-    async draw() {
-        if (this.gl && this.game) {
-            const canvas = this.gl.canvas as HTMLCanvasElement;
-            const mainTexture = this.gl.createTexture();
+    setUp() {
+        if (this.gl && this.sceneRenderer) {
+            console.log("Begin set up");
+            const game = new Game(...Standard.getConfig(), {
+                controllerContext: new ControllerContext(
+                    this.controllerPortManager
+                ),
+                intervalContext: new IntervalContext(this.intervalManager),
+            });
 
-            this.gl.bindTexture(this.gl.TEXTURE_2D, mainTexture);
+            const drawMatrix = new DrawMatrix(this.gl);
+            drawMatrix.setMatrix(game.getPlayfield());
 
-            const level = 0;
-            const internalFormat = this.gl.RGBA;
-            const border = 0;
-            const format = this.gl.RGBA;
-            const type = this.gl.UNSIGNED_BYTE;
-            const data = null;
+            const scene = new Scene_Game(this.sceneRenderer, game, [
+                new ShaderTextureAsset(
+                    "TEX_playfield",
+                    drawMatrix,
+                    this.textureManager
+                ),
+            ]);
 
-            this.gl.texImage2D(this.gl.TEXTURE_2D, level, internalFormat, canvas.clientWidth, canvas.clientHeight, border, format, type, data);
-
-            this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.NEAREST);
-            this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MAG_FILTER, this.gl.NEAREST);
-            this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
-            this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
-
-            // draw to main texture
-            const drawBuffers: DrawBuffers = await this.game.getDrawBuffers(this.gl, this.textureManager, [0, 0, 0, 0]);
-            await this.renderer?.draw(mainTexture, drawBuffers);
+            this.sceneManager.addScene(scene);
+        } else {
+            throw new Error(
+                "Failed to set up, WebGL context might be missing."
+            );
         }
     }
 
-    async start() {
-        if (!this.game && this.gl) {
-            const controller = new Controller(this.intervalManager);
-            this.controllerPortManager.getPort(ControllerPortKey.PORT_0).plugIn(controller);
-
-            this.game = new Game(...Standard.getConfig(), this.gl, {
-                controllerContext: new ControllerContext(this.controllerPortManager),
-                intervalContext: new IntervalContext(this.intervalManager),
-            });
-            this.game.contexts.controllerContext?.assignControllable(this.game);
-
-            this.run();
+    run() {
+        if (!this.sceneManager.isCurrentSceneLoaded()) {
+            if (!this.sceneManager.isCurrentSceneLoading())
+                this.sceneManager.loadCurrentScene();
         }
+    }
+
+    start() {
+        console.log("Start");
+        this.setUp();
+        this.sceneManager.loadAndSetCurrentScene(Scene_Game.key, (scene) => {
+            console.log(this.textureManager);
+            console.log("Scene loaded", scene);
+        });
+
+        this.intervalManager.subscribe(
+            new Interval(
+                0,
+                () => {
+                    this.run();
+                },
+                Infinity // debug
+            )
+        );
     }
 
     pause() {
@@ -131,7 +142,9 @@ export class Main {
     }
 
     getControllerEventTriggers(key: ControllerPortKey) {
-        return this.controllerPortManager.getPort(key).controller?.getEventTriggers();
+        return this.controllerPortManager
+            .getPort(key)
+            .controller?.getEventTriggers();
     }
 
     // debug

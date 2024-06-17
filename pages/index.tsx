@@ -34,12 +34,16 @@ const App: React.FC = () => {
         if (canvasRef.current) {
             mainRef.current = new Main();
             mainRef.current.setWebGLRenderingContext(canvasRef.current);
-            await mainRef.current.start();
+            mainRef.current.start();
 
-            const triggers = mainRef.current?.getControllerEventTriggers(ControllerPortKey.PORT_0);
+            const triggers = mainRef.current?.getControllerEventTriggers(
+                ControllerPortKey.PORT_0
+            );
 
             if (triggers) {
-                mainRef.current?.getControllerEventTriggers(ControllerPortKey.PORT_0);
+                mainRef.current?.getControllerEventTriggers(
+                    ControllerPortKey.PORT_0
+                );
                 window.addEventListener("keydown", (e) => {
                     const { key } = e;
                     triggers.press(key);
@@ -65,7 +69,11 @@ const App: React.FC = () => {
             <br />
             Lines: {mainRef.current?.getGame()?.getGameParams().linesCleared}
             <br />
-            Combo: {Math.max(mainRef.current?.getGame()?.getGameParams().combo || 0, 0)}
+            Combo:{" "}
+            {Math.max(
+                mainRef.current?.getGame()?.getGameParams().combo || 0,
+                0
+            )}
         </div>
     );
 };

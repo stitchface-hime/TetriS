@@ -44,7 +44,8 @@ export class Game extends GroupEntity implements IControllable {
     private pieceSpawner: PieceSpawner;
 
     private onLevelUpdate = (newLevel: number) => {
-        this.autoDropFrameBaseline = (0.8 - (newLevel - 1) * 0.007) ** (newLevel - 1) * 60;
+        this.autoDropFrameBaseline =
+            (0.8 - (newLevel - 1) * 0.007) ** (newLevel - 1) * 60;
         this.autoDropFrameTarget = this.autoDropFrameBaseline;
     };
 
@@ -55,26 +56,28 @@ export class Game extends GroupEntity implements IControllable {
         numColumns: number,
         pieceQueue: PieceQueue,
         spawnCoordinates: [x: number, y: number],
-        // TODO: why is renderer necessary for anything except getting size of canvas
-        gl: WebGLRenderingContext,
         contexts: Contexts = {},
         level = 1
     ) {
         super(contexts);
-        this.contexts.controllerContext?.subscribeToPort(ControllerPortKey.PORT_0);
+        this.contexts.controllerContext?.subscribeToPort(
+            ControllerPortKey.PORT_0
+        );
         this.numRows = numRows;
         this.progressionJudge = new ProgressionJudge(level, this.onLevelUpdate);
         this.progressionJudge.setLinesQuotaTarget(10);
 
         this.playfield = new Playfield(numRows, numColumns, this);
 
-        const canvas = gl.canvas as HTMLCanvasElement;
-        this.defaultDimensions = [canvas.clientWidth, canvas.clientHeight];
         this.goToPosition([0, 0]);
 
         // not ideal - probably don't want group entity as the renderer for a game anymore... unless we want ui to also appear in the screen?
 
-        this.pieceSpawner = new PieceSpawner(this.playfield, pieceQueue, spawnCoordinates);
+        this.pieceSpawner = new PieceSpawner(
+            this.playfield,
+            pieceQueue,
+            spawnCoordinates
+        );
         this.drawables.push(this.playfield, this.pieceSpawner);
     }
 
@@ -113,7 +116,9 @@ export class Game extends GroupEntity implements IControllable {
      */
     async tick() {
         if (this.gameOver || this.playfield.activePiece) return;
-        const spawnSuccessful = this.pieceSpawner.spawnNextPiece(this.playfield);
+        const spawnSuccessful = this.pieceSpawner.spawnNextPiece(
+            this.playfield
+        );
 
         this.spawnPieceReset();
         console.log(this.drawables);
@@ -125,7 +130,8 @@ export class Game extends GroupEntity implements IControllable {
         if (this.playfield.activePiece) {
             this.hasGrounded = false;
             this.groundedMoves = 0;
-            this.lowestGroundedRow = this.playfield.activePiece?.getBottomBoundRow();
+            this.lowestGroundedRow =
+                this.playfield.activePiece?.getBottomBoundRow();
         }
     }
 
@@ -134,7 +140,8 @@ export class Game extends GroupEntity implements IControllable {
      */
     private triggerGroundedCheck(wasRotationMove = false) {
         if (this.playfield.activePiece) {
-            const lowestRowOccupiedByActivePiece = this.playfield.activePiece.getBottomBoundRow();
+            const lowestRowOccupiedByActivePiece =
+                this.playfield.activePiece.getBottomBoundRow();
 
             // Begin lock delay flow as soon as piece cannot move downwards
             // and reset the number of moves the player can move
@@ -142,7 +149,8 @@ export class Game extends GroupEntity implements IControllable {
             // it grounded on previously
             if (!this.playfield.activePiece?.canMoveDownTogether(1)) {
                 if (this.lowestGroundedRow > lowestRowOccupiedByActivePiece) {
-                    this.lowestGroundedRow = this.playfield.activePiece?.getBottomBoundRow();
+                    this.lowestGroundedRow =
+                        this.playfield.activePiece?.getBottomBoundRow();
                     // If the piece was not grounded by rotation or
                     // the piece was grounded via rotation but it has
                     // not been grounded before, reset the number of available
@@ -155,7 +163,10 @@ export class Game extends GroupEntity implements IControllable {
                 this.autoLockFlow();
             }
 
-            if (this.groundedMoves >= this.groundedMoveLimit && !this.playfield.activePiece.canMoveDownTogether(1)) {
+            if (
+                this.groundedMoves >= this.groundedMoveLimit &&
+                !this.playfield.activePiece.canMoveDownTogether(1)
+            ) {
                 this.lockPiece();
             }
         }
@@ -184,7 +195,11 @@ export class Game extends GroupEntity implements IControllable {
             this.lockPiece();
         } else {
             const intervalContext = this.contexts.intervalContext;
-            if (intervalContext && intervalContext.getInterval(GameIntervalKeys.LOCK_DELAY) === undefined) {
+            if (
+                intervalContext &&
+                intervalContext.getInterval(GameIntervalKeys.LOCK_DELAY) ===
+                    undefined
+            ) {
                 this.initLockDelay();
             }
         }
@@ -197,12 +212,17 @@ export class Game extends GroupEntity implements IControllable {
             this.autoDropPiece(unitsToDrop);
         }
 
-        this.contexts.intervalContext?.registerInterval(GameIntervalKeys.AUTO_DROP, new Interval(FRAME_MS, () => this.dropFlow(unitsToDrop), Infinity));
+        this.contexts.intervalContext?.registerInterval(
+            GameIntervalKeys.AUTO_DROP,
+            new Interval(FRAME_MS, () => this.dropFlow(unitsToDrop), Infinity)
+        );
     }
 
     private resetAutoDrop() {
         this.autoDropFrames = 0;
-        this.contexts.intervalContext?.unregisterInterval(GameIntervalKeys.AUTO_DROP);
+        this.contexts.intervalContext?.unregisterInterval(
+            GameIntervalKeys.AUTO_DROP
+        );
     }
 
     private autoDropPiece(units = 1) {
@@ -223,7 +243,9 @@ export class Game extends GroupEntity implements IControllable {
 
     private resetLockDelay() {
         this.lockDelayFrames = 0;
-        this.contexts.intervalContext?.unregisterInterval(GameIntervalKeys.LOCK_DELAY);
+        this.contexts.intervalContext?.unregisterInterval(
+            GameIntervalKeys.LOCK_DELAY
+        );
     }
 
     private initLockDelay() {
@@ -250,8 +272,12 @@ export class Game extends GroupEntity implements IControllable {
      * (this behaviour can be ignored).
      */
     private lockPiece(ignoreMoveCheck = false) {
-        if (!this.playfield.activePiece?.canMoveDownTogether(1) || ignoreMoveCheck) {
-            const prevMoveTechnical = this.playfield.activePiece?.getPrevMoveTechnical() || null;
+        if (
+            !this.playfield.activePiece?.canMoveDownTogether(1) ||
+            ignoreMoveCheck
+        ) {
+            const prevMoveTechnical =
+                this.playfield.activePiece?.getPrevMoveTechnical() || null;
 
             this.playfield.lockActivePiece();
 
@@ -264,7 +290,12 @@ export class Game extends GroupEntity implements IControllable {
             const isPerfectClear = this.playfield.getNumCellsOccupied() === 0;
 
             // update judges
-            this.scoreJudge.addScoreByLock(this.progressionJudge.getLevel(), linesCleared, prevMoveTechnical, isPerfectClear);
+            this.scoreJudge.addScoreByLock(
+                this.progressionJudge.getLevel(),
+                linesCleared,
+                prevMoveTechnical,
+                isPerfectClear
+            );
             this.progressionJudge.addLinesCleared(linesCleared);
 
             // only nullify active piece once all logic above is completed
@@ -330,12 +361,14 @@ export class Game extends GroupEntity implements IControllable {
     // TODO: This overly reliant on matrix maybe move to Matrix instead
     private getRowsOccupiedByActivePiece() {
         if (this.playfield.activePiece) {
-            return this.playfield.activePiece.getBlocksCoordinates().map((coordinates) => {
-                if (coordinates) {
-                    return coordinates[1];
-                }
-                throw Error("Active piece should always have coordinates");
-            });
+            return this.playfield.activePiece
+                .getBlocksCoordinates()
+                .map((coordinates) => {
+                    if (coordinates) {
+                        return coordinates[1];
+                    }
+                    throw Error("Active piece should always have coordinates");
+                });
         }
         return [];
     }
@@ -345,7 +378,10 @@ export class Game extends GroupEntity implements IControllable {
         this.resetLockDelay();
         if (this.hasGrounded) {
             this.groundedMoves += 1;
-            console.log("Moves left before lock:", this.groundedMoveLimit - this.groundedMoves);
+            console.log(
+                "Moves left before lock:",
+                this.groundedMoveLimit - this.groundedMoves
+            );
         }
         this.triggerGroundedCheck(wasRotationMove);
     }
@@ -391,7 +427,9 @@ export class Game extends GroupEntity implements IControllable {
     }
 
     hardDrop() {
-        const unitsMoved = this.playfield.activePiece?.moveDown(this.playfield.activePiece.getHardDropUnits());
+        const unitsMoved = this.playfield.activePiece?.moveDown(
+            this.playfield.activePiece.getHardDropUnits()
+        );
 
         if (unitsMoved !== undefined) {
             this.scoreJudge.addScoreByDrop(unitsMoved, DropType.HARD);
@@ -523,5 +561,10 @@ export class Game extends GroupEntity implements IControllable {
     // ! Debug only
     getControllerContext() {
         return this.contexts.controllerContext;
+    }
+
+    // ! Debug only
+    getPlayfield() {
+        return this.playfield;
     }
 }

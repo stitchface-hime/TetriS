@@ -3,12 +3,14 @@ import { SceneKey } from "@classes/SceneManager/Scene.keys";
 import { SceneRenderer } from "@classes/ShaderProgram/SceneRenderer";
 import { TextureManager } from "@classes/TextureManager";
 
-// TODO: Callbacks for when assets are processed.
+// TODO: Test when asset fails to load.
 export abstract class Scene {
     private _key: SceneKey;
     private _assets: Asset[];
     private numLoaded = 0;
     private numParsed = 0;
+    private _isLoading = false;
+    private _isLoaded = false;
     protected renderer: SceneRenderer;
 
     constructor(key: SceneKey, assets: Asset[], renderer: SceneRenderer) {
@@ -26,30 +28,55 @@ export abstract class Scene {
     }
 
     get isLoaded() {
-        return this.assets.length === this.numLoaded;
+        return this._isLoaded;
+    }
+
+    get isLoading() {
+        return this._isLoading;
+    }
+
+    checkLoadComplete() {
+        if (this.assets.length === this.numLoaded) {
+            this._isLoading = false;
+            this._isLoaded = true;
+        } else {
+            this._isLoading = true;
+            this._isLoaded = false;
+        }
     }
 
     incrementLoad(onLoad?: (scene: Scene) => void) {
         this.numLoaded += 1;
         this.numParsed += 1;
 
-        if (this.isLoaded && onLoad) onLoad(this);
+        this.checkLoadComplete();
+
+        if (this._isLoaded && onLoad) onLoad(this);
     }
 
     /**
      * Loads the scene including all assets.
      */
     load(onLoad?: (scene: Scene) => void, reload = false) {
-        if (this.isLoaded && !reload) return;
+        if (this._isLoaded && !reload) return;
 
         this.numLoaded = 0;
+        this.checkLoadComplete();
 
         this._assets.forEach((asset) => {
             try {
                 if (asset.isLoaded) {
                     this.incrementLoad(onLoad);
                 } else {
-                    asset.load(() => this.incrementLoad(onLoad));
+                    asset.load((asset) => {
+                        console.log(
+                            `[${this.numLoaded + 1}/${
+                                this.assets.length
+                            }] Loaded: `,
+                            asset.constructor.name
+                        );
+                        this.incrementLoad(onLoad);
+                    });
                 }
             } catch (e) {
                 this.numParsed += 1;

@@ -1,6 +1,7 @@
 import { SpriteSheetLoader } from "@classes/ShaderProgram/SpriteSheetLoader";
 import { ShaderTextureAsset } from "../ShaderTextureAsset";
 import { TextureManager } from "@classes/TextureManager";
+import { Asset } from "../Asset";
 
 export class ImageAsset extends ShaderTextureAsset {
     private src: string;
@@ -23,7 +24,7 @@ export class ImageAsset extends ShaderTextureAsset {
         this._image = image;
     }
 
-    load(onLoad?: () => void) {
+    load(onLoad?: (asset: Asset) => void) {
         let texture: WebGLTexture | null = null;
 
         this.isLoaded = false;
@@ -33,7 +34,7 @@ export class ImageAsset extends ShaderTextureAsset {
             this.image = image;
             texture = this.createTexture();
 
-            if (onLoad) onLoad();
+            if (onLoad) onLoad(this);
         };
         image.onerror = (e) => {
             throw new Error("Image asset failed to load.");

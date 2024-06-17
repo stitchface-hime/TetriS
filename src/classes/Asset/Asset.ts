@@ -24,7 +24,7 @@ export abstract class Asset {
     }
 
     /**
-     * Loads an asset into the game. Throws an error if the asset failed to load.
+     * Loads an asset into the game, and optionally accepts a callback when asset is loaded. Throws an error if the asset failed to load.
      */
-    abstract load(onLoad?: () => void): void;
+    abstract load(onLoad?: (asset: Asset) => void): void;
 }

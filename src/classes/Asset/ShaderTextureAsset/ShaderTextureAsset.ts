@@ -60,12 +60,12 @@ export class ShaderTextureAsset extends Asset {
         return null;
     }
 
-    load(onLoad?: () => void) {
+    load(onLoad?: (asset: Asset) => void) {
         const texture = this.createTexture();
 
         if (!texture) throw new Error("Texture asset failed to load.");
         if (!onLoad) return;
 
-        onLoad();
+        onLoad(this);
     }
 }

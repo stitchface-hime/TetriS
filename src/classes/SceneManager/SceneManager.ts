@@ -1,21 +1,34 @@
 import { Scene } from "@classes/Scene";
 import { SceneKey } from "./Scene.keys";
-import { TextureManager } from "@classes/TextureManager";
+import { arrayFindAndDelete } from "@utils/arrayFindAndDelete";
 
 export class SceneManager {
     private scenes: Partial<Record<SceneKey, Scene>> = {};
+    private loadingScenes: SceneKey[] = [];
     private _currentScene: Scene | null = null;
-    private isCurrentSceneLoaded = false;
-    private textureManager: TextureManager;
 
-    constructor(initialScene: Scene, textureManager: TextureManager) {
+    constructor(initialScene?: Scene) {
+        if (!initialScene) return;
         this.addScene(initialScene);
         this.loadScene(initialScene.key);
-        this.textureManager = textureManager;
     }
 
-    get currentScene() {
-        return this._currentScene;
+    /**
+     * Get whether or not the current scene is loading, returns `false` if current scene is `null`.
+     */
+    isCurrentSceneLoading() {
+        return !!this._currentScene?.isLoading;
+    }
+
+    /**
+     * Get whether or not the current scene is loaded, returns `false` if current scene is `null`.
+     */
+    isCurrentSceneLoaded() {
+        return !!this._currentScene?.isLoaded;
+    }
+
+    get currentSceneKey() {
+        return this._currentScene?.key;
     }
 
     private set currentScene(scene: Scene | null) {
@@ -49,9 +62,28 @@ export class SceneManager {
     loadScene(sceneKey: SceneKey, onLoad?: (scene: Scene) => void) {
         const scene = this.scenes[sceneKey];
 
+        console.log("Loading scene", scene);
         if (!scene) throw new Error("Scene not found.");
+        if (this.loadingScenes.includes(sceneKey))
+            throw new Error("Scene already loading.");
 
-        scene.load(onLoad);
+        const handleLoad = (scene: Scene) => {
+            arrayFindAndDelete(scene.key, this.loadingScenes);
+            if (onLoad) onLoad(scene);
+        };
+
+        this.loadingScenes.push(sceneKey);
+        scene.load(handleLoad);
+    }
+
+    /**
+     * Loads the current scene if it is not loaded already.
+     * Does nothing if there is no current scene.
+     */
+    loadCurrentScene(onLoad?: (scene: Scene) => void) {
+        if (!this.currentScene) return;
+
+        this.loadScene(this.currentScene?.key, onLoad);
     }
 
     /**
