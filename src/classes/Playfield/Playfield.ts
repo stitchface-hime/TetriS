@@ -25,11 +25,20 @@ export class Playfield extends Matrix {
         this.trueNumRows = numRows * 2;
 
         this.visibleDimensions = [
-            warnIfNotInteger(SpriteSheets.SPR_MINO_STD.spriteSize.width * this.numColumns),
-            warnIfNotInteger(SpriteSheets.SPR_MINO_STD.spriteSize.height * this.numRows),
+            warnIfNotInteger(
+                SpriteSheets.SPR_mino.spriteSize.width * this.numColumns
+            ),
+            warnIfNotInteger(
+                SpriteSheets.SPR_mino.spriteSize.height * this.numRows
+            ),
         ];
 
-        this.defaultDimensions = [this.visibleDimensions[0], warnIfNotInteger((NATIVE_RESOLUTION_H + this.visibleDimensions[1]) * 0.5)];
+        this.defaultDimensions = [
+            this.visibleDimensions[0],
+            warnIfNotInteger(
+                (NATIVE_RESOLUTION_H + this.visibleDimensions[1]) * 0.5
+            ),
+        ];
         this.parent = game;
         this.goToRelativePosition([
             warnIfNotInteger((NATIVE_RESOLUTION_W - this.dimensions[0]) * 0.5),
@@ -111,7 +120,9 @@ export class Playfield extends Matrix {
         const blocksCleared: Block[] = [];
         for (let rowIdx = from; rowIdx < to; rowIdx++) {
             for (let colIdx = 0; colIdx < this.numColumns; colIdx++) {
-                const block = this.getBlock(Playfield.translateToXY([rowIdx, colIdx]));
+                const block = this.getBlock(
+                    Playfield.translateToXY([rowIdx, colIdx])
+                );
 
                 if (block) {
                     const clearedBlock = this.clearBlock([colIdx, rowIdx]);
@@ -126,7 +137,12 @@ export class Playfield extends Matrix {
     }
 
     protected areCoordinatesOutOfBounds(coordinates: [x: number, y: number]) {
-        return coordinates[0] < 0 || coordinates[0] >= this.numColumns || coordinates[1] < 0 || coordinates[1] >= this.trueNumRows;
+        return (
+            coordinates[0] < 0 ||
+            coordinates[0] >= this.numColumns ||
+            coordinates[1] < 0 ||
+            coordinates[1] >= this.trueNumRows
+        );
     }
 
     /**
@@ -162,11 +178,16 @@ export class Playfield extends Matrix {
      * array of row numbers to fill rows individually. (Debug only)
      */
     addBlockRows(rows: number | number[]) {
-        const setRows = typeof rows === "number" ? Array.from({ length: rows }, (_v, row) => row) : rows;
+        const setRows =
+            typeof rows === "number"
+                ? Array.from({ length: rows }, (_v, row) => row)
+                : rows;
 
         setRows.forEach((row) => {
             for (let col = 0; col < this.numColumns; col++) {
-                this.addBlock(new Block(Playfield.translateToXY([row, col]), this));
+                this.addBlock(
+                    new Block(Playfield.translateToXY([row, col]), this)
+                );
             }
         });
     }
@@ -185,9 +206,17 @@ export class Playfield extends Matrix {
     printMatrix(showNonVisibleArea = false, showRowNumbers = false) {
         const matrixArrays = this.matrixToArrays();
 
-        const numRowsToPrint = showNonVisibleArea ? this.numRows : this.trueNumRows;
+        const numRowsToPrint = showNonVisibleArea
+            ? this.numRows
+            : this.trueNumRows;
 
-        const activePieceCoordinates = [...(this.activePiece ? this.activePiece.blocks.map((block) => block.getActiveCoordinates()) : [])];
+        const activePieceCoordinates = [
+            ...(this.activePiece
+                ? this.activePiece.blocks.map((block) =>
+                      block.getActiveCoordinates()
+                  )
+                : []),
+        ];
 
         // reverse() reverses in-place
         const gridCopy = [...matrixArrays.slice(0, numRowsToPrint)];
@@ -199,7 +228,10 @@ export class Playfield extends Matrix {
                     rowString += "⬛";
                 } else {
                     const activePieceOccupied = activePieceCoordinates.find(
-                        (coordinates) => coordinates && coordinates[0] === columnIdx && coordinates[1] === numRowsToPrint - rowIdx - 1
+                        (coordinates) =>
+                            coordinates &&
+                            coordinates[0] === columnIdx &&
+                            coordinates[1] === numRowsToPrint - rowIdx - 1
                     );
                     if (activePieceOccupied) {
                         rowString += "🟩";

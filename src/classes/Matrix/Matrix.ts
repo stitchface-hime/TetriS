@@ -16,7 +16,10 @@ export class Matrix extends GroupEntity {
         this._numRows = numRows;
         this._numColumns = numColumns;
 
-        this.defaultDimensions = [SpriteSheets.SPR_MINO_STD.spriteSize.width * numColumns, SpriteSheets.SPR_MINO_STD.spriteSize.width * numRows];
+        this.defaultDimensions = [
+            SpriteSheets.SPR_mino.spriteSize.width * numColumns,
+            SpriteSheets.SPR_mino.spriteSize.width * numRows,
+        ];
     }
 
     /**
@@ -53,7 +56,12 @@ export class Matrix extends GroupEntity {
     }
 
     protected areCoordinatesOutOfBounds(coordinates: [x: number, y: number]) {
-        return coordinates[0] < 0 || coordinates[0] >= this._numColumns || coordinates[1] < 0 || coordinates[1] >= this._numRows;
+        return (
+            coordinates[0] < 0 ||
+            coordinates[0] >= this._numColumns ||
+            coordinates[1] < 0 ||
+            coordinates[1] >= this._numRows
+        );
     }
 
     /**
@@ -61,10 +69,15 @@ export class Matrix extends GroupEntity {
      * A cell that is out of bounds is considered occupied.
      */
     hasBlockAt(coordinates: [x: number, y: number]) {
-        return this.areCoordinatesOutOfBounds(coordinates) || this.getBlock(coordinates) !== undefined;
+        return (
+            this.areCoordinatesOutOfBounds(coordinates) ||
+            this.getBlock(coordinates) !== undefined
+        );
     }
 
-    protected findBlockPredicate = (coordinates: [x: number, y: number]) => (block: Block) => isEqual2DVectorTuples(block.getActiveCoordinates(), coordinates);
+    protected findBlockPredicate =
+        (coordinates: [x: number, y: number]) => (block: Block) =>
+            isEqual2DVectorTuples(block.getActiveCoordinates(), coordinates);
 
     getBlock(coordinates: [x: number, y: number]) {
         return this.blocks.find(this.findBlockPredicate(coordinates));
@@ -111,7 +124,11 @@ export class Matrix extends GroupEntity {
         if (blockIdx !== -1) {
             const [block] = blocks.splice(blockIdx, 1);
 
-            block.getCoupledBlocks().forEach((coupledBlock) => coupledBlock.unsetCoupledBlock(block));
+            block
+                .getCoupledBlocks()
+                .forEach((coupledBlock) =>
+                    coupledBlock.unsetCoupledBlock(block)
+                );
             this.drawables.remove(block);
 
             this.blocks = blocks;
@@ -136,7 +153,9 @@ export class Matrix extends GroupEntity {
         });
 
         this.blocks.forEach((block) => {
-            const [row, column] = Matrix.translateToRowsColumns(block.getActiveCoordinates());
+            const [row, column] = Matrix.translateToRowsColumns(
+                block.getActiveCoordinates()
+            );
 
             arrays[row][column] = block;
         });
@@ -147,7 +166,9 @@ export class Matrix extends GroupEntity {
     /**
      * Transforms x-y coordinates to rows and columns.
      */
-    static translateToRowsColumns(coordinates: [x: number, y: number]): [row: number, column: number] {
+    static translateToRowsColumns(
+        coordinates: [x: number, y: number]
+    ): [row: number, column: number] {
         return [coordinates[1], coordinates[0]];
     }
 
@@ -155,7 +176,9 @@ export class Matrix extends GroupEntity {
      * Transforms rows and columns coordinates to x-y coordinates.
      * Syntactical sugar - performs the same function as `translateToRowsColumns`.
      */
-    static translateToXY(rowCol: [row: number, column: number]): [x: number, y: number] {
+    static translateToXY(
+        rowCol: [row: number, column: number]
+    ): [x: number, y: number] {
         return Matrix.translateToRowsColumns(rowCol);
     }
 }

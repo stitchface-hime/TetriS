@@ -6,7 +6,7 @@ import { Tuple } from "src/types";
 import { Playfield } from "@classes/Playfield";
 
 export class MatrixBackground extends TexturedEntity {
-    static textureKey: TextureKey = "MATRIX_BG";
+    static textureKey: TextureKey = "TEX_playfield";
 
     constructor(playfield: Playfield) {
         super();

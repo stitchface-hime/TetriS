@@ -60,7 +60,6 @@ export class SceneRenderer extends ShaderProgram {
             }
             // console.log("Run", i, uniqueTextureKeys[i]);
         }
-
         return textureLookup;
     }
 

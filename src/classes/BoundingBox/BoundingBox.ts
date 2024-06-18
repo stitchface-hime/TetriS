@@ -5,7 +5,7 @@ import { getRectangleCoords } from "@utils/getRectangleCoords";
 import { DrawBuffers } from "src/shaders/types";
 
 export class BoundingBox extends TexturedEntity {
-    static textureKey: TextureKey = "BOUNDING_BOX";
+    static textureKey: TextureKey = "TEX_boundingBox";
     private sourceEntity: DrawableEntity;
     private _borderWidth = 2;
 

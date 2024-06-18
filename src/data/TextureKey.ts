@@ -1,2 +1,2 @@
-export type SpriteSheetKey = "SPR_MINO_STD";
-export type TextureKey = "MATRIX_BG" | "BOUNDING_BOX" | SpriteSheetKey;
+export type SpriteSheetKey = "SPR_mino";
+export type TextureKey = "TEX_boundingBox" | "TEX_playfield" | SpriteSheetKey;

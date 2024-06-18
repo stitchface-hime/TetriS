@@ -24,7 +24,7 @@ export class Scene_Game extends Scene {
             [
                 new ImageAsset(
                     "SPR_mino",
-                    new SpriteSheetLoader(gl, SpriteSheets.SPR_MINO_STD.src),
+                    new SpriteSheetLoader(gl, SpriteSheets.SPR_mino.src),
                     textureManager
                 ),
                 new ShaderTextureAsset(

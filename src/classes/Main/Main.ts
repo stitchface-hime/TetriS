@@ -32,6 +32,8 @@ export class Main {
 
     private runStatus: RunStatus = RunStatus.STOPPED;
 
+    private debug_framesRendered = 0;
+
     constructor(canvas?: HTMLCanvasElement) {
         if (!canvas) return;
 
@@ -99,7 +101,10 @@ export class Main {
             if (!this.sceneManager.isCurrentSceneLoading())
                 this.sceneManager.loadCurrentScene();
         } else {
+            /* if (this.debug_framesRendered > 10) return;
+            console.log("Render frame"); */
             this.sceneManager.renderCurrentScene();
+            // this.debug_framesRendered++;
         }
     }
 

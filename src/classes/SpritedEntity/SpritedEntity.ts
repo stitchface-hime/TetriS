@@ -61,7 +61,9 @@ export abstract class SpritedEntity extends TexturedEntity {
     ) {
         super({ position, scale, rotation }, contexts);
         this.boundingBox.hueModifier = 120;
-        spriteSheetDatas.forEach((sheet) => this.registerSpriteSheetData(sheet));
+        spriteSheetDatas.forEach((sheet) =>
+            this.registerSpriteSheetData(sheet)
+        );
     }
 
     getActiveSpriteQuadCoords() {
@@ -81,7 +83,10 @@ export abstract class SpritedEntity extends TexturedEntity {
 
         if (spriteSheetData) {
             this.activeSpriteSheetData = spriteSheetData;
-            this.defaultDimensions = [spriteSheetData.spriteSize.width, spriteSheetData.spriteSize.height];
+            this.defaultDimensions = [
+                spriteSheetData.spriteSize.width,
+                spriteSheetData.spriteSize.height,
+            ];
             this.activeSpriteQuadCoords = null;
         } else {
             throw new Error(
@@ -98,7 +103,9 @@ export abstract class SpritedEntity extends TexturedEntity {
         if (this.spriteSheetDatas[name]) {
             delete this.spriteSheetDatas[name];
         } else {
-            throw new Error("Sprite sheet could not be found. Skipping operation.");
+            throw new Error(
+                "Sprite sheet could not be found. Skipping operation."
+            );
         }
     }
 
@@ -117,7 +124,9 @@ export abstract class SpritedEntity extends TexturedEntity {
 
             this.setActiveSpriteByRowCol([row, column]);
         } else {
-            throw new Error("There is no active sprite sheet set. Did not set active sprite.");
+            throw new Error(
+                "There is no active sprite sheet set. Did not set active sprite."
+            );
         }
     }
 
@@ -135,7 +144,9 @@ export abstract class SpritedEntity extends TexturedEntity {
 
             this.setActiveSpriteByUV([u, v]);
         } else {
-            throw new Error("There is no active sprite sheet set. Did not set active sprite.");
+            throw new Error(
+                "There is no active sprite sheet set. Did not set active sprite."
+            );
         }
     }
 
@@ -156,7 +167,9 @@ export abstract class SpritedEntity extends TexturedEntity {
                 true
             );
         } else {
-            throw new Error("There is no active sprite sheet set. Did not set active sprite.");
+            throw new Error(
+                "There is no active sprite sheet set. Did not set active sprite."
+            );
         }
     }
 
@@ -172,12 +185,14 @@ export abstract class SpritedEntity extends TexturedEntity {
         const boundingBoxBuffers = this.boundingBox.getDrawBuffers();
 
         if (this.activeSpriteQuadCoords && this.activeSpriteSheetData) {
-            const sumHsvaMod = this.getHsvaModifier().map((component, idx) => component + hsvaModBuffer[idx]) as Tuple<
-                number,
-                4
-            >;
+            const sumHsvaMod = this.getHsvaModifier().map(
+                (component, idx) => component + hsvaModBuffer[idx]
+            ) as Tuple<number, 4>;
 
-            drawBuffers.positionBuffer = getRectangleCoords(...this.position, ...this.dimensions);
+            drawBuffers.positionBuffer = getRectangleCoords(
+                ...this.position,
+                ...this.dimensions
+            );
             drawBuffers.textureCoordBuffer = [...this.activeSpriteQuadCoords];
             drawBuffers.textureKeyBuffer = [this.activeSpriteSheetData.id];
             drawBuffers.hsvaModBuffer = Array(6)
@@ -189,10 +204,14 @@ export abstract class SpritedEntity extends TexturedEntity {
             );
         }
 
-        /*  drawBuffers.positionBuffer.push(...boundingBoxBuffers.positionBuffer);
-        drawBuffers.textureCoordBuffer.push(...boundingBoxBuffers.textureCoordBuffer);
-        drawBuffers.textureKeyBuffer.push(...boundingBoxBuffers.textureKeyBuffer);
-        drawBuffers.hsvaModBuffer.push(...boundingBoxBuffers.hsvaModBuffer); */
+        drawBuffers.positionBuffer.push(...boundingBoxBuffers.positionBuffer);
+        drawBuffers.textureCoordBuffer.push(
+            ...boundingBoxBuffers.textureCoordBuffer
+        );
+        drawBuffers.textureKeyBuffer.push(
+            ...boundingBoxBuffers.textureKeyBuffer
+        );
+        drawBuffers.hsvaModBuffer.push(...boundingBoxBuffers.hsvaModBuffer);
 
         // bounding box
 
