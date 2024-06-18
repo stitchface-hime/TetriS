@@ -43,6 +43,8 @@ export class Game extends GroupEntity implements IControllable {
     private scoreJudge = new ScoreJudge();
     private pieceSpawner: PieceSpawner;
 
+    private _isRunning = false;
+
     private onLevelUpdate = (newLevel: number) => {
         this.autoDropFrameBaseline =
             (0.8 - (newLevel - 1) * 0.007) ** (newLevel - 1) * 60;
@@ -63,6 +65,8 @@ export class Game extends GroupEntity implements IControllable {
         this.contexts.controllerContext?.subscribeToPort(
             ControllerPortKey.PORT_0
         );
+        this.contexts.controllerContext?.assignControllable(this);
+
         this.numRows = numRows;
         this.progressionJudge = new ProgressionJudge(level, this.onLevelUpdate);
         this.progressionJudge.setLinesQuotaTarget(10);
@@ -83,7 +87,15 @@ export class Game extends GroupEntity implements IControllable {
 
     /* Game flow methods */
 
-    async run() {
+    get isRunning() {
+        return this._isRunning;
+    }
+
+    run() {
+        if (!this.contexts.intervalContext || this.isRunning) return;
+
+        this._isRunning = true;
+
         // TODO: This is still testing
         this.contexts.intervalContext?.registerInterval(
             GameIntervalKeys.RUN,
@@ -96,7 +108,7 @@ export class Game extends GroupEntity implements IControllable {
             )
         );
 
-        await this.tick();
+        this.tick();
     }
 
     halt() {

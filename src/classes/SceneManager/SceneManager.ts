@@ -31,6 +31,10 @@ export class SceneManager {
         return this._currentScene?.key;
     }
 
+    private get currentScene() {
+        return this._currentScene;
+    }
+
     private set currentScene(scene: Scene | null) {
         this._currentScene = scene;
     }
@@ -99,5 +103,11 @@ export class SceneManager {
 
             this.currentScene = scene;
         });
+    }
+
+    renderCurrentScene() {
+        if (!!this.currentScene && this.isCurrentSceneLoaded()) {
+            this.currentScene.renderScene();
+        }
     }
 }

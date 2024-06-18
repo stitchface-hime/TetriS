@@ -40,6 +40,9 @@ export class Scene_Game extends Scene {
     }
 
     renderScene(): void {
+        if (!this.game.isRunning) {
+            this.game.run();
+        }
         const drawBuffers = this.game.getDrawBuffers([0, 0, 0, 0]);
         this.renderer.draw(drawBuffers);
     }

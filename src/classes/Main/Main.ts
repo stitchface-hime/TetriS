@@ -26,17 +26,7 @@ export class Main {
     private controllerPortManager = new ControllerPortManager();
 
     private sceneRenderer: SceneRenderer | null = null;
-    private sceneManager = new SceneManager(this.textureManager);
-
-    private clock = this.intervalManager.subscribe(
-        new Interval(
-            0,
-            () => {
-                this.run();
-            },
-            Infinity // debug
-        )
-    );
+    private sceneManager = new SceneManager();
 
     private game: Game | null = null;
 
@@ -70,12 +60,20 @@ export class Main {
     setUp() {
         if (this.gl && this.sceneRenderer) {
             console.log("Begin set up");
+            const controllerContext = new ControllerContext(
+                this.controllerPortManager
+            );
+
             const game = new Game(...Standard.getConfig(), {
-                controllerContext: new ControllerContext(
-                    this.controllerPortManager
-                ),
+                controllerContext,
                 intervalContext: new IntervalContext(this.intervalManager),
             });
+
+            game.contexts.controllerContext?.assignControllable(game);
+
+            this.controllerPortManager
+                .getPort(ControllerPortKey.PORT_0)
+                .plugIn(new Controller(this.intervalManager));
 
             const drawMatrix = new DrawMatrix(this.gl);
             drawMatrix.setMatrix(game.getPlayfield());
@@ -100,6 +98,8 @@ export class Main {
         if (!this.sceneManager.isCurrentSceneLoaded()) {
             if (!this.sceneManager.isCurrentSceneLoading())
                 this.sceneManager.loadCurrentScene();
+        } else {
+            this.sceneManager.renderCurrentScene();
         }
     }
 
