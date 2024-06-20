@@ -84,6 +84,7 @@ export class Main {
                 new ShaderTextureAsset(
                     "TEX_playfield",
                     drawMatrix,
+                    game.getPlayfield().dimensions,
                     this.textureManager
                 ),
             ]);

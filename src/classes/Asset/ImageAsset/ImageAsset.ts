@@ -10,9 +10,10 @@ export class ImageAsset extends ShaderTextureAsset {
     constructor(
         id: string,
         program: SpriteSheetLoader,
+        dimensions: [width: number, height: number],
         textureManager: TextureManager
     ) {
-        super(id, program, textureManager);
+        super(id, program, dimensions, textureManager);
         this.src = program.src;
     }
 
@@ -32,7 +33,7 @@ export class ImageAsset extends ShaderTextureAsset {
         image.src = this.src;
         image.onload = () => {
             this.image = image;
-            texture = this.createTexture();
+            texture = this.createTexture(this.dimensions);
 
             if (onLoad) onLoad(this);
         };

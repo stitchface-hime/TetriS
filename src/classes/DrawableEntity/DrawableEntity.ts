@@ -87,7 +87,10 @@ export abstract class DrawableEntity extends Entity {
     set parent(parent: GroupEntity | null) {
         this._parent = parent;
         this.relativePosition = parent
-            ? add2DVectorTuples(this.position, [-parent.position[0], -parent.position[1]])
+            ? add2DVectorTuples(this.position, [
+                  -parent.position[0],
+                  -parent.position[1],
+              ])
             : this.position;
     }
 
@@ -95,7 +98,7 @@ export abstract class DrawableEntity extends Entity {
      * Gets the dimensions of the entity including any scaling that has occurred.
      */
     get dimensions() {
-        return this._dimensions;
+        return [...this._dimensions];
     }
 
     private set dimensions(dimensions: [width: number, height: number]) {
@@ -136,17 +139,26 @@ export abstract class DrawableEntity extends Entity {
     translate(translation: [x: number, y: number]) {
         this.position = add2DVectorTuples(this.position, translation);
         this.relativePosition = this.parent
-            ? add2DVectorTuples(this.position, [-this.parent.position[0], -this.parent.position[1]])
+            ? add2DVectorTuples(this.position, [
+                  -this.parent.position[0],
+                  -this.parent.position[1],
+              ])
             : this.position;
     }
 
     goToPosition(position: [x: number, y: number]) {
-        const delta = add2DVectorTuples(position, [-this.position[0], -this.position[1]]);
+        const delta = add2DVectorTuples(position, [
+            -this.position[0],
+            -this.position[1],
+        ]);
         this.translate(delta);
     }
 
     goToRelativePosition(relativePosition: [x: number, y: number]) {
-        const delta = add2DVectorTuples(relativePosition, [-this.relativePosition[0], -this.relativePosition[1]]);
+        const delta = add2DVectorTuples(relativePosition, [
+            -this.relativePosition[0],
+            -this.relativePosition[1],
+        ]);
         this.translate(delta);
     }
 
@@ -159,7 +171,10 @@ export abstract class DrawableEntity extends Entity {
      */
     set scale(scale: [x: number, y: number]) {
         this.scale = scale;
-        this.dimensions = product2DVectorTuples(this.defaultDimensions, this.scale);
+        this.dimensions = product2DVectorTuples(
+            this.defaultDimensions,
+            this.scale
+        );
     }
 
     /**
@@ -177,7 +192,10 @@ export abstract class DrawableEntity extends Entity {
      * Scale entity to a certain width and height.
      */
     scaleToWidthHeight(dimensions: [width: number, height: number]) {
-        if (this.defaultDimensions[0] !== 0 && this.defaultDimensions[1] !== 0) {
+        if (
+            this.defaultDimensions[0] !== 0 &&
+            this.defaultDimensions[1] !== 0
+        ) {
             this.scale = product2DVectorTuples(dimensions, [
                 1 / this.defaultDimensions[0],
                 1 / this.defaultDimensions[1],
@@ -240,7 +258,12 @@ export abstract class DrawableEntity extends Entity {
      * Gets the HSVA modifier for this entity in order of hue, saturation, value (brightness) and alpha.
      */
     getHsvaModifier(): Tuple<number, 4> {
-        return [this.hueModifier, this.saturationModifier, this.valueModifier, this.alphaModifier];
+        return [
+            this.hueModifier,
+            this.saturationModifier,
+            this.valueModifier,
+            this.alphaModifier,
+        ];
     }
 
     /**

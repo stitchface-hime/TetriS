@@ -6,14 +6,17 @@ export class ShaderTextureAsset extends Asset {
     protected program: ShaderProgram;
     private _texture: WebGLTexture | null = null;
     private textureManager: TextureManager;
+    protected dimensions: [width: number, height: number] = [0, 0];
 
     constructor(
         id: string,
         program: ShaderProgram,
+        dimensions: [width: number, height: number],
         textureManager: TextureManager
     ) {
         super(id);
         this.program = program;
+        this.dimensions = dimensions;
         this.textureManager = textureManager;
     }
 
@@ -21,7 +24,7 @@ export class ShaderTextureAsset extends Asset {
         return this._texture;
     }
 
-    protected createTexture() {
+    protected createTexture(dimensions: [width: number, height: number]) {
         const gl = this.program.gl;
 
         const texture = gl.createTexture();
@@ -38,8 +41,7 @@ export class ShaderTextureAsset extends Asset {
             gl.TEXTURE_2D,
             level,
             internalFormat,
-            1,
-            1,
+            ...dimensions,
             border,
             format,
             type,
@@ -61,7 +63,7 @@ export class ShaderTextureAsset extends Asset {
     }
 
     load(onLoad?: (asset: Asset) => void) {
-        const texture = this.createTexture();
+        const texture = this.createTexture(this.dimensions);
 
         if (!texture) throw new Error("Texture asset failed to load.");
         if (!onLoad) return;

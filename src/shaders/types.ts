@@ -39,7 +39,10 @@ export interface ShaderAttributeData<T> {
     data: T[];
 }
 
-export type ShaderAttributeDataRecord = Record<string, ShaderAttributeData<number>>;
+export type ShaderAttributeDataRecord = Record<
+    string,
+    ShaderAttributeData<number>
+>;
 
 export type ShaderUniformDataRecord = Record<string, number[]>;
 
@@ -55,6 +58,14 @@ export interface SpriteSheetDetails {
         width: number;
         height: number;
     };
+}
+
+export interface ShaderTextureDetails {
+    id: TextureKey;
+    /**
+     * A texture denoted with dimensions `[0, 0]` generally means the texture is dynamically generated.
+     */
+    dimensions: readonly [width: number, height: number];
 }
 
 export interface SpriteSheet {
