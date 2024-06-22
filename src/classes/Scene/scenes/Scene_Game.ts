@@ -7,7 +7,6 @@ import { ShaderTextureAsset } from "@classes/Asset/ShaderTextureAsset/ShaderText
 import { DrawBoundingBox } from "@classes/ShaderProgram/DrawBoundingBox";
 import { Game } from "@classes/Game";
 import { SceneRenderer } from "@classes/ShaderProgram/SceneRenderer";
-import { SpriteSheetLoader } from "@classes/ShaderProgram/SpriteSheetLoader";
 import { ShaderTextures } from "@data/ShaderTextures";
 
 export class Scene_Game extends Scene {
@@ -25,9 +24,9 @@ export class Scene_Game extends Scene {
             [
                 new ImageAsset(
                     "SPR_mino",
-                    new SpriteSheetLoader(gl, SpriteSheets.SPR_mino.src),
-                    [SpriteSheets.SPR_mino.width, SpriteSheets.SPR_mino.height],
-                    textureManager
+                    SpriteSheets.SPR_mino.src,
+                    textureManager,
+                    gl
                 ),
                 new ShaderTextureAsset(
                     "TEX_boundingBox",

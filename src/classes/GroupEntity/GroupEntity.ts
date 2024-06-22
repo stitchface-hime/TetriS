@@ -42,7 +42,7 @@ export abstract class GroupEntity extends DrawableEntity {
      * Get the dimensions of a minimum rectangle that encapsulates all child entities.
      */
     getDrawablesMinRectDim(): [width: number, height: number] {
-        console.warn("TODO: does not cover case where the max rel x/y does not touch the bounds of the rectangle");
+        // console.warn("TODO: does not cover case where the max rel x/y does not touch the bounds of the rectangle");
         const drawablesByRelX = this.drawables.entities.sort(
             (e1, e2) => e1.relativePosition[0] - e2.relativePosition[0]
         );
@@ -57,8 +57,12 @@ export abstract class GroupEntity extends DrawableEntity {
         const maxRelYDrawable = drawablesByRelY[drawablesByRelX.length - 1];
 
         return [
-            maxRelXDrawable.relativePosition[0] + maxRelXDrawable.dimensions[0] - minRelXDrawable.relativePosition[0],
-            maxRelYDrawable.relativePosition[1] + maxRelYDrawable.dimensions[1] - minRelYDrawable.relativePosition[1],
+            maxRelXDrawable.relativePosition[0] +
+                maxRelXDrawable.dimensions[0] -
+                minRelXDrawable.relativePosition[0],
+            maxRelYDrawable.relativePosition[1] +
+                maxRelYDrawable.dimensions[1] -
+                minRelYDrawable.relativePosition[1],
         ];
     }
 
@@ -73,7 +77,10 @@ export abstract class GroupEntity extends DrawableEntity {
             (e1, e2) => e1.relativePosition[1] - e2.relativePosition[1]
         );
 
-        return [drawablesByRelX[0].relativePosition[0], drawablesByRelY[0].relativePosition[1]];
+        return [
+            drawablesByRelX[0].relativePosition[0],
+            drawablesByRelY[0].relativePosition[1],
+        ];
     }
 
     getDrawBuffers(hsvaModBuffer: Tuple<number, 4>): DrawBuffers {
@@ -85,24 +92,31 @@ export abstract class GroupEntity extends DrawableEntity {
         };
 
         this.drawables.entities.map((entity) => {
-            const sumHsvaMod = this.getHsvaModifier().map((component, idx) => component + hsvaModBuffer[idx]) as Tuple<
-                number,
-                4
-            >;
+            const sumHsvaMod = this.getHsvaModifier().map(
+                (component, idx) => component + hsvaModBuffer[idx]
+            ) as Tuple<number, 4>;
 
             const entityBuffers = entity.getDrawBuffers(sumHsvaMod);
 
             drawBuffers.positionBuffer.push(...entityBuffers.positionBuffer);
-            drawBuffers.textureCoordBuffer.push(...entityBuffers.textureCoordBuffer);
-            drawBuffers.textureKeyBuffer.push(...entityBuffers.textureKeyBuffer);
+            drawBuffers.textureCoordBuffer.push(
+                ...entityBuffers.textureCoordBuffer
+            );
+            drawBuffers.textureKeyBuffer.push(
+                ...entityBuffers.textureKeyBuffer
+            );
             drawBuffers.hsvaModBuffer.push(...entityBuffers.hsvaModBuffer);
         });
 
-        /* const boundingBoxBuffers = await this.boundingBox.getDrawBuffers(gl, textureManager);
+        const boundingBoxBuffers = this.boundingBox.getDrawBuffers();
         drawBuffers.positionBuffer.push(...boundingBoxBuffers.positionBuffer);
-        drawBuffers.textureCoordBuffer.push(...boundingBoxBuffers.textureCoordBuffer);
-        drawBuffers.textureKeyBuffer.push(...boundingBoxBuffers.textureKeyBuffer);
-        drawBuffers.hsvaModBuffer.push(...boundingBoxBuffers.hsvaModBuffer); */
+        drawBuffers.textureCoordBuffer.push(
+            ...boundingBoxBuffers.textureCoordBuffer
+        );
+        drawBuffers.textureKeyBuffer.push(
+            ...boundingBoxBuffers.textureKeyBuffer
+        );
+        drawBuffers.hsvaModBuffer.push(...boundingBoxBuffers.hsvaModBuffer);
 
         return drawBuffers;
     }

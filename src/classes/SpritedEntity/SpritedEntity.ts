@@ -1,9 +1,6 @@
 import { getRectangleCoords } from "@utils/getRectangleCoords";
 import { DrawBuffers, SpriteSheetDetails } from "src/shaders/types";
 import { Tuple } from "src/types";
-import { TextureManager } from "@classes/TextureManager";
-import { SpriteSheetLoader } from "@classes/ShaderProgram/SpriteSheetLoader/renderer";
-import { TextureKey } from "@data/TextureKey";
 import { TexturedEntity } from "@classes/TexturedEntity";
 import { Contexts } from "@classes/Entity";
 import { BoundingBox } from "@classes/BoundingBox";

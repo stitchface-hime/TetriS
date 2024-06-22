@@ -1,1 +1,0 @@
-export { SpriteSheetLoader } from "./renderer";
