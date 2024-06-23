@@ -37,12 +37,16 @@ export class PieceSpawner extends GroupEntity {
 
         this.holdQueue.goToRelativePosition([
             this.playfield.relativePosition[0] - this.holdQueue.dimensions[0],
-            NATIVE_RESOLUTION_H - this.holdQueue.dimensions[1] - this.playfield.relativePosition[1],
+            NATIVE_RESOLUTION_H -
+                this.holdQueue.dimensions[1] -
+                this.playfield.relativePosition[1],
         ]);
 
         this.nextQueue.goToRelativePosition([
             this.playfield.relativePosition[0] + this.playfield.dimensions[0],
-            NATIVE_RESOLUTION_H - this.nextQueue.dimensions[1] - this.playfield.relativePosition[1],
+            NATIVE_RESOLUTION_H -
+                this.nextQueue.dimensions[1] -
+                this.playfield.relativePosition[1],
         ]);
 
         this.holdQueue.parent = this;
@@ -52,9 +56,16 @@ export class PieceSpawner extends GroupEntity {
     spawnPiece(playfield: Playfield, pieceId?: PieceId, fromHold = false) {
         let spawnSuccessful = false;
 
-        for (let spawnAttempt = 0; spawnAttempt < this.spawnRetries; spawnAttempt++) {
+        for (
+            let spawnAttempt = 0;
+            spawnAttempt < this.spawnRetries;
+            spawnAttempt++
+        ) {
             const spawnArgs: Parameters<typeof this.pieceFactory.makePiece> = [
-                [this.spawnCoordinates[0], this.spawnCoordinates[1] + spawnAttempt],
+                [
+                    this.spawnCoordinates[0],
+                    this.spawnCoordinates[1] + spawnAttempt,
+                ],
                 playfield,
                 pieceId,
             ];
@@ -63,17 +74,24 @@ export class PieceSpawner extends GroupEntity {
 
             if (spawnedPiece) {
                 // Does the spawned piece overlap with any blocks in the matrix?
-                const pieceDoesNotOverlap = spawnedPiece.getBlocksCoordinates().reduce(
-                    (noOverlap, blockCoordinates) =>
-                        // active piece should always have coordinates
-                        !!blockCoordinates && noOverlap && !playfield.hasBlockAt(blockCoordinates),
-                    true
-                );
+                const pieceDoesNotOverlap = spawnedPiece
+                    .getBlocksCoordinates()
+                    .reduce(
+                        (noOverlap, blockCoordinates) =>
+                            // active piece should always have coordinates
+                            !!blockCoordinates &&
+                            noOverlap &&
+                            !playfield.hasBlockAt(blockCoordinates),
+                        true
+                    );
 
                 // if it doesn't overlap, spawn successful
                 if (pieceDoesNotOverlap) {
                     if (this.useGhost) {
-                        spawnedPiece.ghost = this.spawnGhostPiece(playfield, pieceId);
+                        spawnedPiece.ghost = this.spawnGhostPiece(
+                            playfield,
+                            pieceId
+                        );
                     }
                     playfield.activePiece = spawnedPiece;
                     spawnSuccessful = true;
@@ -94,7 +112,7 @@ export class PieceSpawner extends GroupEntity {
             playfield,
             pieceId
         );
-        if (ghostPiece !== null) ghostPiece.saturationModifier = -0.5;
+        if (ghostPiece !== null) ghostPiece.alphaModifier = -0.8;
 
         return ghostPiece;
     }
@@ -104,7 +122,11 @@ export class PieceSpawner extends GroupEntity {
      * was successful, returns `true`, `false` otherwise.
      */
     spawnNextPiece(playfield: Playfield, fromHold = false) {
-        const nextPiece = this.spawnPiece(playfield, this.nextQueue.shiftNext(), fromHold);
+        const nextPiece = this.spawnPiece(
+            playfield,
+            this.nextQueue.shiftNext(),
+            fromHold
+        );
 
         return nextPiece;
     }

@@ -201,14 +201,14 @@ export abstract class SpritedEntity extends TexturedEntity {
             );
         }
 
-        drawBuffers.positionBuffer.push(...boundingBoxBuffers.positionBuffer);
+        /* drawBuffers.positionBuffer.push(...boundingBoxBuffers.positionBuffer);
         drawBuffers.textureCoordBuffer.push(
             ...boundingBoxBuffers.textureCoordBuffer
         );
         drawBuffers.textureKeyBuffer.push(
             ...boundingBoxBuffers.textureKeyBuffer
         );
-        drawBuffers.hsvaModBuffer.push(...boundingBoxBuffers.hsvaModBuffer);
+        drawBuffers.hsvaModBuffer.push(...boundingBoxBuffers.hsvaModBuffer); */
 
         // bounding box
 

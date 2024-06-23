@@ -1,6 +1,9 @@
 import { ShaderProgramError } from "@classes/Error";
 import { getRectangleCoords, hexToRgb } from "@utils/index";
-import { DEFAULT_MATRIX_GRID_WIDTH, DEFAULT_MATRIX_BG_OPACITY } from "src/constants";
+import {
+    DEFAULT_MATRIX_GRID_WIDTH,
+    DEFAULT_MATRIX_BG_OPACITY,
+} from "src/constants";
 import { HexString } from "src/shaders/types";
 import { generateGrid } from "./data";
 import { Playfield } from "@classes/Playfield";
@@ -19,11 +22,11 @@ export class DrawMatrix extends ShaderProgram {
     private matrix: Playfield | null = null;
 
     private config: RenderMatrixConfig = {
-        borderOpacity: 1,
+        borderOpacity: 0,
         borderWidth: DEFAULT_MATRIX_GRID_WIDTH,
         borderColor: "#ffffff",
         bgOpacity: DEFAULT_MATRIX_BG_OPACITY,
-        bgColor: "#123456",
+        bgColor: "#000000",
     };
 
     constructor(gl: WebGLRenderingContext, config?: RenderMatrixConfig) {
@@ -52,7 +55,13 @@ export class DrawMatrix extends ShaderProgram {
             const fb = gl.createFramebuffer();
             gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
             const attachmentPoint = gl.COLOR_ATTACHMENT0;
-            gl.framebufferTexture2D(gl.FRAMEBUFFER, attachmentPoint, gl.TEXTURE_2D, destTexture, 0);
+            gl.framebufferTexture2D(
+                gl.FRAMEBUFFER,
+                attachmentPoint,
+                gl.TEXTURE_2D,
+                destTexture,
+                0
+            );
 
             // set viewport
             this.resizeCanvas();
@@ -61,34 +70,77 @@ export class DrawMatrix extends ShaderProgram {
             if (program) {
                 gl.useProgram(program);
                 try {
-                    const matrixBg = getRectangleCoords(0, 0, ...this.matrix.dimensions);
+                    const matrixBg = getRectangleCoords(
+                        0,
+                        0,
+                        ...this.matrix.dimensions
+                    );
                     // gridlines generated overflow
-                    const gridlines = generateGrid(this.matrix.numRows, this.matrix.numColumns, this.config.borderWidth, ...visibleDimensions);
+                    const gridlines = generateGrid(
+                        this.matrix.numRows,
+                        this.matrix.numColumns,
+                        this.config.borderWidth,
+                        ...visibleDimensions
+                    );
 
-                    const positionLocation = gl.getAttribLocation(program, "a_position");
-                    const colorLocation = gl.getAttribLocation(program, "a_gridColor");
-                    const resolutionLocation = gl.getUniformLocation(program, "u_resolution");
+                    const positionLocation = gl.getAttribLocation(
+                        program,
+                        "a_position"
+                    );
+                    const colorLocation = gl.getAttribLocation(
+                        program,
+                        "a_gridColor"
+                    );
+                    const resolutionLocation = gl.getUniformLocation(
+                        program,
+                        "u_resolution"
+                    );
 
                     const positionBuffer = gl.createBuffer();
                     const colorBuffer = gl.createBuffer();
 
                     // draw background
                     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-                    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(matrixBg), gl.STATIC_DRAW);
+                    gl.bufferData(
+                        gl.ARRAY_BUFFER,
+                        new Float32Array(matrixBg),
+                        gl.STATIC_DRAW
+                    );
                     gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
                     gl.bufferData(
                         gl.ARRAY_BUFFER,
-                        new Uint8Array(new Array(6).fill([...hexToRgb(this.config.bgColor), this.config.bgOpacity * 255]).flat()),
+                        new Uint8Array(
+                            new Array(6)
+                                .fill([
+                                    ...hexToRgb(this.config.bgColor),
+                                    this.config.bgOpacity * 255,
+                                ])
+                                .flat()
+                        ),
                         gl.STATIC_DRAW
                     );
 
                     gl.enableVertexAttribArray(positionLocation);
                     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-                    gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+                    gl.vertexAttribPointer(
+                        positionLocation,
+                        2,
+                        gl.FLOAT,
+                        false,
+                        0,
+                        0
+                    );
 
                     gl.enableVertexAttribArray(colorLocation);
                     gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-                    gl.vertexAttribPointer(colorLocation, 4, gl.UNSIGNED_BYTE, true, 0, 0);
+                    gl.vertexAttribPointer(
+                        colorLocation,
+                        4,
+                        gl.UNSIGNED_BYTE,
+                        true,
+                        0,
+                        0
+                    );
 
                     gl.uniform2f(resolutionLocation, ...dimensions);
 
@@ -97,32 +149,63 @@ export class DrawMatrix extends ShaderProgram {
                     // draw gridlines
                     gridlines.forEach((line) => {
                         gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-                        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(line), gl.STATIC_DRAW);
+                        gl.bufferData(
+                            gl.ARRAY_BUFFER,
+                            new Float32Array(line),
+                            gl.STATIC_DRAW
+                        );
 
                         gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
                         gl.bufferData(
                             gl.ARRAY_BUFFER,
-                            new Uint8Array(new Array(6).fill([...hexToRgb(this.config.borderColor), this.config.borderOpacity * 255]).flat()),
+                            new Uint8Array(
+                                new Array(6)
+                                    .fill([
+                                        ...hexToRgb(this.config.borderColor),
+                                        this.config.borderOpacity * 255,
+                                    ])
+                                    .flat()
+                            ),
                             gl.STATIC_DRAW
                         );
 
                         gl.enableVertexAttribArray(positionLocation);
                         gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-                        gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+                        gl.vertexAttribPointer(
+                            positionLocation,
+                            2,
+                            gl.FLOAT,
+                            false,
+                            0,
+                            0
+                        );
 
                         gl.enableVertexAttribArray(colorLocation);
                         gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-                        gl.vertexAttribPointer(colorLocation, 4, gl.UNSIGNED_BYTE, true, 0, 0);
+                        gl.vertexAttribPointer(
+                            colorLocation,
+                            4,
+                            gl.UNSIGNED_BYTE,
+                            true,
+                            0,
+                            0
+                        );
 
                         gl.uniform2f(resolutionLocation, ...dimensions);
 
                         gl.drawArrays(gl.TRIANGLES, 0, 6);
                     });
                 } catch (e) {
-                    throw new ShaderProgramError("matrix", "Unable to set attribute data.");
+                    throw new ShaderProgramError(
+                        "matrix",
+                        "Unable to set attribute data."
+                    );
                 }
             } else {
-                throw new ShaderProgramError("matrix", `Program not found. Did you forget to build first?`);
+                throw new ShaderProgramError(
+                    "matrix",
+                    "Program not found. Did you forget to build first?"
+                );
             }
         }
     }

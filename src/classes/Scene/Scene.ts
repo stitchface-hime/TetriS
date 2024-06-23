@@ -36,6 +36,13 @@ export abstract class Scene {
     }
 
     checkLoadComplete() {
+        if (
+            this.assets.length === this.numParsed &&
+            this.assets.length > this.numLoaded
+        ) {
+            throw new Error("Failed to load all assets.");
+        }
+
         if (this.assets.length === this.numLoaded) {
             this._isLoading = false;
             this._isLoaded = true;

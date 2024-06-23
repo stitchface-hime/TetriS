@@ -48,6 +48,8 @@ export class Main {
 
         if (!gl) return;
 
+        gl.enable(gl.BLEND);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         this.gl = gl;
         this.sceneRenderer = new SceneRenderer(gl, this.textureManager);
     }
