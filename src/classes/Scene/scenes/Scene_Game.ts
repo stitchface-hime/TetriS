@@ -29,9 +29,9 @@ export class Scene_Game extends Scene {
                     gl
                 ),
                 new ShaderTextureAsset(
-                    "TEX_boundingBox",
+                    "TEX_color",
                     new DrawBoundingBox(gl),
-                    [...ShaderTextures.TEX_boundingBox.dimensions],
+                    [...ShaderTextures.TEX_color.dimensions],
                     textureManager
                 ),
                 ...additionalAssets,

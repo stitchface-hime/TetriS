@@ -1,21 +1,22 @@
 import { ShaderProgram } from "@classes/ShaderProgram";
 import { Asset } from "../Asset";
 import { TextureManager } from "@classes/TextureManager";
+import { Renderer } from "@classes/Renderer";
 
 export class ShaderTextureAsset extends Asset {
-    protected program: ShaderProgram;
+    protected renderer: Renderer;
     private _texture: WebGLTexture | null = null;
     private textureManager: TextureManager;
     protected dimensions: [width: number, height: number] = [0, 0];
 
     constructor(
         id: string,
-        program: ShaderProgram,
+        renderer: Renderer,
         dimensions: [width: number, height: number],
         textureManager: TextureManager
     ) {
         super(id);
-        this.program = program;
+        this.renderer = renderer;
         this.dimensions = dimensions;
         this.textureManager = textureManager;
     }
@@ -25,7 +26,7 @@ export class ShaderTextureAsset extends Asset {
     }
 
     protected createTexture(dimensions: [width: number, height: number]) {
-        const gl = this.program.gl;
+        const gl = this.renderer.gl;
 
         const texture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -54,7 +55,7 @@ export class ShaderTextureAsset extends Asset {
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
 
         if (texture) {
-            this.program.draw(texture);
+            this.renderer.draw(texture);
             this.textureManager.load(this.id, texture, true);
             return texture;
         }
