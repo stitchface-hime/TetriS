@@ -4,10 +4,10 @@ import { Asset } from "@classes/Asset";
 import { ImageAsset } from "@classes/Asset/ImageAsset";
 import { SpriteSheets } from "@data/SpriteSheets";
 import { ShaderTextureAsset } from "@classes/Asset/ShaderTextureAsset/ShaderTextureAsset";
-import { DrawBoundingBox } from "@classes/ShaderProgram/DrawBoundingBox";
 import { Game } from "@classes/Game";
 import { SceneRenderer } from "@classes/ShaderProgram/SceneRenderer";
 import { ShaderTextures } from "@data/ShaderTextures";
+import { Renderer_BoundingBox } from "@classes/Renderer";
 
 export class Scene_Game extends Scene {
     static key = SceneKey.SCENE_GAME;
@@ -30,7 +30,7 @@ export class Scene_Game extends Scene {
                 ),
                 new ShaderTextureAsset(
                     "TEX_color",
-                    new DrawBoundingBox(gl),
+                    new Renderer_BoundingBox(gl),
                     [...ShaderTextures.TEX_color.dimensions],
                     textureManager
                 ),

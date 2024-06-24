@@ -2,7 +2,7 @@ import { ShaderProgramError } from "@classes/Error";
 
 // TODO: Ought to split shader program into two types
 // one that renders to texture and one that renders directly to canvas
-export abstract class ShaderProgram {
+export class ShaderProgram {
     private id = "shader-program";
     private vertexSrc: string;
     private fragmentSrc: string;
@@ -136,18 +136,6 @@ export abstract class ShaderProgram {
         }
     }
 
-    protected resizeCanvas() {
-        if (this.gl) {
-            const canvas = this.gl.canvas as HTMLCanvasElement;
-
-            const width = canvas.clientWidth;
-            const height = canvas.clientHeight;
-
-            canvas.width = width;
-            canvas.height = height;
-        }
-    }
-
     /**
      * Build the program, by compiling all the shaders and linking it into a program.
      * By default, the `ShaderProgram` will automatically build on instantiation so you won't need to call this.
@@ -164,48 +152,8 @@ export abstract class ShaderProgram {
     }
 
     /**
+     * @deprecated Renderer to handle draw calls now
      * Draw to a specified texture.
      */
     abstract draw(destTexture: WebGLTexture | null, ...args: any[]): void;
-
-    // Debug functions
-
-    protected arrayBufferToBase64(array: Uint8Array) {
-        var binary = "";
-        var len = array.byteLength;
-        for (var i = 0; i < len; i++) {
-            binary += String.fromCharCode(array[i]);
-        }
-        return window.btoa(binary);
-    }
-
-    protected debugTexture(gl: WebGLRenderingContext, texture: WebGLTexture) {
-        var framebuffer = this.gl.createFramebuffer();
-
-        this.gl.bindFramebuffer(this.gl.FRAMEBUFFER, framebuffer);
-        this.gl.framebufferTexture2D(
-            this.gl.FRAMEBUFFER,
-            this.gl.COLOR_ATTACHMENT0,
-            this.gl.TEXTURE_2D,
-            texture,
-            0
-        );
-        if (gl) {
-            const canvas = gl.canvas as HTMLCanvasElement;
-
-            let data = new Uint8Array(
-                canvas.clientWidth * canvas.clientHeight * 4
-            );
-            gl.readPixels(
-                0,
-                0,
-                canvas.clientWidth,
-                canvas.clientHeight,
-                gl.RGBA,
-                gl.UNSIGNED_BYTE,
-                data
-            );
-            return data;
-        }
-    }
 }

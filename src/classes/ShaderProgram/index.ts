@@ -1,3 +1,3 @@
-export { DrawMatrix } from "./DrawMatrix";
-export { MainRenderer } from "./MainRenderer";
 export { ShaderProgram } from "./ShaderProgram";
+
+export { Shader_BoundingBox } from "./BoundingBox";
