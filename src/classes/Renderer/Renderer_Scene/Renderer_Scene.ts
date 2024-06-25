@@ -1,11 +1,12 @@
-import { ShaderProgram } from "@classes/ShaderProgram/ShaderProgram";
-import { vertex } from "./vertex";
-import { fragment } from "./fragment";
-import { DrawBuffers } from "src/shaders/types";
-import { TextureManager } from "@classes/TextureManager";
 import { TextureKey } from "@data/TextureKey";
+import { DrawBuffers } from "src/shaders/types";
+import { Renderer } from "../Renderer";
+import { ShaderProgram } from "@classes/ShaderProgram";
+import { TextureManager } from "@classes/TextureManager";
+import { Shader_Scene } from "@classes/ShaderProgram/Shader_Scene";
 
-export class SceneRenderer extends ShaderProgram {
+export class Renderer_Scene extends Renderer {
+    private program: ShaderProgram;
     private _textureManager: TextureManager;
     /**
      * Maximum texture units is at least 0, at most 32.
@@ -17,7 +18,8 @@ export class SceneRenderer extends ShaderProgram {
     private maxSimultaneousTextureUnits = 4;
 
     constructor(gl: WebGLRenderingContext, textureManager: TextureManager) {
-        super(vertex, fragment, gl);
+        super(gl);
+        this.program = new ShaderProgram(...Shader_Scene, gl);
         this._textureManager = textureManager;
         this.maxTextureUnits = this.gl.getParameter(
             this.gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS
@@ -27,7 +29,6 @@ export class SceneRenderer extends ShaderProgram {
     get textureManager() {
         return this._textureManager;
     }
-
     /**
      * Binds all textures by key from the texture key buffer,
      * to texture units. Returns a lookup object which matches the texture key
@@ -47,7 +48,7 @@ export class SceneRenderer extends ShaderProgram {
             );
             i++
         ) {
-            const texture = this.textureManager.getTexture(
+            const texture = this._textureManager.getTexture(
                 uniqueTextureKeys[i]
             );
             // console.log(texture, i, uniqueTextureKeys[i]);

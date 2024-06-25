@@ -12,10 +12,9 @@ import { ControllerContext } from "@classes/ControllerContext";
 import { IntervalContext } from "@classes/IntervalContext";
 import { SceneManager } from "@classes/SceneManager/SceneManager";
 import { Scene_Game } from "@classes/Scene/scenes/Scene_Game";
-import { SceneRenderer } from "@classes/ShaderProgram/SceneRenderer";
 import { ShaderTextureAsset } from "@classes/Asset/ShaderTextureAsset";
-import { DrawMatrix } from "@classes/ShaderProgram";
 import { SceneKey } from "@classes/SceneManager/Scene.keys";
+import { Renderer_Scene } from "@classes/Renderer/Renderer_Scene";
 
 export class Main {
     // Common to all entities within the main progra
@@ -25,7 +24,7 @@ export class Main {
     private intervalManager = new IntervalManager();
     private controllerPortManager = new ControllerPortManager();
 
-    private sceneRenderer: SceneRenderer | null = null;
+    private renderer: Renderer_Scene | null = null;
     private sceneManager = new SceneManager();
 
     private game: Game | null = null;
@@ -51,7 +50,7 @@ export class Main {
         gl.enable(gl.BLEND);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
         this.gl = gl;
-        this.sceneRenderer = new SceneRenderer(gl, this.textureManager);
+        this.renderer = new Renderer_Scene(gl, this.textureManager);
     }
 
     private halt() {
@@ -62,7 +61,7 @@ export class Main {
     }
 
     setUp() {
-        if (this.gl && this.sceneRenderer) {
+        if (this.gl && this.renderer) {
             console.log("Begin set up");
             const controllerContext = new ControllerContext(
                 this.controllerPortManager
@@ -82,7 +81,7 @@ export class Main {
             const drawMatrix = new DrawMatrix(this.gl);
             drawMatrix.setMatrix(game.getPlayfield());
 
-            const scene = new Scene_Game(this.sceneRenderer, game, [
+            const scene = new Scene_Game(this.renderer, game, [
                 new ShaderTextureAsset(
                     "TEX_playfield",
                     drawMatrix,

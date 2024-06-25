@@ -1,7 +1,6 @@
 import { Asset } from "@classes/Asset";
+import { Renderer_Scene } from "@classes/Renderer";
 import { SceneKey } from "@classes/SceneManager/Scene.keys";
-import { SceneRenderer } from "@classes/ShaderProgram/SceneRenderer";
-import { TextureManager } from "@classes/TextureManager";
 
 // TODO: Test when asset fails to load.
 export abstract class Scene {
@@ -11,9 +10,9 @@ export abstract class Scene {
     private numParsed = 0;
     private _isLoading = false;
     private _isLoaded = false;
-    protected renderer: SceneRenderer;
+    protected renderer: Renderer_Scene;
 
-    constructor(key: SceneKey, assets: Asset[], renderer: SceneRenderer) {
+    constructor(key: SceneKey, assets: Asset[], renderer: Renderer_Scene) {
         this._key = key;
         this._assets = assets;
         this.renderer = renderer;

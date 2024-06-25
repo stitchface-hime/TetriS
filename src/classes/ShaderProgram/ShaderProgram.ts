@@ -150,10 +150,4 @@ export class ShaderProgram {
     getProgram() {
         return this.program;
     }
-
-    /**
-     * @deprecated Renderer to handle draw calls now
-     * Draw to a specified texture.
-     */
-    abstract draw(destTexture: WebGLTexture | null, ...args: any[]): void;
 }

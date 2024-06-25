@@ -5,16 +5,15 @@ import { ImageAsset } from "@classes/Asset/ImageAsset";
 import { SpriteSheets } from "@data/SpriteSheets";
 import { ShaderTextureAsset } from "@classes/Asset/ShaderTextureAsset/ShaderTextureAsset";
 import { Game } from "@classes/Game";
-import { SceneRenderer } from "@classes/ShaderProgram/SceneRenderer";
 import { ShaderTextures } from "@data/ShaderTextures";
-import { Renderer_BoundingBox } from "@classes/Renderer";
+import { Renderer_BoundingBox, Renderer_Scene } from "@classes/Renderer";
 
 export class Scene_Game extends Scene {
     static key = SceneKey.SCENE_GAME;
     private game: Game;
 
     constructor(
-        renderer: SceneRenderer,
+        renderer: Renderer_Scene,
         game: Game,
         additionalAssets: Asset[]
     ) {
