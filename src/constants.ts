@@ -4,6 +4,8 @@ export const DEFAULT_MATRIX_BG_OPACITY = 1;
 
 export const MATRIX_BUFFER_ZONE_RATIO = 0.2;
 
+export const MINO_WIDTH_STD = 32;
+
 export const NATIVE_RESOLUTION_W = 1600;
 export const NATIVE_RESOLUTION_H = 900;
 

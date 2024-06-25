@@ -1,4 +1,4 @@
-import { ShaderProgram, Shader_BoundingBox } from "@classes/ShaderProgram";
+import { ShaderProgram, Shader_SolidColorQuad } from "@classes/ShaderProgram";
 import { HexString } from "src/shaders/types";
 import { Renderer } from "../Renderer";
 import { ShaderProgramError } from "@classes/Error";
@@ -11,7 +11,7 @@ export class Renderer_BoundingBox extends Renderer {
 
     constructor(gl: WebGLRenderingContext) {
         super(gl);
-        this.program = new ShaderProgram(...Shader_BoundingBox, gl);
+        this.program = new ShaderProgram(...Shader_SolidColorQuad, gl);
     }
 
     get color() {
