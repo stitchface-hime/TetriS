@@ -37,14 +37,19 @@ export class MatrixBackground extends TexturedEntity {
             ],
             hsvaModBuffer: [
                 ...Array(6)
-                    .fill([...sumHsvaMod])
+                    .fill([
+                        sumHsvaMod[0],
+                        sumHsvaMod[1],
+                        sumHsvaMod[2],
+                        sumHsvaMod[3],
+                    ])
                     .flat(),
                 ...Array(6)
                     .fill([
                         sumHsvaMod[0],
                         sumHsvaMod[1],
                         sumHsvaMod[2],
-                        sumHsvaMod[3],
+                        sumHsvaMod[3] - 0.9,
                     ])
                     .flat(),
             ],

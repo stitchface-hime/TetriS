@@ -6,7 +6,13 @@
 .scene {
     height: 900px;
     width: 1600px;
-    background-color: white;
+    background: repeating-linear-gradient(
+    45deg,
+    grey,
+    grey 10px,
+    darkgrey 10px,
+    darkgrey 20px
+  );
     
 }
 

@@ -112,7 +112,7 @@ export class PieceSpawner extends GroupEntity {
             playfield,
             pieceId
         );
-        if (ghostPiece !== null) ghostPiece.alphaModifier = -0.8;
+        if (ghostPiece !== null) ghostPiece.alphaModifier = -0.5;
 
         return ghostPiece;
     }

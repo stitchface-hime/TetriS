@@ -41,12 +41,18 @@ export class Main {
      * Sets the rendering context for the main program. This also assigns a renderer to main.
      */
     setWebGLRenderingContext(canvas: HTMLCanvasElement) {
+        canvas.getContext("webgl", { premultipliedAlpha: false });
         const gl = canvas.getContext("webgl");
 
         if (!gl) return;
 
         gl.enable(gl.BLEND);
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+        gl.blendFuncSeparate(
+            gl.SRC_ALPHA,
+            gl.ONE_MINUS_SRC_ALPHA,
+            gl.ONE,
+            gl.ONE_MINUS_SRC_ALPHA
+        );
         this.gl = gl;
         this.renderer = new Renderer_Scene(gl, this.textureManager);
     }
