@@ -25,7 +25,7 @@ export class Renderer_BoundingBox extends Renderer {
     draw(destTexture: WebGLTexture | null) {
         const gl = this.gl;
         if (gl) {
-            const program = this.program;
+            const program = this.program.getProgram();
 
             const fb = gl.createFramebuffer();
             gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
@@ -106,10 +106,7 @@ export class Renderer_BoundingBox extends Renderer {
 
                     gl.drawArrays(gl.TRIANGLES, 0, 6);
                 } catch (e) {
-                    throw new ShaderProgramError(
-                        "boundingBox",
-                        "Unable to set attribute data."
-                    );
+                    throw e;
                 }
             } else {
                 throw new ShaderProgramError(

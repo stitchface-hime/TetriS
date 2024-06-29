@@ -77,7 +77,7 @@ export class Renderer_Scene extends Renderer {
     };
 
     async draw(drawBuffers: DrawBuffers) {
-        const program = this.program;
+        const program = this.program.getProgram();
         const gl = this.gl;
         const canvas = gl.canvas as HTMLCanvasElement;
         const dimensions: [width: number, height: number] = [

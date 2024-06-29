@@ -86,6 +86,7 @@ export abstract class Scene {
                 }
             } catch (e) {
                 this.numParsed += 1;
+                throw e;
             }
         });
     }

@@ -23,15 +23,31 @@ export class MatrixBackground extends TexturedEntity {
         ) as Tuple<number, 4>;
 
         return {
-            positionBuffer: getRectangleCoords(
-                ...this.position,
-                ...this.dimensions
-            ),
-            textureCoordBuffer: getRectangleCoords(0, 0, 1, 1),
-            textureKeyBuffer: [MatrixBackground.textureKey],
-            hsvaModBuffer: Array(6)
-                .fill([...sumHsvaMod])
-                .flat(),
+            positionBuffer: [
+                ...getRectangleCoords(...this.position, ...this.dimensions),
+                ...getRectangleCoords(...this.position, ...this.dimensions),
+            ],
+            textureCoordBuffer: [
+                ...getRectangleCoords(0.5, 0, 0.5, 1),
+                ...getRectangleCoords(0, 0, 0.5, 1),
+            ],
+            textureKeyBuffer: [
+                MatrixBackground.textureKey,
+                MatrixBackground.textureKey,
+            ],
+            hsvaModBuffer: [
+                ...Array(6)
+                    .fill([...sumHsvaMod])
+                    .flat(),
+                ...Array(6)
+                    .fill([
+                        sumHsvaMod[0],
+                        sumHsvaMod[1],
+                        sumHsvaMod[2],
+                        sumHsvaMod[3],
+                    ])
+                    .flat(),
+            ],
         };
     }
 }

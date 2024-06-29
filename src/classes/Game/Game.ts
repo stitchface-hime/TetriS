@@ -16,7 +16,8 @@ import { Contexts } from "@classes/Entity";
 import { ControllerPortKey } from "@classes/ControllerPortManager/types";
 
 export class Game extends GroupEntity implements IControllable {
-    private numRows: number;
+    private _numRows: number;
+    private _numColumns: number;
 
     private playfield: Playfield;
 
@@ -67,7 +68,8 @@ export class Game extends GroupEntity implements IControllable {
         );
         this.contexts.controllerContext?.assignControllable(this);
 
-        this.numRows = numRows;
+        this._numRows = numRows;
+        this._numColumns = numColumns;
         this.progressionJudge = new ProgressionJudge(level, this.onLevelUpdate);
         this.progressionJudge.setLinesQuotaTarget(10);
 
@@ -83,6 +85,14 @@ export class Game extends GroupEntity implements IControllable {
             spawnCoordinates
         );
         this.drawables.push(this.playfield, this.pieceSpawner);
+    }
+
+    get numRows() {
+        return this._numRows;
+    }
+
+    get numColumns() {
+        return this._numColumns;
     }
 
     /* Game flow methods */

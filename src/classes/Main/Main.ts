@@ -1,10 +1,8 @@
 import { Game, Standard } from "@classes/Game";
 import { RunStatus } from "./types";
-import { MainRenderer } from "@classes/ShaderProgram/MainRenderer/renderer";
 import { IntervalManager } from "@classes/TimeMeasure/IntervalManager";
 import { Interval } from "@classes/TimeMeasure";
 import { TextureManager } from "@classes/TextureManager";
-import { DrawBuffers } from "src/shaders/types";
 import { ControllerPortManager } from "@classes/ControllerPortManager";
 import { Controller } from "@classes/Controller";
 import { ControllerPortKey } from "@classes/ControllerPortManager/types";
@@ -13,8 +11,8 @@ import { IntervalContext } from "@classes/IntervalContext";
 import { SceneManager } from "@classes/SceneManager/SceneManager";
 import { Scene_Game } from "@classes/Scene/scenes/Scene_Game";
 import { ShaderTextureAsset } from "@classes/Asset/ShaderTextureAsset";
-import { SceneKey } from "@classes/SceneManager/Scene.keys";
 import { Renderer_Scene } from "@classes/Renderer/Renderer_Scene";
+import { Renderer_Playfield } from "@classes/Renderer/Renderer_Playfield/Renderer_Playfield";
 
 export class Main {
     // Common to all entities within the main progra
@@ -78,14 +76,18 @@ export class Main {
                 .getPort(ControllerPortKey.PORT_0)
                 .plugIn(new Controller(this.intervalManager));
 
-            const drawMatrix = new DrawMatrix(this.gl);
-            drawMatrix.setMatrix(game.getPlayfield());
-
             const scene = new Scene_Game(this.renderer, game, [
                 new ShaderTextureAsset(
                     "TEX_playfield",
-                    drawMatrix,
-                    game.getPlayfield().dimensions,
+                    new Renderer_Playfield(
+                        this.gl,
+                        game.numRows,
+                        game.numColumns
+                    ),
+                    [
+                        game.getPlayfield().dimensions[0] * 2,
+                        game.getPlayfield().dimensions[1],
+                    ],
                     this.textureManager
                 ),
             ]);

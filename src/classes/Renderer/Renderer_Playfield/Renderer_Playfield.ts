@@ -103,10 +103,14 @@ export class Renderer_Playfield extends Renderer {
     draw(destTexture: WebGLTexture | null): void {
         const gl = this.gl;
 
-        const program = this.program;
+        const program = this.program.getProgram();
         const dimensions: [width: number, height: number] = [
             MINO_WIDTH_STD * this.columns,
             MINO_WIDTH_STD * this.rows,
+        ];
+        const textureDimensions: [width: number, height: number] = [
+            dimensions[0] * 2,
+            dimensions[1],
         ];
 
         const fb = gl.createFramebuffer();
@@ -122,11 +126,11 @@ export class Renderer_Playfield extends Renderer {
 
         // set viewport
         this.resizeCanvas();
-        gl.viewport(0, 0, ...dimensions);
+        gl.viewport(0, 0, ...textureDimensions);
 
         if (program) {
             gl.useProgram(program);
-   
+
             const gridlines = this.generateGrid(
                 this.rows,
                 this.columns,
@@ -160,10 +164,15 @@ export class Renderer_Playfield extends Renderer {
             });
 
             // draw background
-            drawBuffers.position.push(...getRectangleCoords(dimensions[0], 0, dimensions[0], dimensions[1]));
-            drawBuffers.color.push(
-                ...new Array(6).fill([255, 255, 255, 255]).flat()
+            drawBuffers.position.push(
+                ...getRectangleCoords(
+                    dimensions[0],
+                    0,
+                    dimensions[0],
+                    dimensions[1]
+                )
             );
+            drawBuffers.color.push(...new Array(6).fill([0, 0, 0, 255]).flat());
 
             gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
             gl.bufferData(
@@ -194,10 +203,9 @@ export class Renderer_Playfield extends Renderer {
                 0
             );
 
-            gl.uniform2f(resolutionLocation, ...dimensions);
+            gl.uniform2f(resolutionLocation, ...textureDimensions);
 
-            gl.drawArrays(gl.TRIANGLES, 0, 6);
+            gl.drawArrays(gl.TRIANGLES, 0, drawBuffers.position.length / 2);
         }
-    }
     }
 }
