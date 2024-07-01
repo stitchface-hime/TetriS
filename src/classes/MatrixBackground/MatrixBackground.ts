@@ -49,7 +49,7 @@ export class MatrixBackground extends TexturedEntity {
                         sumHsvaMod[0],
                         sumHsvaMod[1],
                         sumHsvaMod[2],
-                        sumHsvaMod[3] - 0.9,
+                        sumHsvaMod[3] - 0.8,
                     ])
                     .flat(),
             ],
