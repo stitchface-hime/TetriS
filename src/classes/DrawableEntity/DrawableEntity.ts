@@ -29,7 +29,7 @@ export abstract class DrawableEntity extends Entity {
     /**
      * Scale of the entity within a scene.
      */
-    private _scale: [x: number, y: number] = this.defaultScale;
+    private _scale: [x: number, y: number] = this._defaultScale;
 
     /**
      * Rotation of the entity in degrees within a scene.
@@ -274,6 +274,33 @@ export abstract class DrawableEntity extends Entity {
         this.saturationModifier = hsva[1];
         this.valueModifier = hsva[2];
         this.alphaModifier = hsva[3];
+    }
+
+    /**
+     * Gets the transform matrix necessary to draw the entity which includes, translation and scale.
+     */
+    getTransformMatrix(): Tuple<number, 16> {
+        return [
+            this.dimensions[0] * this.scale[0],
+            0,
+            0,
+            0,
+
+            0,
+            this.dimensions[1] * this.scale[1],
+            0,
+            0,
+
+            0,
+            0,
+            0,
+            0,
+
+            this.position[0],
+            this.position[1],
+            0,
+            0,
+        ];
     }
 
     /**

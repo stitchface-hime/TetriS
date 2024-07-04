@@ -22,21 +22,23 @@ export class MatrixBackground extends TexturedEntity {
             (component, idx) => component + hsvaModBuffer[idx]
         ) as Tuple<number, 4>;
 
+        this.uvScale = [0.5, 1];
+
+        this.uvPosition = [0.5, 0];
+        const gridTextureTransform = this.getTransformUVMatrix();
+
+        this.uvPosition = [0, 0];
+        const bgTextureTransform = this.getTransformUVMatrix();
+
         return {
-            transform: [
-                ...getRectangleCoords(...this.position, ...this.dimensions),
-                ...getRectangleCoords(...this.position, ...this.dimensions),
-            ],
-            transformUV: [
-                ...getRectangleCoords(0.5, 0, 0.5, 1),
-                ...getRectangleCoords(0, 0, 0.5, 1),
-            ],
+            transform: Array(2).fill(this.getTransformMatrix()),
+            transformUV: [...gridTextureTransform, ...bgTextureTransform],
             textureKey: [
                 MatrixBackground.textureKey,
                 MatrixBackground.textureKey,
             ],
             hsvaMod: [
-                ...Array(6)
+                ...Array(4)
                     .fill([
                         sumHsvaMod[0],
                         sumHsvaMod[1],
@@ -44,7 +46,7 @@ export class MatrixBackground extends TexturedEntity {
                         sumHsvaMod[3],
                     ])
                     .flat(),
-                ...Array(6)
+                ...Array(4)
                     .fill([
                         sumHsvaMod[0],
                         sumHsvaMod[1],

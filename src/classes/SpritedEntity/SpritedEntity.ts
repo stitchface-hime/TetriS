@@ -34,8 +34,6 @@ export abstract class SpritedEntity extends TexturedEntity {
 
     private activeSpriteSheetData: SpriteSheetDetails | null = null;
 
-    private activeSpriteQuadCoords: Tuple<number, 12> | null = null;
-
     /* protected animationCycles: Record<string, number[]> = {};
 
     protected animation: SpriteAnimation | null = {}; */
@@ -63,10 +61,6 @@ export abstract class SpritedEntity extends TexturedEntity {
         );
     }
 
-    getActiveSpriteQuadCoords() {
-        return this.activeSpriteQuadCoords;
-    }
-
     getActiveSpriteSheetData() {
         return this.activeSpriteSheetData;
     }
@@ -84,7 +78,8 @@ export abstract class SpritedEntity extends TexturedEntity {
                 spriteSheetData.spriteSize.width,
                 spriteSheetData.spriteSize.height,
             ];
-            this.activeSpriteQuadCoords = null;
+            this.uvPosition = [0, 0];
+            this.uvScale = [1, 1];
         } else {
             throw new Error(
                 "Could not set active sprite sheet data. Did you forget to register the sprite sheet first?"
@@ -156,13 +151,12 @@ export abstract class SpritedEntity extends TexturedEntity {
             const {
                 spriteSize: { width, height },
             } = this.activeSpriteSheetData;
-            this.activeSpriteQuadCoords = getRectangleCoords(
-                u,
-                v,
+
+            this.uvPosition = [u, v];
+            this.uvScale = [
                 width / this.activeSpriteSheetData.width,
                 height / this.activeSpriteSheetData.height,
-                true
-            );
+            ];
         } else {
             throw new Error(
                 "There is no active sprite sheet set. Did not set active sprite."
@@ -181,16 +175,13 @@ export abstract class SpritedEntity extends TexturedEntity {
         // make sure all buffers have some data in them
         const boundingBoxBuffers = this.boundingBox.getDrawBuffers();
 
-        if (this.activeSpriteQuadCoords && this.activeSpriteSheetData) {
+        if (this.activeSpriteSheetData) {
             const sumHsvaMod = this.getHsvaModifier().map(
                 (component, idx) => component + hsvaModBuffer[idx]
             ) as Tuple<number, 4>;
 
-            drawBuffers.transform = getRectangleCoords(
-                ...this.position,
-                ...this.dimensions
-            );
-            drawBuffers.transformUV = [...this.activeSpriteQuadCoords];
+            drawBuffers.transform = this.getTransformMatrix();
+            drawBuffers.transformUV = this.getTransformUVMatrix();
             drawBuffers.textureKey = [this.activeSpriteSheetData.id];
             drawBuffers.hsvaMod = Array(6)
                 .fill([...sumHsvaMod])
