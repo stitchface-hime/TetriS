@@ -79,8 +79,20 @@ export interface SpriteSheet {
 }
 
 export interface DrawBuffers {
+    /**
+     * Entity transform (16 elements in buffer per rectangle in entity, `4x4 transform matrix * numRectangles`)
+     */
     positionBuffer: number[];
+    /**
+     * Entity texture UV transform (16 elements in buffer per rectangle in entity, `4x4 transform matrix * numRectangles`)
+     */
     textureCoordBuffer: number[];
+    /**
+     * Entity texture key (1 element in buffer per rectangle in entity, `1 textureKey * numRectangles`)
+     */
     textureKeyBuffer: TextureKey[];
+    /**
+     * Entity hsva modifier (4 elements in buffer per rectangle in entity, `4 hsva * numRectangles`)
+     */
     hsvaModBuffer: number[];
 }

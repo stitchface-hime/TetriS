@@ -4,6 +4,7 @@ import { Renderer } from "../Renderer";
 import { ShaderProgram } from "@classes/ShaderProgram";
 import { TextureManager } from "@classes/TextureManager";
 import { Shader_Scene } from "@classes/ShaderProgram/Shader_Scene";
+import { getRectangleCoords } from "@utils/getRectangleCoords";
 
 export class Renderer_Scene extends Renderer {
     private program: ShaderProgram;
@@ -103,108 +104,168 @@ export class Renderer_Scene extends Renderer {
             );
 
             // Set up uniforms
-            const u_texLocation = gl.getUniformLocation(program, "u_tex[0]");
-            gl.uniform1iv(u_texLocation, [0, 1, 2, 3]);
+            {
+                const u_texLocation = gl.getUniformLocation(
+                    program,
+                    "u_tex[0]"
+                );
+                gl.uniform1iv(u_texLocation, [0, 1, 2, 3]);
 
-            const u_resolutionLocation = gl.getUniformLocation(
-                program,
-                "u_resolution"
-            );
-            gl.uniform2f(u_resolutionLocation, ...dimensions);
+                const u_resolutionLocation = gl.getUniformLocation(
+                    program,
+                    "u_resolution"
+                );
+                gl.uniform2f(u_resolutionLocation, ...dimensions);
+            }
 
             // Set up attribute buffers
-            const a_positionLocation = gl.getAttribLocation(
-                program,
-                "a_position"
-            );
-            const a_positionBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, a_positionBuffer);
-            gl.bufferData(
-                gl.ARRAY_BUFFER,
-                new Float32Array(drawBuffers.positionBuffer),
-                gl.STATIC_DRAW
-            );
+            {
+                const a_quadVertLocation = gl.getAttribLocation(
+                    program,
+                    "a_quadVert"
+                );
+                const a_quadVertBuffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, a_quadVertBuffer);
+                gl.bufferData(
+                    gl.ARRAY_BUFFER,
+                    new Float32Array(getRectangleCoords(0, 0, 1, 1)),
+                    gl.STATIC_DRAW
+                );
 
-            const a_textureCoordLocation = gl.getAttribLocation(
-                program,
-                "a_textureCoord"
-            );
-            const a_textureCoordBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, a_textureCoordBuffer);
-            gl.bufferData(
-                gl.ARRAY_BUFFER,
-                new Float32Array(drawBuffers.textureCoordBuffer),
-                gl.STATIC_DRAW
-            );
+                const a_quadVertUVLocation = gl.getAttribLocation(
+                    program,
+                    "a_quadVertUV"
+                );
+                const a_quadVertUVBuffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, a_quadVertUVBuffer);
+                gl.bufferData(
+                    gl.ARRAY_BUFFER,
+                    new Float32Array(getRectangleCoords(0, 0, 1, 1)),
+                    gl.STATIC_DRAW
+                );
 
-            const a_textureIndexLocation = gl.getAttribLocation(
-                program,
-                "a_textureIndex"
-            );
-            const a_textureIndexBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, a_textureIndexBuffer);
-            gl.bufferData(
-                gl.ARRAY_BUFFER,
-                new Float32Array(textureIndexBuffer),
-                gl.STATIC_DRAW
-            );
+                const a_transformBufferLocation = gl.getAttribLocation(
+                    program,
+                    "a_transformBufferLocation"
+                );
+                const a_transformBuffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, a_transformBuffer);
+                gl.bufferData(
+                    gl.ARRAY_BUFFER,
+                    new Float32Array(drawBuffers.positionBuffer),
+                    gl.STATIC_DRAW
+                );
 
-            const a_hsvaModLocation = gl.getAttribLocation(
-                program,
-                "a_hsvaMod"
-            );
-            const a_hsvaModBuffer = gl.createBuffer();
-            gl.bindBuffer(gl.ARRAY_BUFFER, a_hsvaModBuffer);
-            gl.bufferData(
-                gl.ARRAY_BUFFER,
-                new Float32Array(drawBuffers.hsvaModBuffer),
-                gl.STATIC_DRAW
-            );
+                const a_transformUVLocation = gl.getAttribLocation(
+                    program,
+                    "a_transformUVLocation"
+                );
+                const a_transformUVBuffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, a_transformUVBuffer);
+                gl.bufferData(
+                    gl.ARRAY_BUFFER,
+                    new Float32Array(drawBuffers.textureCoordBuffer),
+                    gl.STATIC_DRAW
+                );
 
-            // Set up attribute pointers
-            gl.enableVertexAttribArray(a_positionLocation);
-            gl.bindBuffer(gl.ARRAY_BUFFER, a_positionBuffer);
-            gl.vertexAttribPointer(
-                a_positionLocation,
-                2,
-                gl.FLOAT,
-                false,
-                0,
-                0
-            );
+                const a_textureIndexLocation = gl.getAttribLocation(
+                    program,
+                    "a_textureIndex"
+                );
+                const a_textureIndexBuffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, a_textureIndexBuffer);
+                gl.bufferData(
+                    gl.ARRAY_BUFFER,
+                    new Float32Array(textureIndexBuffer),
+                    gl.STATIC_DRAW
+                );
 
-            gl.enableVertexAttribArray(a_textureCoordLocation);
-            gl.bindBuffer(gl.ARRAY_BUFFER, a_textureCoordBuffer);
-            gl.vertexAttribPointer(
-                a_textureCoordLocation,
-                2,
-                gl.FLOAT,
-                false,
-                0,
-                0
-            );
+                const a_hsvaModLocation = gl.getAttribLocation(
+                    program,
+                    "a_hsvaMod"
+                );
+                const a_hsvaModBuffer = gl.createBuffer();
+                gl.bindBuffer(gl.ARRAY_BUFFER, a_hsvaModBuffer);
+                gl.bufferData(
+                    gl.ARRAY_BUFFER,
+                    new Float32Array(drawBuffers.hsvaModBuffer),
+                    gl.STATIC_DRAW
+                );
 
-            gl.enableVertexAttribArray(a_textureIndexLocation);
-            gl.bindBuffer(gl.ARRAY_BUFFER, a_textureIndexBuffer);
-            gl.vertexAttribPointer(
-                a_textureIndexLocation,
-                1,
-                gl.FLOAT,
-                false,
-                0,
-                0
-            );
+                // Set up attribute pointers
+                gl.enableVertexAttribArray(a_quadVertLocation);
+                gl.bindBuffer(gl.ARRAY_BUFFER, a_quadVertBuffer);
+                gl.vertexAttribPointer(
+                    a_quadVertLocation,
+                    2,
+                    gl.FLOAT,
+                    false,
+                    0,
+                    0
+                );
 
-            gl.enableVertexAttribArray(a_hsvaModLocation);
-            gl.bindBuffer(gl.ARRAY_BUFFER, a_hsvaModBuffer);
-            gl.vertexAttribPointer(a_hsvaModLocation, 4, gl.FLOAT, false, 0, 0);
+                gl.enableVertexAttribArray(a_quadVertUVLocation);
+                gl.bindBuffer(gl.ARRAY_BUFFER, a_quadVertUVBuffer);
+                gl.vertexAttribPointer(
+                    a_quadVertUVLocation,
+                    2,
+                    gl.FLOAT,
+                    false,
+                    0,
+                    0
+                );
 
-            //console.log(textureIndexBuffer, drawBuffers.positionBuffer.length / 2);
-            gl.drawArrays(
-                gl.TRIANGLES,
-                0,
-                drawBuffers.positionBuffer.length / 2
-            );
+                gl.enableVertexAttribArray(a_transformBufferLocation);
+                gl.bindBuffer(gl.ARRAY_BUFFER, a_transformBuffer);
+                gl.vertexAttribPointer(
+                    a_transformBufferLocation,
+                    4,
+                    gl.FLOAT,
+                    false,
+                    0,
+                    0
+                );
+
+                gl.enableVertexAttribArray(a_transformUVLocation);
+                gl.bindBuffer(gl.ARRAY_BUFFER, a_transformUVBuffer);
+                gl.vertexAttribPointer(
+                    a_transformBufferLocation,
+                    4,
+                    gl.FLOAT,
+                    false,
+                    0,
+                    0
+                );
+
+                gl.enableVertexAttribArray(a_textureIndexLocation);
+                gl.bindBuffer(gl.ARRAY_BUFFER, a_textureIndexBuffer);
+                gl.vertexAttribPointer(
+                    a_textureIndexLocation,
+                    1,
+                    gl.FLOAT,
+                    false,
+                    0,
+                    0
+                );
+
+                gl.enableVertexAttribArray(a_hsvaModLocation);
+                gl.bindBuffer(gl.ARRAY_BUFFER, a_hsvaModBuffer);
+                gl.vertexAttribPointer(
+                    a_hsvaModLocation,
+                    4,
+                    gl.FLOAT,
+                    false,
+                    0,
+                    0
+                );
+
+                //console.log(textureIndexBuffer, drawBuffers.positionBuffer.length / 2);
+                gl.drawArrays(
+                    gl.TRIANGLES,
+                    0,
+                    drawBuffers.positionBuffer.length / 2
+                );
+            }
         }
     }
 }

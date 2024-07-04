@@ -3,9 +3,13 @@ import { glsl } from "@utils/index";
 export const vertex = glsl`
 
 precision mediump float;
-attribute vec2 a_position;
-attribute float a_textureIndex;
-attribute vec2 a_textureCoord;
+
+attribute vec2 a_quadVert;
+attribute mat4 a_transform;
+
+attribute vec2 a_quadVertUV;
+attribute mat4 a_transformUV;
+
 attribute vec4 a_hsvaMod;
 
 uniform vec2 u_resolution;
@@ -15,8 +19,10 @@ varying vec2 v_textureCoord;
 varying vec4 v_hsvaMod;
  
 void main() {
+    vec4 transformedQuad = a_transform * vec4(a_quadVert, 0, 1);
+
     // [0, 1]
-    vec2 zeroToOne = a_position / u_resolution;
+    vec2 zeroToOne = vec2(transformedQuad.xy) / u_resolution;
 
     // [0, 2]
     vec2 zeroToTwo = zeroToOne * 2.0;
@@ -28,7 +34,10 @@ void main() {
     // [-1, 1]
     gl_Position = finalPosition;
 
-    v_textureCoord = a_textureCoord;
+    vec4 transformedUVQuad = a_transformUV * vec4(a_quadVertUV, 0, 1);
+
+
+    v_textureCoord = vec2(transformedUVQuad.xy);
     v_textureIndex = a_textureIndex;
     v_hsvaMod = a_hsvaMod;
 }

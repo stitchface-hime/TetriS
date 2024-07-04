@@ -278,10 +278,10 @@ export abstract class DrawableEntity extends Entity {
 
     /**
      * Returns entity buffers containing:
-     * - entity position (12 elements in buffer per rectangle in entity, `2 coord * 6 vert * numRectangles`)
-     * - entity texture coordinates (12 elements in buffer per rectangle in entity, `2 coord * 6 vert * numRectangles`)
+     * - entity position (16 elements in buffer per rectangle in entity, `4x4 transform matrix * numRectangles`)
+     * - entity texture coordinates (16 elements in buffer per rectangle in entity, `4x4 transform matrix * numRectangles`)
      * - entity texture key (1 element in buffer per rectangle in entity, `1 textureKey * numRectangles`)
-     * - entity hsva modifier (24 elements in buffer per rectangle in entity, `4 hsva * 6 vert * numRectangles`)
+     * - entity hsva modifier (4 elements in buffer per rectangle in entity, `4 hsva * numRectangles`)
      *
      * This also applies any HSVA modifications from the parent to the entity. If the entity is nested underneath multiple group
      * entities then HSVA modifications will be applied additively starting from the root group entity.
