@@ -60,12 +60,10 @@ export class BoundingBox extends TexturedEntity {
     getDrawBuffers(): DrawBuffers {
         return {
             // this buffer has 48 elements, 4 rectangles
-            positionBuffer: this.generateBoundingBox().flat(),
-            textureCoordBuffer: Array(4)
-                .fill(getRectangleCoords(0, 0, 1, 1))
-                .flat(),
-            textureKeyBuffer: Array(4).fill(BoundingBox.textureKey).flat(),
-            hsvaModBuffer: Array(24).fill(this.getHsvaModifier()).flat(),
+            transform: this.generateBoundingBox().flat(),
+            transformUV: Array(4).fill(getRectangleCoords(0, 0, 1, 1)).flat(),
+            textureKey: Array(4).fill(BoundingBox.textureKey).flat(),
+            hsvaMod: Array(24).fill(this.getHsvaModifier()).flat(),
         };
     }
 }

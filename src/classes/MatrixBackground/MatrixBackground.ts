@@ -23,19 +23,19 @@ export class MatrixBackground extends TexturedEntity {
         ) as Tuple<number, 4>;
 
         return {
-            positionBuffer: [
+            transform: [
                 ...getRectangleCoords(...this.position, ...this.dimensions),
                 ...getRectangleCoords(...this.position, ...this.dimensions),
             ],
-            textureCoordBuffer: [
+            transformUV: [
                 ...getRectangleCoords(0.5, 0, 0.5, 1),
                 ...getRectangleCoords(0, 0, 0.5, 1),
             ],
-            textureKeyBuffer: [
+            textureKey: [
                 MatrixBackground.textureKey,
                 MatrixBackground.textureKey,
             ],
-            hsvaModBuffer: [
+            hsvaMod: [
                 ...Array(6)
                     .fill([
                         sumHsvaMod[0],

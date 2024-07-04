@@ -85,10 +85,10 @@ export abstract class GroupEntity extends DrawableEntity {
 
     getDrawBuffers(hsvaModBuffer: Tuple<number, 4>): DrawBuffers {
         const drawBuffers: DrawBuffers = {
-            positionBuffer: [],
-            textureCoordBuffer: [],
-            textureKeyBuffer: [],
-            hsvaModBuffer: [],
+            transform: [],
+            transformUV: [],
+            textureKey: [],
+            hsvaMod: [],
         };
 
         this.drawables.entities.map((entity) => {
@@ -98,25 +98,17 @@ export abstract class GroupEntity extends DrawableEntity {
 
             const entityBuffers = entity.getDrawBuffers(sumHsvaMod);
 
-            drawBuffers.positionBuffer.push(...entityBuffers.positionBuffer);
-            drawBuffers.textureCoordBuffer.push(
-                ...entityBuffers.textureCoordBuffer
-            );
-            drawBuffers.textureKeyBuffer.push(
-                ...entityBuffers.textureKeyBuffer
-            );
-            drawBuffers.hsvaModBuffer.push(...entityBuffers.hsvaModBuffer);
+            drawBuffers.transform.push(...entityBuffers.transform);
+            drawBuffers.transformUV.push(...entityBuffers.transformUV);
+            drawBuffers.textureKey.push(...entityBuffers.textureKey);
+            drawBuffers.hsvaMod.push(...entityBuffers.hsvaMod);
         });
 
         const boundingBoxBuffers = this.boundingBox.getDrawBuffers();
-        drawBuffers.positionBuffer.push(...boundingBoxBuffers.positionBuffer);
-        drawBuffers.textureCoordBuffer.push(
-            ...boundingBoxBuffers.textureCoordBuffer
-        );
-        drawBuffers.textureKeyBuffer.push(
-            ...boundingBoxBuffers.textureKeyBuffer
-        );
-        drawBuffers.hsvaModBuffer.push(...boundingBoxBuffers.hsvaModBuffer);
+        drawBuffers.transform.push(...boundingBoxBuffers.transform);
+        drawBuffers.transformUV.push(...boundingBoxBuffers.transformUV);
+        drawBuffers.textureKey.push(...boundingBoxBuffers.textureKey);
+        drawBuffers.hsvaMod.push(...boundingBoxBuffers.hsvaMod);
 
         return drawBuffers;
     }

@@ -20,7 +20,9 @@ export class MainRenderer extends ShaderProgram {
     constructor(gl: WebGLRenderingContext, textureManager: TextureManager) {
         super(vertex, fragment, gl);
         this.textureManager = textureManager;
-        this.maxTextureUnits = this.gl.getParameter(this.gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS);
+        this.maxTextureUnits = this.gl.getParameter(
+            this.gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS
+        );
     }
 
     /**
@@ -32,8 +34,19 @@ export class MainRenderer extends ShaderProgram {
         const uniqueTextureKeys = Array.from(new Set(textureKeyBuffer));
         const textureLookup: Partial<Record<TextureKey, number>> = {};
 
-        for (let i = 0; i < Math.min(this.maxTextureUnits, uniqueTextureKeys.length, this.maxSimultaneousTextureUnits); i++) {
-            const texture = this.textureManager.getTexture(uniqueTextureKeys[i]);
+        for (
+            let i = 0;
+            i <
+            Math.min(
+                this.maxTextureUnits,
+                uniqueTextureKeys.length,
+                this.maxSimultaneousTextureUnits
+            );
+            i++
+        ) {
+            const texture = this.textureManager.getTexture(
+                uniqueTextureKeys[i]
+            );
             // console.log(texture, i, uniqueTextureKeys[i]);
 
             if (!!texture) {
@@ -48,10 +61,15 @@ export class MainRenderer extends ShaderProgram {
         return textureLookup;
     }
 
-    private textureKeyToIndex = (textureLookup: Partial<Record<TextureKey, number>>, textureKeyBuffer: TextureKey[]) => {
+    private textureKeyToIndex = (
+        textureLookup: Partial<Record<TextureKey, number>>,
+        textureKeyBuffer: TextureKey[]
+    ) => {
         // console.log(textureLookup);
         const textureIndexBuffer: number[] = [];
-        textureKeyBuffer.forEach((key) => textureIndexBuffer.push(...Array(6).fill(textureLookup[key] || 0)));
+        textureKeyBuffer.forEach((key) =>
+            textureIndexBuffer.push(...Array(6).fill(textureLookup[key] || 0))
+        );
         return textureIndexBuffer;
     };
 
@@ -59,7 +77,10 @@ export class MainRenderer extends ShaderProgram {
         const program = this.program;
         const gl = this.gl;
         const canvas = gl.canvas as HTMLCanvasElement;
-        const dimensions: [width: number, height: number] = [canvas.clientWidth, canvas.clientHeight];
+        const dimensions: [width: number, height: number] = [
+            canvas.clientWidth,
+            canvas.clientHeight,
+        ];
 
         gl.bindFramebuffer(gl.FRAMEBUFFER, null);
 
@@ -69,56 +90,113 @@ export class MainRenderer extends ShaderProgram {
         if (gl && program) {
             gl.useProgram(program);
 
-            const textureLookup = this.processTextureBuffer(drawBuffers.textureKeyBuffer);
-            const textureIndexBuffer = this.textureKeyToIndex(textureLookup, drawBuffers.textureKeyBuffer);
+            const textureLookup = this.processTextureBuffer(
+                drawBuffers.textureKey
+            );
+            const textureIndexBuffer = this.textureKeyToIndex(
+                textureLookup,
+                drawBuffers.textureKey
+            );
 
             // Set up uniforms
             const u_texLocation = gl.getUniformLocation(program, "u_tex[0]");
             gl.uniform1iv(u_texLocation, [0, 1, 2, 3]);
 
-            const u_resolutionLocation = gl.getUniformLocation(program, "u_resolution");
+            const u_resolutionLocation = gl.getUniformLocation(
+                program,
+                "u_resolution"
+            );
             gl.uniform2f(u_resolutionLocation, ...dimensions);
 
             // Set up attribute buffers
-            const a_positionLocation = gl.getAttribLocation(program, "a_position");
+            const a_positionLocation = gl.getAttribLocation(
+                program,
+                "a_position"
+            );
             const a_positionBuffer = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, a_positionBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(drawBuffers.positionBuffer), gl.STATIC_DRAW);
+            gl.bufferData(
+                gl.ARRAY_BUFFER,
+                new Float32Array(drawBuffers.transform),
+                gl.STATIC_DRAW
+            );
 
-            const a_textureCoordLocation = gl.getAttribLocation(program, "a_textureCoord");
+            const a_textureCoordLocation = gl.getAttribLocation(
+                program,
+                "a_textureCoord"
+            );
             const a_textureCoordBuffer = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, a_textureCoordBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(drawBuffers.textureCoordBuffer), gl.STATIC_DRAW);
+            gl.bufferData(
+                gl.ARRAY_BUFFER,
+                new Float32Array(drawBuffers.transformUV),
+                gl.STATIC_DRAW
+            );
 
-            const a_textureIndexLocation = gl.getAttribLocation(program, "a_textureIndex");
+            const a_textureIndexLocation = gl.getAttribLocation(
+                program,
+                "a_textureIndex"
+            );
             const a_textureIndexBuffer = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, a_textureIndexBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureIndexBuffer), gl.STATIC_DRAW);
+            gl.bufferData(
+                gl.ARRAY_BUFFER,
+                new Float32Array(textureIndexBuffer),
+                gl.STATIC_DRAW
+            );
 
-            const a_hsvaModLocation = gl.getAttribLocation(program, "a_hsvaMod");
+            const a_hsvaModLocation = gl.getAttribLocation(
+                program,
+                "a_hsvaMod"
+            );
             const a_hsvaModBuffer = gl.createBuffer();
             gl.bindBuffer(gl.ARRAY_BUFFER, a_hsvaModBuffer);
-            gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(drawBuffers.hsvaModBuffer), gl.STATIC_DRAW);
+            gl.bufferData(
+                gl.ARRAY_BUFFER,
+                new Float32Array(drawBuffers.hsvaMod),
+                gl.STATIC_DRAW
+            );
 
             // Set up attribute pointers
             gl.enableVertexAttribArray(a_positionLocation);
             gl.bindBuffer(gl.ARRAY_BUFFER, a_positionBuffer);
-            gl.vertexAttribPointer(a_positionLocation, 2, gl.FLOAT, false, 0, 0);
+            gl.vertexAttribPointer(
+                a_positionLocation,
+                2,
+                gl.FLOAT,
+                false,
+                0,
+                0
+            );
 
             gl.enableVertexAttribArray(a_textureCoordLocation);
             gl.bindBuffer(gl.ARRAY_BUFFER, a_textureCoordBuffer);
-            gl.vertexAttribPointer(a_textureCoordLocation, 2, gl.FLOAT, false, 0, 0);
+            gl.vertexAttribPointer(
+                a_textureCoordLocation,
+                2,
+                gl.FLOAT,
+                false,
+                0,
+                0
+            );
 
             gl.enableVertexAttribArray(a_textureIndexLocation);
             gl.bindBuffer(gl.ARRAY_BUFFER, a_textureIndexBuffer);
-            gl.vertexAttribPointer(a_textureIndexLocation, 1, gl.FLOAT, false, 0, 0);
+            gl.vertexAttribPointer(
+                a_textureIndexLocation,
+                1,
+                gl.FLOAT,
+                false,
+                0,
+                0
+            );
 
             gl.enableVertexAttribArray(a_hsvaModLocation);
             gl.bindBuffer(gl.ARRAY_BUFFER, a_hsvaModBuffer);
             gl.vertexAttribPointer(a_hsvaModLocation, 4, gl.FLOAT, false, 0, 0);
 
             //console.log(textureIndexBuffer, drawBuffers.positionBuffer.length / 2);
-            gl.drawArrays(gl.TRIANGLES, 0, drawBuffers.positionBuffer.length / 2);
+            gl.drawArrays(gl.TRIANGLES, 0, drawBuffers.transform.length / 2);
         }
     }
 }

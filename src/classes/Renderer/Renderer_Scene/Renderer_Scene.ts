@@ -96,11 +96,11 @@ export class Renderer_Scene extends Renderer {
             gl.useProgram(program);
 
             const textureLookup = this.processTextureBuffer(
-                drawBuffers.textureKeyBuffer
+                drawBuffers.textureKey
             );
             const textureIndexBuffer = this.textureKeyToIndex(
                 textureLookup,
-                drawBuffers.textureKeyBuffer
+                drawBuffers.textureKey
             );
 
             // Set up uniforms
@@ -152,7 +152,7 @@ export class Renderer_Scene extends Renderer {
                 gl.bindBuffer(gl.ARRAY_BUFFER, a_transformBuffer);
                 gl.bufferData(
                     gl.ARRAY_BUFFER,
-                    new Float32Array(drawBuffers.positionBuffer),
+                    new Float32Array(drawBuffers.transform),
                     gl.STATIC_DRAW
                 );
 
@@ -164,7 +164,7 @@ export class Renderer_Scene extends Renderer {
                 gl.bindBuffer(gl.ARRAY_BUFFER, a_transformUVBuffer);
                 gl.bufferData(
                     gl.ARRAY_BUFFER,
-                    new Float32Array(drawBuffers.textureCoordBuffer),
+                    new Float32Array(drawBuffers.transformUV),
                     gl.STATIC_DRAW
                 );
 
@@ -188,7 +188,7 @@ export class Renderer_Scene extends Renderer {
                 gl.bindBuffer(gl.ARRAY_BUFFER, a_hsvaModBuffer);
                 gl.bufferData(
                     gl.ARRAY_BUFFER,
-                    new Float32Array(drawBuffers.hsvaModBuffer),
+                    new Float32Array(drawBuffers.hsvaMod),
                     gl.STATIC_DRAW
                 );
 
@@ -263,7 +263,7 @@ export class Renderer_Scene extends Renderer {
                 gl.drawArrays(
                     gl.TRIANGLES,
                     0,
-                    drawBuffers.positionBuffer.length / 2
+                    drawBuffers.transform.length / 2
                 );
             }
         }

@@ -172,10 +172,10 @@ export abstract class SpritedEntity extends TexturedEntity {
 
     getDrawBuffers(hsvaModBuffer: Tuple<number, 4>): DrawBuffers {
         const drawBuffers: DrawBuffers = {
-            positionBuffer: [],
-            textureCoordBuffer: [],
-            textureKeyBuffer: [],
-            hsvaModBuffer: [],
+            transform: [],
+            transformUV: [],
+            textureKey: [],
+            hsvaMod: [],
         };
 
         // make sure all buffers have some data in them
@@ -186,13 +186,13 @@ export abstract class SpritedEntity extends TexturedEntity {
                 (component, idx) => component + hsvaModBuffer[idx]
             ) as Tuple<number, 4>;
 
-            drawBuffers.positionBuffer = getRectangleCoords(
+            drawBuffers.transform = getRectangleCoords(
                 ...this.position,
                 ...this.dimensions
             );
-            drawBuffers.textureCoordBuffer = [...this.activeSpriteQuadCoords];
-            drawBuffers.textureKeyBuffer = [this.activeSpriteSheetData.id];
-            drawBuffers.hsvaModBuffer = Array(6)
+            drawBuffers.transformUV = [...this.activeSpriteQuadCoords];
+            drawBuffers.textureKey = [this.activeSpriteSheetData.id];
+            drawBuffers.hsvaMod = Array(6)
                 .fill([...sumHsvaMod])
                 .flat();
         } else {
