@@ -10,6 +10,8 @@ attribute mat4 a_transform;
 attribute vec2 a_quadVertUV;
 attribute mat4 a_transformUV;
 
+attribute float a_textureIndex;
+
 attribute vec4 a_hsvaMod;
 
 uniform vec2 u_resolution;

@@ -152,10 +152,13 @@ export abstract class SpritedEntity extends TexturedEntity {
                 spriteSize: { width, height },
             } = this.activeSpriteSheetData;
 
-            this.uvPosition = [u, v];
+            this.uvPosition = [
+                u,
+                v + height / this.activeSpriteSheetData.height,
+            ];
             this.uvScale = [
                 width / this.activeSpriteSheetData.width,
-                height / this.activeSpriteSheetData.height,
+                -height / this.activeSpriteSheetData.height,
             ];
         } else {
             throw new Error(
@@ -183,9 +186,7 @@ export abstract class SpritedEntity extends TexturedEntity {
             drawBuffers.transform = this.getTransformMatrix();
             drawBuffers.transformUV = this.getTransformUVMatrix();
             drawBuffers.textureKey = [this.activeSpriteSheetData.id];
-            drawBuffers.hsvaMod = Array(6)
-                .fill([...sumHsvaMod])
-                .flat();
+            drawBuffers.hsvaMod = [...sumHsvaMod];
         } else {
             console.warn(
                 `Skip drawing this ${this.constructor.name} entity, either no quad coords or active sprite sheet data.`

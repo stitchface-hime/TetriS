@@ -31,29 +31,20 @@ export class MatrixBackground extends TexturedEntity {
         const bgTextureTransform = this.getTransformUVMatrix();
 
         return {
-            transform: Array(2).fill(this.getTransformMatrix()),
+            transform: Array(2).fill(this.getTransformMatrix()).flat(),
             transformUV: [...gridTextureTransform, ...bgTextureTransform],
             textureKey: [
                 MatrixBackground.textureKey,
                 MatrixBackground.textureKey,
             ],
             hsvaMod: [
-                ...Array(4)
-                    .fill([
-                        sumHsvaMod[0],
-                        sumHsvaMod[1],
-                        sumHsvaMod[2],
-                        sumHsvaMod[3],
-                    ])
-                    .flat(),
-                ...Array(4)
-                    .fill([
-                        sumHsvaMod[0],
-                        sumHsvaMod[1],
-                        sumHsvaMod[2],
-                        sumHsvaMod[3] - 0.8,
-                    ])
-                    .flat(),
+                ...[sumHsvaMod[0], sumHsvaMod[1], sumHsvaMod[2], sumHsvaMod[3]],
+                ...[
+                    sumHsvaMod[0],
+                    sumHsvaMod[1],
+                    sumHsvaMod[2],
+                    sumHsvaMod[3] - 0.5,
+                ],
             ],
         };
     }

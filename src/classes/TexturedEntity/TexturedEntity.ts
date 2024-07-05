@@ -8,31 +8,31 @@ export abstract class TexturedEntity extends DrawableEntity {
     private _uvScale: [width: number, height: number] = [1, 1];
 
     /**
-     * u-v position of texture, each individual component clamped between 0 and 1.
+     * u-v position of texture, each individual component clamped between -1 and 1.
      */
     get uvPosition() {
         return this._uvPosition;
     }
 
     /**
-     * u-v scale of texture, each individual component clamped between 0 and 1.
+     * u-v scale of texture, each individual component clamped between -1 and 1.
      */
     get uvScale() {
         return this._uvScale;
     }
 
     set uvPosition(position: [u: number, v: number]) {
-        this._uvPosition = [clamp(position[0], 0, 1), clamp(position[1], 0, 1)];
+        this._uvPosition = position;
     }
 
     set uvScale(scale: [u: number, v: number]) {
-        this._uvScale = [clamp(scale[0], 0, 1), clamp(scale[1], 0, 1)];
+        this._uvScale = scale;
     }
 
     /**
      * Gets the transform matrix necessary to render the texture in the entity which includes translation and scale.
      */
-    getTransformUVMatrix(): Tuple<number, 16> {
+    getTransformUVMatrix(flipY = false): Tuple<number, 16> {
         return [
             this.uvScale[0],
             0,
@@ -50,7 +50,7 @@ export abstract class TexturedEntity extends DrawableEntity {
             0,
 
             this.uvPosition[0],
-            this.position[1],
+            this.uvPosition[1] - (flipY ? 1 : 0),
             0,
             0,
         ];

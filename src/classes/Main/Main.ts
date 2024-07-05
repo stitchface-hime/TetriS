@@ -110,10 +110,10 @@ export class Main {
             if (!this.sceneManager.isCurrentSceneLoading())
                 this.sceneManager.loadCurrentScene();
         } else {
-            /* if (this.debug_framesRendered > 10) return;
+            /* if (this.debug_framesRendered > 1) return;
             console.log("Render frame"); */
             this.sceneManager.renderCurrentScene();
-            // this.debug_framesRendered++;
+            /* this.debug_framesRendered++; */
         }
     }
 

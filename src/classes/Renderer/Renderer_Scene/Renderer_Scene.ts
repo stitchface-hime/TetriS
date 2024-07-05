@@ -69,17 +69,22 @@ export class Renderer_Scene extends Renderer {
         textureLookup: Partial<Record<TextureKey, number>>,
         textureKeyBuffer: TextureKey[]
     ) => {
-        // console.log(textureLookup);
         const textureIndexBuffer: number[] = [];
         textureKeyBuffer.forEach((key) =>
-            textureIndexBuffer.push(...Array(6).fill(textureLookup[key] || 0))
+            textureIndexBuffer.push(textureLookup[key] || 0)
         );
+
         return textureIndexBuffer;
     };
 
     async draw(drawBuffers: DrawBuffers) {
         const program = this.program.getProgram();
         const gl = this.gl;
+        const ext = gl.getExtension("ANGLE_instanced_arrays");
+        if (!ext) {
+            throw Error("Needs the ANGLE_instanced_arrays to work");
+        }
+
         const canvas = gl.canvas as HTMLCanvasElement;
         const dimensions: [width: number, height: number] = [
             canvas.clientWidth,
@@ -144,9 +149,9 @@ export class Renderer_Scene extends Renderer {
                     gl.STATIC_DRAW
                 );
 
-                const a_transformBufferLocation = gl.getAttribLocation(
+                const a_transformLocation = gl.getAttribLocation(
                     program,
-                    "a_transformBufferLocation"
+                    "a_transform"
                 );
                 const a_transformBuffer = gl.createBuffer();
                 gl.bindBuffer(gl.ARRAY_BUFFER, a_transformBuffer);
@@ -158,7 +163,7 @@ export class Renderer_Scene extends Renderer {
 
                 const a_transformUVLocation = gl.getAttribLocation(
                     program,
-                    "a_transformUVLocation"
+                    "a_transformUV"
                 );
                 const a_transformUVBuffer = gl.createBuffer();
                 gl.bindBuffer(gl.ARRAY_BUFFER, a_transformUVBuffer);
@@ -215,27 +220,33 @@ export class Renderer_Scene extends Renderer {
                     0
                 );
 
-                gl.enableVertexAttribArray(a_transformBufferLocation);
                 gl.bindBuffer(gl.ARRAY_BUFFER, a_transformBuffer);
-                gl.vertexAttribPointer(
-                    a_transformBufferLocation,
-                    4,
-                    gl.FLOAT,
-                    false,
-                    0,
-                    0
-                );
+                for (let i = 0; i < 4; i++) {
+                    gl.enableVertexAttribArray(a_transformLocation + i);
+                    gl.vertexAttribPointer(
+                        a_transformLocation + i,
+                        4,
+                        gl.FLOAT,
+                        false,
+                        64, // 64 bytes = 16 numbers * 4 bytes in matrix
+                        i * 16
+                    );
+                    ext.vertexAttribDivisorANGLE(a_transformLocation + i, 1);
+                }
 
-                gl.enableVertexAttribArray(a_transformUVLocation);
                 gl.bindBuffer(gl.ARRAY_BUFFER, a_transformUVBuffer);
-                gl.vertexAttribPointer(
-                    a_transformBufferLocation,
-                    4,
-                    gl.FLOAT,
-                    false,
-                    0,
-                    0
-                );
+                for (let i = 0; i < 4; i++) {
+                    gl.enableVertexAttribArray(a_transformUVLocation + i);
+                    gl.vertexAttribPointer(
+                        a_transformUVLocation + i,
+                        4,
+                        gl.FLOAT,
+                        false,
+                        64, // 64 bytes = 16 numbers * 4 bytes in matrix
+                        i * 16
+                    );
+                    ext.vertexAttribDivisorANGLE(a_transformUVLocation + i, 1);
+                }
 
                 gl.enableVertexAttribArray(a_textureIndexLocation);
                 gl.bindBuffer(gl.ARRAY_BUFFER, a_textureIndexBuffer);
@@ -247,6 +258,7 @@ export class Renderer_Scene extends Renderer {
                     0,
                     0
                 );
+                ext.vertexAttribDivisorANGLE(a_textureIndexLocation, 1);
 
                 gl.enableVertexAttribArray(a_hsvaModLocation);
                 gl.bindBuffer(gl.ARRAY_BUFFER, a_hsvaModBuffer);
@@ -258,12 +270,14 @@ export class Renderer_Scene extends Renderer {
                     0,
                     0
                 );
+                ext.vertexAttribDivisorANGLE(a_hsvaModLocation, 1);
 
                 //console.log(textureIndexBuffer, drawBuffers.positionBuffer.length / 2);
-                gl.drawArrays(
+                ext.drawArraysInstancedANGLE(
                     gl.TRIANGLES,
                     0,
-                    drawBuffers.transform.length / 2
+                    6,
+                    drawBuffers.transform.length / 16
                 );
             }
         }
