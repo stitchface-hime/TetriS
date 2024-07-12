@@ -38,6 +38,15 @@ export abstract class GroupEntity extends DrawableEntity {
         });
     }
 
+    override adjustScale(scale: [x: number, y: number]) {
+        super.adjustScale(scale);
+        console.log(scale);
+
+        this.drawables.entities.forEach((drawable) => {
+            drawable.adjustScale(scale);
+        });
+    }
+
     /**
      * Get the dimensions of a minimum rectangle that encapsulates all child entities.
      */

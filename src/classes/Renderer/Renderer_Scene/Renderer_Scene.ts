@@ -18,6 +18,15 @@ export class Renderer_Scene extends Renderer {
      */
     private maxSimultaneousTextureUnits = 4;
 
+    private buffers: Record<AttributeName, WebGLBuffer | null> = {
+        a_quadVert: null,
+        a_quadVertUV: null,
+        a_transform: null,
+        a_transformUV: null,
+        a_textureIndex: null,
+        a_hsvaMod: null,
+    };
+
     constructor(gl: WebGLRenderingContext, textureManager: TextureManager) {
         super(gl);
         this.program = new ShaderProgram(...Shader_Scene, gl);
@@ -25,6 +34,28 @@ export class Renderer_Scene extends Renderer {
         this.maxTextureUnits = this.gl.getParameter(
             this.gl.MAX_VERTEX_TEXTURE_IMAGE_UNITS
         );
+
+        // create and set buffers
+        this.buffers.a_quadVert = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.a_quadVert);
+        gl.bufferData(
+            gl.ARRAY_BUFFER,
+            new Float32Array(getRectangleCoords(0, 0, 1, 1)),
+            gl.STATIC_DRAW
+        );
+
+        this.buffers.a_quadVertUV = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.a_quadVertUV);
+        gl.bufferData(
+            gl.ARRAY_BUFFER,
+            new Float32Array(getRectangleCoords(0, 0, 1, 1)),
+            gl.STATIC_DRAW
+        );
+
+        this.buffers.a_transform = gl.createBuffer();
+        this.buffers.a_transformUV = gl.createBuffer();
+        this.buffers.a_textureIndex = gl.createBuffer();
+        this.buffers.a_hsvaMod = gl.createBuffer();
     }
 
     get textureManager() {
@@ -129,32 +160,16 @@ export class Renderer_Scene extends Renderer {
                     program,
                     "a_quadVert"
                 );
-                const a_quadVertBuffer = gl.createBuffer();
-                gl.bindBuffer(gl.ARRAY_BUFFER, a_quadVertBuffer);
-                gl.bufferData(
-                    gl.ARRAY_BUFFER,
-                    new Float32Array(getRectangleCoords(0, 0, 1, 1)),
-                    gl.STATIC_DRAW
-                );
-
                 const a_quadVertUVLocation = gl.getAttribLocation(
                     program,
                     "a_quadVertUV"
-                );
-                const a_quadVertUVBuffer = gl.createBuffer();
-                gl.bindBuffer(gl.ARRAY_BUFFER, a_quadVertUVBuffer);
-                gl.bufferData(
-                    gl.ARRAY_BUFFER,
-                    new Float32Array(getRectangleCoords(0, 0, 1, 1)),
-                    gl.STATIC_DRAW
                 );
 
                 const a_transformLocation = gl.getAttribLocation(
                     program,
                     "a_transform"
                 );
-                const a_transformBuffer = gl.createBuffer();
-                gl.bindBuffer(gl.ARRAY_BUFFER, a_transformBuffer);
+                gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.a_transform);
                 gl.bufferData(
                     gl.ARRAY_BUFFER,
                     new Float32Array(drawBuffers.transform),
@@ -165,8 +180,7 @@ export class Renderer_Scene extends Renderer {
                     program,
                     "a_transformUV"
                 );
-                const a_transformUVBuffer = gl.createBuffer();
-                gl.bindBuffer(gl.ARRAY_BUFFER, a_transformUVBuffer);
+                gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.a_transformUV);
                 gl.bufferData(
                     gl.ARRAY_BUFFER,
                     new Float32Array(drawBuffers.transformUV),
@@ -177,8 +191,7 @@ export class Renderer_Scene extends Renderer {
                     program,
                     "a_textureIndex"
                 );
-                const a_textureIndexBuffer = gl.createBuffer();
-                gl.bindBuffer(gl.ARRAY_BUFFER, a_textureIndexBuffer);
+                gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.a_textureIndex);
                 gl.bufferData(
                     gl.ARRAY_BUFFER,
                     new Float32Array(textureIndexBuffer),
@@ -189,8 +202,7 @@ export class Renderer_Scene extends Renderer {
                     program,
                     "a_hsvaMod"
                 );
-                const a_hsvaModBuffer = gl.createBuffer();
-                gl.bindBuffer(gl.ARRAY_BUFFER, a_hsvaModBuffer);
+                gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.a_hsvaMod);
                 gl.bufferData(
                     gl.ARRAY_BUFFER,
                     new Float32Array(drawBuffers.hsvaMod),
@@ -199,7 +211,7 @@ export class Renderer_Scene extends Renderer {
 
                 // Set up attribute pointers
                 gl.enableVertexAttribArray(a_quadVertLocation);
-                gl.bindBuffer(gl.ARRAY_BUFFER, a_quadVertBuffer);
+                gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.a_quadVert);
                 gl.vertexAttribPointer(
                     a_quadVertLocation,
                     2,
@@ -210,7 +222,7 @@ export class Renderer_Scene extends Renderer {
                 );
 
                 gl.enableVertexAttribArray(a_quadVertUVLocation);
-                gl.bindBuffer(gl.ARRAY_BUFFER, a_quadVertUVBuffer);
+                gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.a_quadVertUV);
                 gl.vertexAttribPointer(
                     a_quadVertUVLocation,
                     2,
@@ -220,7 +232,7 @@ export class Renderer_Scene extends Renderer {
                     0
                 );
 
-                gl.bindBuffer(gl.ARRAY_BUFFER, a_transformBuffer);
+                gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.a_transform);
                 for (let i = 0; i < 4; i++) {
                     gl.enableVertexAttribArray(a_transformLocation + i);
                     gl.vertexAttribPointer(
@@ -234,7 +246,7 @@ export class Renderer_Scene extends Renderer {
                     ext.vertexAttribDivisorANGLE(a_transformLocation + i, 1);
                 }
 
-                gl.bindBuffer(gl.ARRAY_BUFFER, a_transformUVBuffer);
+                gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.a_transformUV);
                 for (let i = 0; i < 4; i++) {
                     gl.enableVertexAttribArray(a_transformUVLocation + i);
                     gl.vertexAttribPointer(
@@ -249,7 +261,7 @@ export class Renderer_Scene extends Renderer {
                 }
 
                 gl.enableVertexAttribArray(a_textureIndexLocation);
-                gl.bindBuffer(gl.ARRAY_BUFFER, a_textureIndexBuffer);
+                gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.a_textureIndex);
                 gl.vertexAttribPointer(
                     a_textureIndexLocation,
                     1,
@@ -261,7 +273,7 @@ export class Renderer_Scene extends Renderer {
                 ext.vertexAttribDivisorANGLE(a_textureIndexLocation, 1);
 
                 gl.enableVertexAttribArray(a_hsvaModLocation);
-                gl.bindBuffer(gl.ARRAY_BUFFER, a_hsvaModBuffer);
+                gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.a_hsvaMod);
                 gl.vertexAttribPointer(
                     a_hsvaModLocation,
                     4,

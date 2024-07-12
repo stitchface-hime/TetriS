@@ -16,11 +16,18 @@ export abstract class Renderer {
         if (this.gl) {
             const canvas = this.gl.canvas as HTMLCanvasElement;
 
-            const width = canvas.clientWidth;
-            const height = canvas.clientHeight;
+            const width = document.documentElement.clientWidth;
+            const height = document.documentElement.clientHeight;
 
-            canvas.width = width;
-            canvas.height = height;
+            if (
+                this.gl.canvas.width != width ||
+                this.gl.canvas.height != height
+            ) {
+                this.gl.canvas.width = window.innerWidth;
+                this.gl.canvas.height = window.innerHeight;
+                this.gl.canvas.width = width;
+                this.gl.canvas.height = height;
+            }
         }
     }
 

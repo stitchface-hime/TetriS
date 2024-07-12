@@ -206,6 +206,9 @@ export class Renderer_Playfield extends Renderer {
             gl.uniform2f(resolutionLocation, ...textureDimensions);
 
             gl.drawArrays(gl.TRIANGLES, 0, drawBuffers.position.length / 2);
+
+            /* gl.deleteBuffer(positionBuffer);
+            gl.deleteBuffer(colorBuffer); */
         }
     }
 }

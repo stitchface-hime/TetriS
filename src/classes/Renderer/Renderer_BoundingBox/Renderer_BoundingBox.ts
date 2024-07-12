@@ -105,6 +105,9 @@ export class Renderer_BoundingBox extends Renderer {
                     gl.uniform2f(resolutionLocation, 1, 1);
 
                     gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+                    /*                     gl.deleteBuffer(positionBuffer);
+                    gl.deleteBuffer(colorBuffer); */
                 } catch (e) {
                     throw e;
                 }

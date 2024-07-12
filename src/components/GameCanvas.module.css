@@ -4,8 +4,6 @@
 }
 
 .scene {
-    height: 900px;
-    width: 1600px;
     background: repeating-linear-gradient(
     45deg,
     grey,

@@ -60,20 +60,35 @@ const App: React.FC = () => {
     return (
         <div style={{ fontFamily: "monospace" }}>
             <GameCanvas ref={canvasRef} />
-            <button onClick={start}>Start</button>
-            {JSON.stringify(getButtons())}
-            <br />
-            Score: {mainRef.current?.getGame()?.getGameParams().score}
-            <br />
-            Level: {mainRef.current?.getGame()?.getGameParams().level}
-            <br />
-            Lines: {mainRef.current?.getGame()?.getGameParams().linesCleared}
-            <br />
-            Combo:{" "}
-            {Math.max(
-                mainRef.current?.getGame()?.getGameParams().combo || 0,
-                0
-            )}
+            <div
+                style={
+                    {
+                        /* position: "absolute",
+                    top: "8px",
+                    left: "8px",
+                    background: "white",
+                    padding: "8px",
+                    borderRadius: "4px",
+                    width: "240px", */
+                    }
+                }
+            >
+                <button onClick={start}>Start</button>
+                {JSON.stringify(getButtons())}
+                <br />
+                Score: {mainRef.current?.getGame()?.getGameParams().score}
+                <br />
+                Level: {mainRef.current?.getGame()?.getGameParams().level}
+                <br />
+                Lines:{" "}
+                {mainRef.current?.getGame()?.getGameParams().linesCleared}
+                <br />
+                Combo:{" "}
+                {Math.max(
+                    mainRef.current?.getGame()?.getGameParams().combo || 0,
+                    0
+                )}
+            </div>
         </div>
     );
 };
