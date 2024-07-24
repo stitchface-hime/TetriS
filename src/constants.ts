@@ -1,4 +1,4 @@
-export const DEFAULT_MATRIX_GRID_OPACITY = 0.5;
+export const DEFAULT_MATRIX_GRID_OPACITY = 0.2;
 export const DEFAULT_MATRIX_GRID_WIDTH = 1;
 export const DEFAULT_MATRIX_BG_OPACITY = 1;
 

@@ -28,6 +28,8 @@ export class Renderer_Scene extends Renderer {
         a_hsvaMod: null,
     };
 
+    private framebuffer: WebGLFramebuffer | null = null;
+
     private _drawBuffers: DrawBuffers | null = null;
 
     constructor(gl: WebGLRenderingContext, textureManager: TextureManager) {
@@ -59,6 +61,8 @@ export class Renderer_Scene extends Renderer {
         this.buffers.a_transformUV = gl.createBuffer();
         this.buffers.a_textureIndex = gl.createBuffer();
         this.buffers.a_hsvaMod = gl.createBuffer();
+
+        this.framebuffer = gl.createFramebuffer();
     }
 
     get textureManager() {
@@ -140,7 +144,7 @@ export class Renderer_Scene extends Renderer {
         ];
 
         // draw to canvas
-        const fb = gl.createFramebuffer();
+        const fb = this.framebuffer;
         gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
         const attachmentPoint = gl.COLOR_ATTACHMENT0;
         gl.framebufferTexture2D(
