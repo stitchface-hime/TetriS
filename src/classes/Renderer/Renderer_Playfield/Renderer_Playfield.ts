@@ -125,7 +125,6 @@ export class Renderer_Playfield extends Renderer {
         );
 
         // set viewport
-        this.resizeCanvas();
         gl.viewport(0, 0, ...textureDimensions);
 
         if (program) {

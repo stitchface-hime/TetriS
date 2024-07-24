@@ -105,9 +105,9 @@ export class SceneManager {
         });
     }
 
-    renderCurrentScene() {
+    renderCurrentScene(destTexture: WebGLTexture | null = null) {
         if (!!this.currentScene && this.isCurrentSceneLoaded()) {
-            this.currentScene.renderScene();
+            this.currentScene.renderScene(destTexture);
         }
     }
 }

@@ -96,5 +96,5 @@ export abstract class Scene {
      */
     unload() {}
 
-    abstract renderScene(): void;
+    abstract renderScene(destTexture: WebGLTexture | null): void;
 }

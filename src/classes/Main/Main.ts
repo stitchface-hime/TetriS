@@ -13,6 +13,7 @@ import { Scene_Game } from "@classes/Scene/scenes/Scene_Game";
 import { ShaderTextureAsset } from "@classes/Asset/ShaderTextureAsset";
 import { Renderer_Scene } from "@classes/Renderer/Renderer_Scene";
 import { Renderer_Playfield } from "@classes/Renderer/Renderer_Playfield/Renderer_Playfield";
+import { Screen } from "@classes/Screen";
 
 export class Main {
     // Common to all entities within the main progra
@@ -23,6 +24,7 @@ export class Main {
     private controllerPortManager = new ControllerPortManager();
 
     private renderer: Renderer_Scene | null = null;
+    private screen: Screen | null = null;
     private sceneManager = new SceneManager();
 
     private game: Game | null = null;
@@ -54,6 +56,7 @@ export class Main {
         );
         this.gl = gl;
         this.renderer = new Renderer_Scene(gl, this.textureManager);
+        this.screen = new Screen(gl);
     }
 
     private halt() {
@@ -110,10 +113,11 @@ export class Main {
             if (!this.sceneManager.isCurrentSceneLoading())
                 this.sceneManager.loadCurrentScene();
         } else {
-            /* if (this.debug_framesRendered > 1) return;
-            console.log("Render frame"); */
-            this.sceneManager.renderCurrentScene();
-            /* this.debug_framesRendered++; */
+            // if (this.debug_framesRendered > 1) return;
+            // console.log("Render frame", this.screen?.texture);
+            this.sceneManager.renderCurrentScene(this.screen?.texture);
+            this.screen?.draw();
+            // this.debug_framesRendered++;
         }
     }
 

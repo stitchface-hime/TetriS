@@ -19,14 +19,9 @@ export abstract class Renderer {
             const width = document.documentElement.clientWidth;
             const height = document.documentElement.clientHeight;
 
-            if (
-                this.gl.canvas.width != width ||
-                this.gl.canvas.height != height
-            ) {
-                this.gl.canvas.width = window.innerWidth;
-                this.gl.canvas.height = window.innerHeight;
-                this.gl.canvas.width = width;
-                this.gl.canvas.height = height;
+            if (canvas.width != width || canvas.height != height) {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
             }
         }
     }

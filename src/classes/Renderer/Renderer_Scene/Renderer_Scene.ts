@@ -5,6 +5,7 @@ import { ShaderProgram } from "@classes/ShaderProgram";
 import { TextureManager } from "@classes/TextureManager";
 import { Shader_Scene } from "@classes/ShaderProgram/Shader_Scene";
 import { getRectangleCoords } from "@utils/getRectangleCoords";
+import { NATIVE_RESOLUTION_H, NATIVE_RESOLUTION_W } from "src/constants";
 
 export class Renderer_Scene extends Renderer {
     private program: ShaderProgram;
@@ -26,6 +27,8 @@ export class Renderer_Scene extends Renderer {
         a_textureIndex: null,
         a_hsvaMod: null,
     };
+
+    private _drawBuffers: DrawBuffers | null = null;
 
     constructor(gl: WebGLRenderingContext, textureManager: TextureManager) {
         super(gl);
@@ -61,6 +64,15 @@ export class Renderer_Scene extends Renderer {
     get textureManager() {
         return this._textureManager;
     }
+
+    get drawBuffers() {
+        return this._drawBuffers;
+    }
+
+    set drawBuffers(drawBuffers: DrawBuffers | null) {
+        this._drawBuffers = drawBuffers;
+    }
+
     /**
      * Binds all textures by key from the texture key buffer,
      * to texture units. Returns a lookup object which matches the texture key
@@ -108,35 +120,52 @@ export class Renderer_Scene extends Renderer {
         return textureIndexBuffer;
     };
 
-    async draw(drawBuffers: DrawBuffers) {
+    draw(destTexture: WebGLTexture | null = null) {
         const program = this.program.getProgram();
         const gl = this.gl;
+
+        // ! Extensions also leak into other programs too
         const ext = gl.getExtension("ANGLE_instanced_arrays");
         if (!ext) {
             throw Error("Needs the ANGLE_instanced_arrays to work");
         }
 
-        const canvas = gl.canvas as HTMLCanvasElement;
+        if (!this.drawBuffers) {
+            throw Error("Cannot draw without drawbuffers");
+        }
+
         const dimensions: [width: number, height: number] = [
-            canvas.clientWidth,
-            canvas.clientHeight,
+            NATIVE_RESOLUTION_W,
+            NATIVE_RESOLUTION_H,
         ];
 
         // draw to canvas
-        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        const fb = gl.createFramebuffer();
+        gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+        const attachmentPoint = gl.COLOR_ATTACHMENT0;
+        gl.framebufferTexture2D(
+            gl.FRAMEBUFFER,
+            attachmentPoint,
+            gl.TEXTURE_2D,
+            destTexture,
+            0
+        );
 
-        this.resizeCanvas();
+        // Clear texture
+        gl.clearColor(0, 0, 0, 0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+
         gl.viewport(0, 0, ...dimensions);
 
         if (gl && program) {
             gl.useProgram(program);
 
             const textureLookup = this.processTextureBuffer(
-                drawBuffers.textureKey
+                this.drawBuffers.textureKey
             );
             const textureIndexBuffer = this.textureKeyToIndex(
                 textureLookup,
-                drawBuffers.textureKey
+                this.drawBuffers.textureKey
             );
 
             // Set up uniforms
@@ -172,7 +201,7 @@ export class Renderer_Scene extends Renderer {
                 gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.a_transform);
                 gl.bufferData(
                     gl.ARRAY_BUFFER,
-                    new Float32Array(drawBuffers.transform),
+                    new Float32Array(this.drawBuffers.transform),
                     gl.STATIC_DRAW
                 );
 
@@ -183,7 +212,7 @@ export class Renderer_Scene extends Renderer {
                 gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.a_transformUV);
                 gl.bufferData(
                     gl.ARRAY_BUFFER,
-                    new Float32Array(drawBuffers.transformUV),
+                    new Float32Array(this.drawBuffers.transformUV),
                     gl.STATIC_DRAW
                 );
 
@@ -205,7 +234,7 @@ export class Renderer_Scene extends Renderer {
                 gl.bindBuffer(gl.ARRAY_BUFFER, this.buffers.a_hsvaMod);
                 gl.bufferData(
                     gl.ARRAY_BUFFER,
-                    new Float32Array(drawBuffers.hsvaMod),
+                    new Float32Array(this.drawBuffers.hsvaMod),
                     gl.STATIC_DRAW
                 );
 
@@ -289,7 +318,7 @@ export class Renderer_Scene extends Renderer {
                     gl.TRIANGLES,
                     0,
                     6,
-                    drawBuffers.transform.length / 16
+                    this.drawBuffers.transform.length / 16
                 );
             }
         }

@@ -40,11 +40,12 @@ export class Scene_Game extends Scene {
         this.game = game;
     }
 
-    renderScene(): void {
+    renderScene(destTexture: WebGLTexture | null): void {
         if (!this.game.isRunning) {
             this.game.run();
         }
         const drawBuffers = this.game.getDrawBuffers([0, 0, 0, 0]);
-        this.renderer.draw(drawBuffers);
+        this.renderer.drawBuffers = drawBuffers;
+        this.renderer.draw(destTexture);
     }
 }

@@ -17,11 +17,13 @@ export class ShaderProgram {
         vertexSrc: string,
         fragmentSrc: string,
         gl: WebGLRenderingContext,
-        autoBuild = true
+        autoBuild = true,
+        id = "shader-program"
     ) {
         this.vertexSrc = vertexSrc;
         this.fragmentSrc = fragmentSrc;
         this._gl = gl;
+        this.id = id;
 
         if (autoBuild && gl) {
             this.build();
@@ -116,7 +118,9 @@ export class ShaderProgram {
                     if (!ok) {
                         throw new ShaderProgramError(
                             this.id,
-                            `Failed to compile program.`
+                            `Failed to compile program. ${this.gl.getProgramInfoLog(
+                                program
+                            )}`
                         );
                     }
 

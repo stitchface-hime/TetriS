@@ -5,7 +5,13 @@ import { Tuple } from "src/types";
  * of the canvas. You can also elect to flip the coordinates vertically - useful when rendering sprites from
  * a spritesheet.
  */
-export const getRectangleCoords = (x: number, y: number, width: number, height: number, flipY = false): Tuple<number, 12> => {
+export const getRectangleCoords = (
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    flipY = false
+): Tuple<number, 12> => {
     /** flipY = false
      * 24____5
      * | \   |

@@ -39,7 +39,6 @@ export class Renderer_BoundingBox extends Renderer {
             );
 
             // set viewport
-            this.resizeCanvas();
             gl.viewport(0, 0, 1, 1);
 
             if (program) {
