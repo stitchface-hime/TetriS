@@ -103,6 +103,11 @@ export class Renderer_Playfield extends Renderer {
     draw(destTexture: WebGLTexture | null): void {
         const gl = this.gl;
 
+        const ext = gl.getExtension("ANGLE_instanced_arrays");
+        if (!ext) {
+            throw Error("Needs the ANGLE_instanced_arrays to work");
+        }
+
         const program = this.program.getProgram();
         const dimensions: [width: number, height: number] = [
             MINO_WIDTH_STD * this.columns,
@@ -190,6 +195,7 @@ export class Renderer_Playfield extends Renderer {
             gl.enableVertexAttribArray(positionLocation);
             gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
             gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+            ext.vertexAttribDivisorANGLE(positionLocation, 0);
 
             gl.enableVertexAttribArray(colorLocation);
             gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
@@ -201,13 +207,18 @@ export class Renderer_Playfield extends Renderer {
                 0,
                 0
             );
+            ext.vertexAttribDivisorANGLE(colorLocation, 0);
 
             gl.uniform2f(resolutionLocation, ...textureDimensions);
 
-            gl.drawArrays(gl.TRIANGLES, 0, drawBuffers.position.length / 2);
+            ext.drawArraysInstancedANGLE(
+                gl.TRIANGLES,
+                0,
+                drawBuffers.position.length / 2,
+                1
+            );
 
-            /* gl.deleteBuffer(positionBuffer);
-            gl.deleteBuffer(colorBuffer); */
+            gl.drawArrays(gl.TRIANGLES, 0, drawBuffers.position.length / 2);
         }
     }
 }

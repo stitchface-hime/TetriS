@@ -24,6 +24,12 @@ export class Renderer_BoundingBox extends Renderer {
 
     draw(destTexture: WebGLTexture | null) {
         const gl = this.gl;
+
+        const ext = gl.getExtension("ANGLE_instanced_arrays");
+        if (!ext) {
+            throw Error("Needs the ANGLE_instanced_arrays to work");
+        }
+
         if (gl) {
             const program = this.program.getProgram();
 
@@ -68,7 +74,7 @@ export class Renderer_BoundingBox extends Renderer {
                         gl.STATIC_DRAW
                     );
                     gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-                    // console.log(new Array(6).fill([...hexToRgb(this.color), 255]));
+
                     gl.bufferData(
                         gl.ARRAY_BUFFER,
                         new Uint8Array(
@@ -89,6 +95,7 @@ export class Renderer_BoundingBox extends Renderer {
                         0,
                         0
                     );
+                    ext.vertexAttribDivisorANGLE(positionLocation, 0);
 
                     gl.enableVertexAttribArray(colorLocation);
                     gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
@@ -100,13 +107,11 @@ export class Renderer_BoundingBox extends Renderer {
                         0,
                         0
                     );
+                    ext.vertexAttribDivisorANGLE(colorLocation, 0);
 
                     gl.uniform2f(resolutionLocation, 1, 1);
 
-                    gl.drawArrays(gl.TRIANGLES, 0, 6);
-
-                    /*                     gl.deleteBuffer(positionBuffer);
-                    gl.deleteBuffer(colorBuffer); */
+                    ext.drawArraysInstancedANGLE(gl.TRIANGLES, 0, 6, 1);
                 } catch (e) {
                     throw e;
                 }
