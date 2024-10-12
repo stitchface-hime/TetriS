@@ -153,7 +153,12 @@ export class Screen extends Renderer {
                 gl.bufferData(
                     gl.ARRAY_BUFFER,
                     new Float32Array([
-                        ...getRectangleCoords(0, 0, ...this.textureDimensions),
+                        ...getRectangleCoords(
+                            0,
+                            0,
+                            gl.canvas.width,
+                            gl.canvas.width / this.aspect
+                        ),
                     ]),
                     gl.STATIC_DRAW
                 );
